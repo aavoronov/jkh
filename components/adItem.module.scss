@@ -1,0 +1,54 @@
+.menu__ad {
+  margin: 0 auto 26px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background-repeat: no-repeat;
+  max-width: 100%;
+  max-height: 100%;
+  background-position: center;
+}
+.menu-ad-item__btn-block {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 219px;
+  position: relative;
+  bottom: 8px;
+}
+
+.menu-ad-item__btn-block .app-btn {
+  width: 67px;
+}
+.item__btn-block-one-btn {
+  background-color: #ff8c00;
+  border-radius: 15px;
+  text-transform: uppercase;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 11px;
+  color: #fff;
+  padding: 10px 50px;
+  text-decoration: none;
+  position: relative;
+  bottom: 19px;
+}
+
+@media screen and (max-width: 1199px) {
+  .menu__ad {
+    width: 180px !important;
+    height: 180px !important;
+    margin-top: 20px;
+    margin-bottom: 12px;
+    background-size: 180px 180px !important;
+    .menu-ad-item__btn-block {
+      a {
+        img {
+          width: 50px;
+        }
+      }
+    }
+  }
+}
