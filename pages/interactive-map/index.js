@@ -7,9 +7,11 @@ import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a lo
 import { Carousel } from "react-responsive-carousel";
 import { Rating } from "react-simple-star-rating";
 
-import LayoutLoggedIn from "../components/LayoutLoggedIn";
-import LayoutMap from "../components/LayoutMap";
-import AdItem from "../components/AdItem";
+import LayoutLoggedIn from "../../components/LayoutLoggedIn";
+import LayoutMap from "../../components/LayoutMap";
+import AdItem from "../../components/AdItem";
+// import DropdownList from "../components/DropdownList";
+import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 
 import styles from "./map.module.scss";
 import { YMaps, Map, Placemark, Button, ZoomControl, Clusterer, GeolocationControl } from "@pbe/react-yandex-maps";
@@ -133,11 +135,38 @@ const getPointOptions = (item, index) => {
   };
 };
 
+const DropdownList = ({ objects, value, setValue, className = "" }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  return (
+    <div className={styles.dropdownWrap + " " + className}>
+      <div className={styles.dropdownFieldWrap} onClick={() => setDropdownOpen(!dropdownOpen)}>
+        <span className={styles.dropdownField}>{value}</span>
+        <span className={styles.dropdownBtn}></span>
+      </div>
+      {dropdownOpen ? (
+        <ul className={styles.dropdownList}>
+          {objects.map((item, index) => (
+            <li
+              key={index}
+              className={styles.dropdownListItem}
+              onClick={() => {
+                setValue(item);
+                setDropdownOpen(false);
+              }}>
+              {item}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+};
+
 export default function InteractiveMap(props) {
   const [mapWidth, setMapWidth] = useState("calc(100vw - 263px)");
   const [menuIsOpen, setMenuIsOpen] = useState(true);
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(true);
-  const [dropdownValue, setDropdownValue] = useState("Выберите объект");
+  const [dropdownValue, setDropdownValue] = useState(objectList[0]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [createObject, setCreateObject] = useState(false);
   const [chosenCategory, setChosenCategory] = useState("Выберите категорию");
@@ -148,32 +177,7 @@ export default function InteractiveMap(props) {
   const [complaintActive, setComplaintActive] = useState(false);
   const [complaintError, setComplaintError] = useState(false);
 
-  const DropdownList = ({ objects, value, setValue }) => {
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-    return (
-      <>
-        <div className={styles.dropdownFieldWrap} onClick={() => setDropdownOpen(!dropdownOpen)}>
-          <span className={styles.dropdownField}>{value}</span>
-          <span className={styles.dropdownBtn}></span>
-        </div>
-        {dropdownOpen ? (
-          <ul className={styles.dropdownList}>
-            {objects.map((item, index) => (
-              <li
-                key={index}
-                className={styles.dropdownListItem}
-                onClick={() => {
-                  setValue(item);
-                  setDropdownOpen(false);
-                }}>
-                {item}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </>
-    );
-  };
+  const { height, width } = useWindowDimensions();
 
   const FilterBlock = ({ filterList }) => {
     return (
@@ -576,6 +580,15 @@ export default function InteractiveMap(props) {
         </div>
       </button>
       <YMaps>
+        {width < 769 ? (
+          <button
+            className={leftMenuIsOpen ? styles.collapseMenuBtn : styles.collapseMenuBtn + " " + styles.collapsed}
+            onClick={() => {
+              setLeftMenuIsOpen(!leftMenuIsOpen);
+            }}>
+            <Image src={arrowLeft} alt='' width={14} height={31} />
+          </button>
+        ) : null}
         <Map
           defaultState={mapState}
           style={mapState.style}
@@ -843,7 +856,13 @@ export default function InteractiveMap(props) {
                   <label htmlFor='category' className={styles.fieldName}>
                     Категория объекта
                   </label>
-                  <DropdownList objects={filterList.map((item) => item.name)} value={chosenCategory} setValue={setChosenCategory} />
+                  <DropdownList
+                    className={styles.createObjectDropdown}
+                    objects={filterList.map((item) => item.name)}
+                    value={chosenCategory}
+                    setValue={setChosenCategory}
+                    style={{ width: 200 }}
+                  />
                 </div>
                 <div className={styles.fieldWrap}>
                   <label htmlFor='name' className={styles.fieldName}>
@@ -966,14 +985,15 @@ export default function InteractiveMap(props) {
             </Formik>
           </>
         )}
-
-        <button
-          className={leftMenuIsOpen ? styles.collapseMenuBtn : styles.collapseMenuBtn + " " + styles.collapsed}
-          onClick={() => {
-            setLeftMenuIsOpen(!leftMenuIsOpen);
-          }}>
-          <Image src={arrowLeft} alt='' width={14} height={31} />
-        </button>
+        {width > 768 ? (
+          <button
+            className={leftMenuIsOpen ? styles.collapseMenuBtn : styles.collapseMenuBtn + " " + styles.collapsed}
+            onClick={() => {
+              setLeftMenuIsOpen(!leftMenuIsOpen);
+            }}>
+            <Image src={arrowLeft} alt='' width={14} height={31} />
+          </button>
+        ) : null}
       </aside>
     </LayoutMap>
   );

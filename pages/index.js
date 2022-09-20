@@ -6,17 +6,21 @@ import React, { useEffect, useState } from "react";
 // import { Link } from "react-router-dom";
 import styles from "./index.module.scss";
 import Image from "next/image";
+import Link from "next/link";
 import Layout from "../components/Layout";
 import AdItem from "../components/AdItem";
 
-function Home() {
-  const onClickHandler = () => {
-    setMenuIsOpen(!menuIsOpen);
-  };
+import ModalsLayer from "../components/Modals";
 
+function Home() {
   const BurgerMenuBtn = () => {
     return (
-      <div id={styles.navIcon} className={menuIsOpen ? styles.open : ""} onClick={onClickHandler}>
+      <div
+        id={styles.navIcon}
+        className={menuIsOpen ? styles.open : ""}
+        onClick={() => {
+          setMenuIsOpen(!menuIsOpen);
+        }}>
         <span></span>
         <span></span>
         <span></span>
@@ -26,11 +30,21 @@ function Home() {
   };
 
   const Overlay = () => {
-    return <div id={styles.overlay} className={menuIsOpen ? "" : styles.hidden} onClick={onClickHandler}></div>;
+    return (
+      <div
+        id={styles.overlay}
+        className={menuIsOpen ? "" : styles.hidden}
+        onClick={() => {
+          setMenuIsOpen(!menuIsOpen);
+        }}></div>
+    );
   };
 
   const [menuIsOpen, setMenuIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const [modalToDisplay, setModalToDisplay] = useState(null);
+  // const [popupError, setPopupError] = useState(false);
 
   useEffect(() => {
     window.addEventListener("orientationchange", doOnOrientationChange);
@@ -43,13 +57,14 @@ function Home() {
 
   return (
     <Layout>
+      {modalToDisplay ? <ModalsLayer modalToDisplay={modalToDisplay} setModalToDisplay={setModalToDisplay} /> : null}
       <main className={styles.mainContainer}>
         <div className={styles.App}>
           <div className={menuIsOpen ? [styles["no-interaction"] + " " + styles.container] : styles.container}>
             <Overlay />
             <aside className={menuIsOpen ? [styles["menu-mobile"] + " " + styles["menu-active"]] : styles["menu-mobile"]}>
               <a href='#'>
-                <div className={[styles.header__button + " " + styles.gradient]} onClick={() => setIsLoggedIn(!isLoggedIn)}>
+                <div className={[styles.header__button + " " + styles.gradient]} onClick={() => setModalToDisplay("authByLogin")}>
                   <Image src={personal} className={styles.button__icon} alt='' width={65} />
                   <span className={styles.button__text}>Войти</span>
                 </div>
@@ -69,10 +84,10 @@ function Home() {
                     <a href='#'>Кабинет мастеров</a>
                   </li>
                   <li className={styles.menu__item}>
-                    <a href='#'>Интерактивная карта</a>
+                    <Link href='/interactive-map'>Интерактивная карта</Link>
                   </li>
                   <li className={styles.menu__item}>
-                    <a href='#'>Торговая площадка</a>
+                    <Link href='/trading-platform'>Торговая площадка</Link>
                   </li>
                 </ul>
                 <AdItem appButtons={true} image={"/img/appAd.png"} width={180} height={180} />
@@ -97,7 +112,7 @@ function Home() {
                 </div>
               </div>
               <a href='#'>
-                <div className={[styles.header__button + " " + styles.gradient]} onClick={() => setIsLoggedIn(!isLoggedIn)}>
+                <div className={[styles.header__button + " " + styles.gradient]} onClick={() => setModalToDisplay("authByLogin")}>
                   <Image src={personal} className={styles.button__icon} alt='' width={65} />
                   <span className={styles.button__text}>Войти</span>
                 </div>
@@ -142,10 +157,10 @@ function Home() {
                       <a href='#'>Кабинет мастеров</a>
                     </li>
                     <li className={styles.menu__item}>
-                      <a href='#'>Интерактивная карта</a>
+                      <Link href='/interactive-map'>Интерактивная карта</Link>
                     </li>
                     <li className={styles.menu__item}>
-                      <a href='#'>Торговая площадка</a>
+                      <Link href='/trading-platform'>Торговая площадка</Link>
                     </li>
                   </ul>
                   <AdItem appButtons={true} image={"/img/menuAppAd.png"} width={240} height={204} />

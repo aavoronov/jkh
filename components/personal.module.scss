@@ -1,0 +1,147 @@
+.leftMenu {
+  position: fixed;
+  z-index: 10;
+  display: inline;
+  // top: 0;
+  left: 0;
+  width: 300px;
+  min-height: calc(100vh - 59px);
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: #ff8c00 #f1f1f1;
+  padding: 32px 0 26px;
+  /* width */
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: #ff8c00;
+  }
+
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: #ff8c00;
+  }
+  z-index: 1;
+  transition: all 0.2s;
+  background: #ffffff;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+  &.collapsed {
+    width: 26px;
+    transform-origin: left;
+    transition: all 0.2s;
+    & *:not(.collapseMenuBtn) {
+      display: none;
+    }
+    & .asideMenu .menuItem {
+      pointer-events: none;
+      &.active {
+        border-width: 0;
+      }
+    }
+  }
+}
+
+.leftMenuItem {
+  width: 100%;
+  padding: 21px 0 21px 40px;
+  background: #f5f5f5;
+  margin-bottom: 9px;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 130%;
+  color: #1c1c1c;
+  cursor: pointer;
+}
+
+.container {
+  // margin-left: 300px;
+  margin: 32px 20px 20px 320px;
+  padding: 28px 18px 20px;
+  background-color: white;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 9px;
+  &.withProducts {
+    margin: 32px 10px 20px 310px;
+    padding-left: 10px;
+  }
+}
+
+@media screen and (max-width: 1280px) {
+  .leftMenu {
+    width: 200px;
+    padding: 32px 0 0;
+  }
+  .leftMenuItem {
+    padding-left: 10px;
+  }
+  .container {
+    margin-left: 220px !important;
+    &.withProducts {
+      margin-left: 210px !important;
+      margin-right: 10px;
+    }
+  }
+}
+
+@media screen and (max-width: 960px) {
+  .withProducts {
+    // padding-left: 10px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    margin-left: 25px !important;
+    &.withProducts {
+      margin-left: 15px !important;
+      margin-right: 10px;
+    }
+  }
+
+  .leftMenu {
+    z-index: 1001;
+    padding-top: 62px;
+  }
+
+  .leftMenu.collapsed {
+    width: 0;
+    padding: 0;
+    & .collapseMenuBtn {
+      display: block;
+      transition: 0;
+    }
+  }
+  .collapseMenuBtn {
+    width: 47px;
+    height: 47px;
+    position: absolute;
+    z-index: 1002;
+  }
+
+  .collapseMenuBtn {
+    top: 10px;
+    left: 10px;
+    border: 1px #c4c6d6 solid;
+    padding: 6px 14px 4px 17px;
+    border-radius: 50%;
+    background-color: #fff;
+    transition: 0;
+    transform: rotate(180deg);
+    &:hover {
+      // transform: scale(1) translate(0);
+      transform: rotate(180deg);
+    }
+    &.collapsed {
+      // transform: scale(1) translate(0);
+      transform: rotate(0);
+    }
+  }
+}

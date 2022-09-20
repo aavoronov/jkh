@@ -47,6 +47,24 @@
     /* Safari, Android, iOS */ url("../public/fonts/roboto-v30-latin-ext_latin_cyrillic-900.svg#Roboto") format("svg"); /* Legacy iOS */
 }
 
+@font-face {
+  font-family: "Gilroy";
+  font-style: normal;
+  font-weight: 500;
+  src: url("../public/fonts/Gilroy-Medium.eot"); /* IE9 Compat Modes */
+  src: local(""), /* Super Modern Browsers */ url("../public/fonts/Gilroy-Medium.woff") format("woff"),
+    /* Modern Browsers */ url("../public/fonts/Gilroy-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Gilroy";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../public/fonts/Gilroy-Regular.eot"); /* IE9 Compat Modes */
+  src: local(""), /* Super Modern Browsers */ url("../public/fonts/Gilroy-Regular.woff") format("woff"),
+    /* Modern Browsers */ url("../public/fonts/Gilroy-Regular.ttf") format("truetype");
+}
+
 #overlay {
   position: fixed; /* Sit on top of the page content */
   // display: none; /* Hidden by default */
@@ -100,6 +118,7 @@
 
 .headerLogoWrap {
   margin-left: 37px;
+  cursor: pointer;
 }
 
 .headerButtonsWrap {
@@ -195,7 +214,7 @@
 }
 
 .rightMenu {
-  position: absolute;
+  position: fixed;
   display: inline;
   top: 59px;
   right: 0;
@@ -361,7 +380,10 @@
     min-height: 60px;
   }
   .container {
-    width: calc(100vw - 26px) !important;
+    width: calc(100vw) !important;
+  }
+  .rightMenu.collapsed {
+    width: 0;
   }
 }
 .container {
@@ -374,6 +396,21 @@
   z-index: -10;
   min-height: calc(100vh - 60px);
   width: calc(100vw - 263px);
+  &.expanded {
+    width: calc(100vw - 26px);
+  }
+}
+
+.containerMap {
+  position: absolute;
+  top: 60px;
+  // padding-top: 94px;
+  // margin-left: 30px;
+  background-color: #f5f5f5;
+  overflow-y: visible;
+  z-index: -10;
+  min-height: calc(100vh - 60px);
+  width: calc(100vw - 273px);
   &.expanded {
     width: calc(100vw - 26px);
   }

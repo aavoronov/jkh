@@ -1,0 +1,274 @@
+#overlay {
+  position: fixed; /* Sit on top of the page content */
+  // display: none; /* Hidden by default */
+  width: 100%; /* Full width (cover the whole page) */
+  height: 100%; /* Full height (cover the whole page) */
+  // transition: all 5s;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Black background with opacity */
+  z-index: 1000; /* Specify a stack order in case you're using a different order for other elements */
+  cursor: pointer; /* Add a pointer on hover */
+  &.hidden {
+    display: none;
+    background-color: rgba(0, 0, 0, 0);
+  }
+}
+
+.popup {
+  position: absolute;
+  top: calc(50vh - 260px);
+  left: calc(50vw - 230px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  // right: 0;
+  z-index: 1000;
+  background-color: white;
+  border-radius: 20px;
+  width: 460px;
+  height: 520px;
+  // padding: 100px;
+}
+
+@media screen and (max-width: 720px) {
+  .popup {
+    width: 360px;
+    left: calc(50vw - 180px);
+    // & > * {
+    //   width: 240px;
+    // }
+    .closeBtn {
+      //   left: 330px;
+    }
+  }
+}
+
+.closeBtn {
+  background-image: url("../public/img/crossLarge.png");
+  height: 20px;
+  width: 20px;
+  background-size: 20px;
+  display: block;
+  position: absolute;
+  top: 30px;
+  // left: 44%;
+  right: 5%;
+  // left: 135px;
+  // top: 15px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.popupHeading {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 150%;
+  margin: 0 65px 32px;
+  /* identical to box height, or 24px */
+  display: block;
+  text-align: center;
+
+  color: #000000;
+  // text-transform: uppercase;
+  // margin-bottom: 32px;
+}
+
+.popupFieldWrap {
+  // width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 0 30px;
+  &:not(:last-child) {
+    margin-bottom: 18px;
+  }
+  & .popupComment {
+    width: 100%;
+  }
+  & .warningWrap {
+    width: 100%;
+  }
+  .column {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.field {
+  border-radius: 9px;
+  border: 1px solid #c4c6d6;
+  padding: 10px 0 10px 12px;
+  width: 270px;
+  font-size: 12px;
+}
+
+.textarea {
+  resize: none;
+}
+
+.warning {
+  display: block;
+  text-align: end;
+  color: #9c9da7;
+  font-size: 10px;
+}
+
+.errorText {
+  display: block;
+  font-size: 12px;
+  color: red;
+  align-self: flex-start;
+}
+
+.warningWrap {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 250px;
+  margin-bottom: 40px;
+}
+
+.submitBtn {
+  width: 270px;
+  font-size: 14px;
+  display: block;
+  margin: 0 auto;
+  border-width: 0;
+  background-color: #ff8c00;
+  color: white;
+  padding: 10px;
+  border-radius: 9px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  &:hover {
+    filter: brightness(120%);
+  }
+}
+.secondaryOption {
+  background-color: white;
+  border-width: 0;
+  font-size: 16px;
+  line-height: 150%;
+  color: #888b8e;
+  position: relative;
+  cursor: pointer;
+  //   display: block;
+  text-align: center;
+  &:hover {
+    // border-bottom-width: 1px;
+  }
+  &::after {
+    content: "";
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    transition: transform 0.2s ease-in-out;
+    transform: scaleX(0);
+    border-bottom: 1px solid #888b8e;
+  }
+  &:hover::after {
+    transform: scale(1.1);
+    transition: 0.2s;
+  }
+}
+
+.delimiter {
+  font-size: 14px;
+  line-height: 160%;
+  text-align: center;
+  letter-spacing: -0.3px;
+  color: #c4c6d6;
+  position: relative;
+  &:before,
+  &:after {
+    content: "";
+    width: 120px;
+    height: 1px;
+    background-color: #c4c6d6;
+    display: block;
+    position: absolute;
+  }
+  &:before {
+    top: 11px;
+    right: 47px;
+  }
+  &:after {
+    bottom: 10px;
+    // right: 47px;
+    left: 47px;
+  }
+}
+
+.eulaText {
+  font-size: 9px;
+  line-height: 160%;
+  font-feature-settings: "tnum" on, "lnum" on;
+  color: #2a2a28;
+}
+.eulaLink {
+  font-size: 9px;
+  line-height: 160%;
+  cursor: pointer;
+  text-decoration-line: underline;
+  font-feature-settings: "tnum" on, "lnum" on;
+  color: #4f4f4f;
+}
+
+.resendIn {
+  font-size: 16px;
+  line-height: 150%;
+  color: #505050;
+}
+
+.resendInactive {
+  font-size: 16px;
+  line-height: 150%;
+  color: #b0b0b0;
+  background-color: white;
+  border-width: 0;
+}
+.resendActive {
+  font-size: 16px;
+  line-height: 150%;
+  color: #505050;
+  background-color: white;
+  border-width: 0;
+  cursor: pointer;
+}
+
+.withEyeSecure {
+  position: relative;
+  background: url("/img/eyeOpen.png") 50%;
+  background-size: 24px;
+  width: 24px;
+  height: 24px;
+  display: block;
+  position: absolute;
+  top: 5px;
+  right: 15px;
+  cursor: pointer;
+}
+
+.relative {
+  position: relative;
+}
+
+.withEyeInsecure {
+  position: relative;
+  background: url("/img/eyeClosed.png") 50%;
+  background-size: 24px;
+  width: 24px;
+  height: 24px;
+  display: block;
+  position: absolute;
+  top: 5px;
+  right: 15px;
+  cursor: pointer;
+}

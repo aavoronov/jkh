@@ -19,17 +19,24 @@ import cart from "/public/img/icon-cart.png";
 import arrowRight from "/public/img/arrow-right.png";
 import person from "/public/img/person.png";
 import logout from "/public/img/logout.png";
+import personGrey from "/public/img/personGrey.png";
+import logoutGrey from "/public/img/logoutGrey.png";
 
 import useWindowDimensions from "./useWindowDimensionsSSR";
 
 export default function LayoutLoggedIn({ children, menuIsCollapsible = false, menuIsOpen, setMenuIsOpen }) {
   // const [menuIsOpen, setMenuIsOpen] = useState(true);
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [technicalIsShown, setTechnicalIsShown] = useState(true);
+
   const { height, width } = useWindowDimensions();
 
   const setMenuState = (value) => {
     setMenuIsOpen(value);
+  };
+
+  const dropdownClickHandler = () => {
+    if (width < 768) setMenuIsOpen(!menuIsOpen);
+    else return;
   };
 
   useEffect(() => {
@@ -71,26 +78,12 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
           type='text/javascript'></script>
       </Head>
       <div id={styles.overlay} className={menuIsOpen ? "" : styles.hidden} onClick={onClickHandler}></div>
-      <div className={technicalIsShown ? "" : "hidden"}>
-        <ul>
-          <li>
-            <Link href='/'>Главная</Link>
-          </li>
-          <li>
-            <Link href='/utilities'>Личный кабинет</Link>
-          </li>
-          <li>
-            <Link href='/interactive-map'>Карта</Link>
-          </li>
-          <li>
-            <Link href='/services'>Услуги мастеров</Link>
-          </li>
-        </ul>
-        <button onClick={() => setTechnicalIsShown(false)}>Скрыть список</button>
-      </div>
+
       <div className={styles.header + " " + styles.gradient}>
         <div className={styles.headerLogoWrap}>
-          <Image src={logo} alt='' />
+          <Link href='/'>
+            <Image src={logo} alt='' />
+          </Link>
         </div>
         <div className={styles.headerButtonsWrap}>
           <div
@@ -108,16 +101,22 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
             </div>
             <span className={styles.name}>Анна-Мария-Генриетта К.</span>
           </div>
-          <div className={styles.dropdownBtn} onMouseEnter={() => setDropdownVisible(true)} onMouseLeave={() => setDropdownVisible(false)}>
+          <div
+            className={styles.dropdownBtn}
+            onMouseEnter={() => setDropdownVisible(true)}
+            onMouseLeave={() => setDropdownVisible(false)}
+            onClick={dropdownClickHandler}>
             <Image src={arrow} alt='' />
-            {dropdownVisible ? (
+            {dropdownVisible && width > 768 ? (
               <div className={styles.dropdownMenu}>
                 <ul>
                   <li>
-                    <div className={styles.dropdownMenuItem}>
-                      <Image src={person} alt='' />
-                      <span>Личный кабинет</span>
-                    </div>
+                    <Link href='/personal'>
+                      <div className={styles.dropdownMenuItem}>
+                        <Image src={person} alt='' />
+                        <span>Личный кабинет</span>
+                      </div>
+                    </Link>
                   </li>
                   <li>
                     <div className={styles.dropdownMenuItem}>
@@ -131,7 +130,7 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
           </div>
         </div>
       </div>
-      <div className={menuIsOpen ? styles.container : styles.container + " " + styles.expanded}>{children}</div>
+      <div className={menuIsOpen ? styles.containerMap : styles.containerMap + " " + styles.expanded}>{children}</div>
 
       <aside className={menuIsOpen ? styles.rightMenu : styles.rightMenu + " " + styles.collapsed}>
         {menuIsCollapsible || width <= 768 ? (
@@ -151,41 +150,73 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
             </div>
           </li>
           <li>
-            <div className={styles.menuItem}>
-              <Image src={list} alt='' />
-              <span className={styles.menuItemText}>Платежи ЖКХ</span>
-            </div>
+            <Link href='/utilities'>
+              <div className={styles.menuItem}>
+                <Image src={list} alt='' /> <span className={styles.menuItemText}>Платежи ЖКХ</span>
+              </div>
+            </Link>
           </li>
           <li>
-            <div className={styles.menuItem}>
-              <Image src={chat} alt='' />
-              <span className={styles.menuItemText}>Домовые чаты</span>
-            </div>
+            <Link href='/chat'>
+              <div className={styles.menuItem}>
+                <Image src={chat} alt='' />
+
+                <span className={styles.menuItemText}>Домовые чаты</span>
+              </div>
+            </Link>
           </li>
           <li>
-            <div className={styles.menuItem}>
-              <Image src={worker} alt='' />
-              <span className={styles.menuItemText}>Услуги мастеров</span>
-            </div>
+            <Link href='/services'>
+              <div className={styles.menuItem}>
+                <Image src={worker} alt='' />
+                <span className={styles.menuItemText}>Услуги мастеров</span>
+              </div>
+            </Link>
           </li>
           <li>
-            <div className={styles.menuItem}>
-              <Image src={location} alt='' />
-              <span className={styles.menuItemText}>Интерактивная карта</span>
-            </div>
+            <Link href='/interactive-map'>
+              <div className={styles.menuItem}>
+                <Image src={location} alt='' />
+
+                <span className={styles.menuItemText}>Интерактивная карта</span>
+              </div>
+            </Link>
           </li>
           <li>
-            <div className={styles.menuItem}>
-              <Image src={stats} alt='' />
-              <span className={styles.menuItemText}>Голосования, опросы</span>
-            </div>
+            <Link href='/polls'>
+              <div className={styles.menuItem}>
+                <Image src={stats} alt='' />
+                <span className={styles.menuItemText}>Голосования, опросы</span>
+              </div>
+            </Link>
           </li>
           <li>
-            <div className={styles.menuItem}>
-              <Image src={cart} alt='' />
-              <span className={styles.menuItemText}>Торговая площадка</span>
-            </div>
+            <Link href='/trading-platform'>
+              <div className={styles.menuItem}>
+                <Image src={cart} alt='' />
+
+                <span className={styles.menuItemText}>Торговая площадка</span>
+              </div>
+            </Link>
           </li>
+          {width < 768 ? (
+            <>
+              <li>
+                <Link href='/personal'>
+                  <div className={styles.menuItem}>
+                    <Image src={personGrey} alt='' />
+                    <span className={styles.menuItemText}>Личный кабинет</span>
+                  </div>
+                </Link>
+              </li>
+              <li>
+                <div className={styles.menuItem}>
+                  <Image src={logoutGrey} alt='' />
+                  <span className={styles.menuItemText}>Выйти</span>
+                </div>
+              </li>
+            </>
+          ) : null}
         </ul>
         <div className={styles.menuAd}>
           <a href='#' className={styles.menuAdBtn}>

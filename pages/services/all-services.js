@@ -1,0 +1,213 @@
+import React, { useEffect, useState, useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Field, Form, Formik, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
+import { Carousel } from "react-responsive-carousel";
+import { Rating } from "react-simple-star-rating";
+import { RotatingLines } from "react-loader-spinner";
+
+import LayoutLoggedIn from "../../components/LayoutLoggedIn";
+import LayoutMap from "../../components/LayoutMap";
+import AdItem from "../../components/AdItem";
+import ServiceAd from "../../components/ServiceAd";
+// import DropdownList from "../components/DropdownList";
+import arrowLeft from "/public/img/arrowLeft.png";
+
+import styles from "./allservices.module.scss";
+import { objectList, servicesList, portfolio, mastersData } from "../../components/data";
+
+import useWindowDimensions from "../../components/useWindowDimensionsSSR";
+
+// SwiperCore.use([Navigation]);
+
+export default function AllServices(props) {
+  const [categoriesVisible, setCategoriesVisible] = useState(true);
+  const { width, height } = useWindowDimensions();
+  return (
+    <LayoutLoggedIn>
+      <div className={styles.container}>
+        <Link href='./service-inner'>
+          <div className={styles.backBtn}></div>
+        </Link>
+        <div className={styles.wannaFind}>
+          <input name='name' type='text' placeholder='Я хочу найти...' className={styles.field} />
+        </div>
+        <span className={styles.header}>Каталог услуг</span>
+        <div className={styles.searchResultsWrap}>
+          <div>
+            {categoriesVisible || width > 600 ? (
+              <ul className={styles.categories} onClick={() => setCategoriesVisible(false)}>
+                <li>Ремонт и строительство</li>
+                <li>Ремонт и установка техники</li>
+                <li>Ремонт авто</li>
+                <li>Репетиторы и обучение</li>
+                <li>Красота</li>
+                <li>Перевозки и курьеры</li>
+                <li>Хозяйство и уборка</li>
+                <li>Компьютеры и IT</li>
+                <li>Дизайнеры</li>
+                <li>Аренда</li>
+                <li>Юристы</li>
+                <li>Тренеры</li>
+                <li>Фото, видео, аудио</li>
+                <li>Творчество, рукоделие и хобби</li>
+                <li>Организация мероприятий</li>
+                <li>Артисты</li>
+                <li>Охрана и детективы</li>
+                <li>Услуги для животных</li>
+                <li>Разное</li>
+              </ul>
+            ) : null}
+          </div>
+          <ul className={styles.subcategories}>
+            <li>Сантехнические работы</li>
+            <li>Электромонтажные работы</li>
+            <li>потолки</li>
+            <li>изготовление окон</li>
+            <li>водоотведение</li>
+            <li>Отделка деревянных домов, бань, саун</li>
+            <li>Мастер на час</li>
+            <li>Строительство домов и коттеджей</li>
+            <li>Ремонт квартир и домов</li>
+            <li>Заборы и ограждения</li>
+            <li>Полы и напольные покрытия</li>
+            <li>Бетонные работы</li>
+            <li>Снос и демонтаж</li>
+            <li>Бурение</li>
+            <li>Земляные работы</li>
+            <li>Строительство бань, саун и бассейнов</li>
+            <li>Кровельные работы</li>
+            <li>Фасадные работы</li>
+            <li>Фундамент</li>
+            <li>Плиточные работы</li>
+            <li>Обои и малярные работы</li>
+            <li>Сборка и ремонт мебели</li>
+            <li>Электродуговая сварка</li>
+            <li>Ремонт офиса</li>
+            <li>Кадастровые работы</li>
+            <li>Дорожное строительство</li>
+            <li>Строительство гаражей</li>
+            <li>Установка генераторов</li>
+            <li>Сварочные работы</li>
+            <li>Охранные системы и контроль доступа</li>
+            <li>Ремонт и установка замков</li>
+            <li>Умный дом</li>
+            <li>Кладка печей и каминов</li>
+            <li>Кладочные работы</li>
+            <li>Проектирование и сметы</li>
+            <li>Слаботочные системы</li>
+            <li>Теплосчетчики</li>
+            <li>Демонтаж металлоконструкций</li>
+            <li>Столярные и плотницкие работы</li>
+            <li>Установка дверей</li>
+            <li>Ремонт электрокотлов</li>
+            <li>Лестницы</li>
+            <li>Жалюзи</li>
+            <li>Изготовление металлоконструкций</li>
+            <li>Гипсокартон и гипсоволокно</li>
+            {width <= 959 ? (
+              <>
+                <li>Изыскательные работы</li>
+                <li>Вскрытие замков</li>
+                <li>Озеленение</li>
+                <li>Изготовление плитки</li>
+                <li>Изготовление шкафов-купе</li>
+                <li>Газовая сварка</li>
+                <li>Антенны</li>
+                <li>Изоляция</li>
+                <li>Чистка труб</li>
+                <li>Проектирование металлоконструкций</li>
+                <li>Реставрация и эмалировка ванн</li>
+                <li>Перетяжка и ремонт мягкой мебели</li>
+                <li>Изготовление ключей</li>
+                <li>Алмазное сверление и резка</li>
+                <li>Проектирование газовых сетей</li>
+                <li>Вентиляция</li>
+                <li>Стекольные услуги</li>
+                <li>Проектирование зданий</li>
+                <li>Ремонт и установка кодовых замков</li>
+                <li>Изготовление металлических дверей</li>
+                <li>Высотные работы</li>
+                <li>Поверка счетчиков</li>
+                <li>Изготовление кухни</li>
+                <li>Изготовление скульптур</li>
+                <li>Водоемы и фонтаны</li>
+                <li>Изготовление кованых изделий</li>
+                <li>Умные счётчики</li>
+                <li>Альтернативная энергия</li>
+                <li>Герметизация фасадов</li>
+                <li>Технический надзор</li>
+                <li>Огнезащитная обработка</li>
+                <li>Роспись стен</li>
+                <li>Художественное литье из металла</li>
+                <li>Электромонтажные работы — срочный выезд</li>
+                <li>Сантехнические работы и отопление — аварийный выезд</li>
+                <li>Маркизы</li>
+                <li>Изготовление дверей из дерева</li>
+                <li>Системы пожаротушения</li>
+                <li>Лепнина и мозаики</li>
+                <li>Изготовление витражей</li>
+                <li>Установка карнизов</li>
+                <li>Рольставни и секционные ворота</li>
+                <li>Гидроиспытания трубопроводов</li>
+                <li>Пошив штор</li>
+                <li>Другое</li>
+              </>
+            ) : null}
+          </ul>
+          {width > 959 ? (
+            <ul className={styles.subcategories}>
+              <li>Изыскательные работы</li>
+              <li>Вскрытие замков</li>
+              <li>Озеленение</li>
+              <li>Изготовление плитки</li>
+              <li>Изготовление шкафов-купе</li>
+              <li>Газовая сварка</li>
+              <li>Антенны</li>
+              <li>Изоляция</li>
+              <li>Чистка труб</li>
+              <li>Проектирование металлоконструкций</li>
+              <li>Реставрация и эмалировка ванн</li>
+              <li>Перетяжка и ремонт мягкой мебели</li>
+              <li>Изготовление ключей</li>
+              <li>Алмазное сверление и резка</li>
+              <li>Проектирование газовых сетей</li>
+              <li>Вентиляция</li>
+              <li>Стекольные услуги</li>
+              <li>Проектирование зданий</li>
+              <li>Ремонт и установка кодовых замков</li>
+              <li>Изготовление металлических дверей</li>
+              <li>Высотные работы</li>
+              <li>Поверка счетчиков</li>
+              <li>Изготовление кухни</li>
+              <li>Изготовление скульптур</li>
+              <li>Водоемы и фонтаны</li>
+              <li>Изготовление кованых изделий</li>
+              <li>Умные счётчики</li>
+              <li>Альтернативная энергия</li>
+              <li>Герметизация фасадов</li>
+              <li>Технический надзор</li>
+              <li>Огнезащитная обработка</li>
+              <li>Роспись стен</li>
+              <li>Художественное литье из металла</li>
+              <li>Электромонтажные работы — срочный выезд</li>
+              <li>Сантехнические работы и отопление — аварийный выезд</li>
+              <li>Маркизы</li>
+              <li>Изготовление дверей из дерева</li>
+              <li>Системы пожаротушения</li>
+              <li>Лепнина и мозаики</li>
+              <li>Изготовление витражей</li>
+              <li>Установка карнизов</li>
+              <li>Рольставни и секционные ворота</li>
+              <li>Гидроиспытания трубопроводов</li>
+              <li>Пошив штор</li>
+              <li>Другое</li>
+            </ul>
+          ) : null}
+        </div>
+      </div>
+    </LayoutLoggedIn>
+  );
+}

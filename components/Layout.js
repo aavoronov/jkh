@@ -3,8 +3,6 @@ import Head from "next/head";
 import React, { useState } from "react";
 
 export default function Layout({ children }) {
-  const [technicalIsShown, setTechnicalIsShown] = useState(true);
-
   return (
     <div className='container'>
       <Head>
@@ -12,23 +10,7 @@ export default function Layout({ children }) {
         <link rel='icon' href='/favicon.ico' />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
       </Head>
-      <div className={technicalIsShown ? "" : "hidden"}>
-        <ul>
-          <li>
-            <Link href='/'>Главная</Link>
-          </li>
-          <li>
-            <Link href='/utilities'>Личный кабинет</Link>
-          </li>
-          <li>
-            <Link href='/interactive-map'>Карта</Link>
-          </li>
-          <li>
-            <Link href='/services'>Услуги мастеров</Link>
-          </li>
-        </ul>
-        <button onClick={() => setTechnicalIsShown(false)}>Скрыть список</button>
-      </div>
+
       {children}
       <style jsx>{`
         .container {
