@@ -151,7 +151,7 @@ function Home() {
                 <div className={[styles["banner-section__column"] + " " + styles["banner-section__menu"] + " " + styles.gradient]}>
                   <ul className={styles.banner__menu}>
                     <li className={styles.menu__item}>
-                      <a href='#'>Личный кабинет</a>
+                      <Link href='/personal'>Личный кабинет</Link>
                     </li>
                     <li className={styles.menu__item}>
                       <a href='#'>Кабинет мастеров</a>

@@ -301,9 +301,11 @@ export default function Profile({}) {
           </div>
         )}
 
-        <button type='button' className={styles.submitBtn} onClick={() => {}}>
-          Добавить адрес
-        </button>
+        <Link href='/personal/create-object'>
+          <button type='button' className={styles.submitBtn}>
+            Добавить адрес
+          </button>
+        </Link>
       </div>
 
       <div className={styles.personalSection}>

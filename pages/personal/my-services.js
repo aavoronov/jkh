@@ -96,7 +96,9 @@ export default function MyServices({}) {
       ) : null}
 
       <div className={styles.bottomBtnWrap}>
-        <button className={styles.submitBtn}>Разместить услугу</button>
+        <Link href='/personal/create-service'>
+          <button className={styles.submitBtn}>Разместить услугу</button>
+        </Link>
       </div>
     </LayoutPersonal>
   );

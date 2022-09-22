@@ -50,13 +50,31 @@
 }
 
 .container {
-  margin-left: 300px;
+  max-width: 888px;
+  // margin-left: 300px;
+  margin: 0 auto;
+  position: relative;
+  left: 150px;
   padding: 32px 20px 20px;
+}
+
+@media screen and (max-width: 1440px) {
+  .container {
+    max-width: 834px;
+    margin: 0;
+    margin-left: 300px;
+    position: static;
+    left: 0;
+  }
 }
 
 @media screen and (max-width: 1280px) {
   .container {
+    max-width: 834px;
+    margin: 0;
     margin-left: 200px;
+    position: static;
+    left: 0;
   }
   .leftMenu {
     width: 200px;

@@ -121,10 +121,12 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false }) 
                     </Link>
                   </li>
                   <li>
-                    <div className={styles.dropdownMenuItem}>
-                      <Image src={logout} alt='' />
-                      <span>Выйти</span>
-                    </div>
+                    <Link href='/'>
+                      <div className={styles.dropdownMenuItem}>
+                        <Image src={logout} alt='' />
+                        <span>Выйти</span>
+                      </div>
+                    </Link>
                   </li>
                 </ul>
               </div>
@@ -213,10 +215,12 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false }) 
                 </Link>
               </li>
               <li>
-                <div className={styles.menuItem}>
-                  <Image src={logoutGrey} alt='' />
-                  <span className={styles.menuItemText}>Выйти</span>
-                </div>
+                <Link href='/'>
+                  <div className={styles.menuItem}>
+                    <Image src={logoutGrey} alt='' />
+                    <span className={styles.menuItemText}>Выйти</span>
+                  </div>
+                </Link>
               </li>
             </>
           ) : null}

@@ -365,11 +365,6 @@ export default function ServiceInner(props) {
                     </table>
                   </div>
 
-                  <div className={block2open ? styles.serviceBlock : styles.serviceBlock + " " + styles.collapsed}>
-                    <span className={styles.dropdownBtn} onClick={() => {}}></span>
-                    <div className={styles.blockHeader}>Мастер на час</div>
-                  </div>
-
                   <div className={block3open ? styles.serviceBlock : styles.serviceBlock + " " + styles.collapsed}>
                     <span className={styles.dropdownBtn} onClick={() => setBlock3open(!block3open)}></span>
                     <div className={styles.blockHeader}>Отзывы о специалисте</div>

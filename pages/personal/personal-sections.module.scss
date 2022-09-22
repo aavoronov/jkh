@@ -725,6 +725,39 @@
 
 //------------------------------profile----------------------------//
 
+.personalSection {
+  position: relative;
+}
+
+.deleteObject {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 150%;
+  /* identical to box height, or 18px */
+
+  /* 1c1c1c */
+  cursor: pointer;
+  color: #1c1c1c;
+  &:after {
+    content: "";
+    background-image: url("/img/trash.png");
+    background-size: 24px;
+    background-position: 50%;
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    position: relative;
+    // right: 0;
+    // bottom: 10px;
+    top: 5px;
+    margin-left: 10px;
+  }
+}
+
 .twoSmallFields {
   display: flex;
   flex-direction: row;
@@ -852,3 +885,446 @@
 }
 
 //------------------------------edit-object------------------------//
+
+.createServiceWrap {
+  .fieldWrap {
+    width: 160px;
+  }
+  .submitBtn {
+    width: 160px;
+    &.disabled {
+      opacity: 0.7;
+      cursor: default;
+      &:hover {
+        filter: brightness(100%);
+      }
+    }
+  }
+}
+
+.createAdFieldWrap {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  &:not(:last-of-type) {
+    margin-bottom: 10px;
+  }
+  &:last-child {
+    // align-self: flex-start;
+    align-items: flex-start;
+  }
+  & .fieldName {
+    width: 30%;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 130%;
+    color: #1c1c1c;
+    margin-right: 10px;
+  }
+  & .field {
+    width: 70%;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 130%;
+    /* or 18px */
+
+    /* 254A63 */
+
+    color: #254a63;
+    &.textarea {
+      resize: none;
+      height: 160px;
+    }
+  }
+}
+
+.subcategoryName {
+  position: relative;
+  font-size: 14px;
+  line-height: 150%;
+  color: #1c1c1c;
+  cursor: pointer;
+  margin-bottom: 8px;
+  display: block;
+  &:before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    // right: 100px;
+    left: -20px;
+    display: inline-block;
+    width: 8px;
+    height: 12px;
+    background-color: #254a63;
+    -webkit-mask-image: url("/img/tradeFilterArrow.svg");
+    mask-image: url("/img/tradeFilterArrow.svg");
+    mask-repeat: no-repeat;
+    mask-position: 50%;
+    transition: all 0.2s;
+  }
+  &.expanded {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 150%;
+    color: #ff8c00;
+    &::before {
+      background-color: #ff8c00;
+      transform: rotate(90deg);
+      transition: all 0.2s;
+    }
+  }
+}
+
+.indicator {
+  height: 2px;
+  width: 10px;
+  background-color: white;
+  opacity: 0.6;
+  display: inline-block;
+  margin: 0 3px;
+  &.selected {
+    opacity: 1;
+  }
+}
+
+.subcategoryList {
+  padding-left: 12px;
+}
+
+.subsubcat {
+  font-size: 14px;
+  line-height: 150%;
+  color: #254a63;
+  margin-bottom: 5px;
+  cursor: pointer;
+  &.checked {
+    position: relative;
+    &:before {
+      content: "";
+      background-image: url("/img/categoriesCheck.svg");
+      background-size: 10px;
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      position: absolute;
+      bottom: 5px;
+      left: -20px;
+      // background-position: 50%;
+      // background-repeat: no-repeat;
+    }
+  }
+}
+
+.subcategories {
+  // padding-bottom: 20px;
+
+  // margin-bottom: 20px;
+}
+
+.categoriesHeader {
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 130%;
+  color: #1c1c1c;
+  margin-bottom: 22px;
+  display: block;
+  margin-top: 40px;
+}
+
+.createAdSubsectionHeader {
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 130%;
+  color: #1c1c1c;
+  margin-bottom: 22px;
+  display: block;
+}
+
+.dropzonesWrap {
+  display: flex;
+  flex-direction: row;
+}
+
+.multipleDropzones {
+  display: flex;
+  flex-direction: row;
+  & > * {
+    margin-right: 8px;
+  }
+}
+
+.oneDropzone {
+  margin-right: 47px;
+  flex-shrink: 0;
+}
+
+.multipleDropzonesWrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.oneDropzone,
+.multipleDropzonesWrap {
+  height: 100%;
+}
+
+.warning {
+  display: block;
+  text-align: end;
+  color: #9c9da7;
+  font-size: 10px;
+}
+
+.warningWrap {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  // width: 250px;
+}
+
+.portfolioWrap {
+  margin-bottom: 30px;
+  .thumbsContainer {
+    position: static;
+    // width: 76px;
+    // height: 58px;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+  }
+  .dragndropField {
+    width: 76px;
+    height: 58px;
+    background-size: 25px;
+  }
+  .thumbInner {
+    position: relative;
+    width: 76px;
+    height: 52px;
+    & img {
+      width: 100%;
+      min-height: 80%;
+    }
+  }
+}
+
+@media screen and (max-width: 1440px) {
+  .portfolioWrap .thumbsContainer {
+    grid-template-columns: repeat(5, 1fr) !important;
+    width: 70% !important;
+    row-gap: 5px;
+  }
+  .portfolioWrap .thumbInner {
+    height: 57px;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .createAdFieldWrap {
+    & .fieldName {
+      width: 40%;
+    }
+    & .field {
+      width: 60%;
+    }
+  }
+}
+
+@media screen and (max-width: 1080px) {
+  .portfolioWrap .thumbsContainer {
+    width: 100% !important;
+  }
+  .oneDropzone {
+    margin-bottom: 10px;
+  }
+  .dropzonesWrap {
+    flex-direction: column;
+  }
+}
+
+@media screen and (max-width: 900px) {
+  .portfolioWrap .thumbsContainer {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  .createAdFieldWrap {
+    flex-direction: column;
+    align-items: flex-start;
+    & .fieldName {
+      width: 100%;
+    }
+    & .field {
+      width: 100%;
+    }
+  }
+  .dropzonesWrap .dragndropWrap {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  .dropzonesWrap .dragndropField {
+    width: 80px !important;
+    height: 80px !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .portfolioWrap .thumbsContainer {
+    grid-template-columns: repeat(10, 1fr) !important;
+  }
+  .createAdFieldWrap {
+    flex-direction: row;
+    align-items: center;
+    & .fieldName {
+      width: 40%;
+    }
+    & .field {
+      width: 60%;
+    }
+  }
+  .dropzonesWrap {
+    flex-direction: row;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .portfolioWrap .thumbsContainer {
+    grid-template-columns: repeat(5, 1fr) !important;
+  }
+}
+
+@media screen and (max-width: 560px) {
+  .portfolioWrap .thumbsContainer {
+    grid-template-columns: repeat(3, 1fr) !important;
+    width: 70% !important;
+  }
+  .createAdFieldWrap {
+    flex-direction: column;
+    align-items: flex-start;
+    & .fieldName {
+      width: 100%;
+    }
+    & .field {
+      width: 100%;
+    }
+  }
+  .dropzonesWrap {
+    flex-direction: column;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .portfolioWrap .thumbsContainer {
+    width: 100% !important;
+  }
+}
+
+//------------------------------create-service--------------------//
+
+.thumbsContainer {
+  display: grid;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: repeat(1, 1fr);
+  // flex-direction: "row";
+  // flex-wrap: "wrap";
+}
+
+.thumb {
+  display: inline-flex;
+  // border-radius: 20px;
+  // margin-bottom: 8px;
+  // margin-right: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 4px;
+  overflow: hidden;
+  // border: 1px solid #e0e0e0;
+  filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.04));
+  border-radius: 10px;
+}
+.thumbInner {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  flex-direction: column;
+  & img {
+    border-radius: 5px;
+  }
+}
+.img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.fileName {
+  font-size: 10px;
+}
+.imageRemove {
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0;
+  width: 25px;
+  min-height: 25px;
+  border-radius: 15px;
+  background: none;
+  border: 1px solid black;
+  background-color: white;
+  background-image: url("/img/cross.png");
+  background-repeat: no-repeat;
+  background-size: 12px;
+  background-position: center;
+  transition: all 0.2s;
+  cursor: pointer;
+  &:hover {
+    background-color: #d8d8d8;
+    transition: all 0.2s;
+  }
+}
+
+.dragndropWrap {
+  border: 1px solid #c4c6d6;
+  border-radius: 5px;
+  padding: 10px;
+  width: 120px;
+  height: 120px;
+  position: relative;
+  // margin: 0 auto;
+}
+
+.dragndropField {
+  background-color: #f5f5f5;
+  background-image: url("/img/Camera.png");
+  background-size: 51px;
+  background-position: 50%;
+  background-repeat: no-repeat;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100px;
+  height: 100px;
+  // padding: 50px 42px;
+  transition: all 0.2s;
+  &.hoveredOver {
+    background-color: #bdbdbd;
+    transition: all 0.2s;
+  }
+}
+
+.dragndropText {
+  font-size: 12px;
+  text-align: center;
+}
+
+.dragndropWarn {
+  font-size: 10px;
+  text-align: center;
+}
+
+//------------------------------dropzone--------------------------//

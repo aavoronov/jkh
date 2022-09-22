@@ -35,16 +35,8 @@ export default function Profile({}) {
 
   return (
     <LayoutPersonal>
-      <h1 className={styles.pageHeading + " " + styles.profile}>Редактирование адреса</h1>
-
+      <h1 className={styles.pageHeading + " " + styles.profile}>Добавление нового адреса</h1>
       <div className={styles.personalSection}>
-        <span
-          className={styles.deleteObject}
-          onClick={() => {
-            confirm("Удалить объект? Это действие необратимо.") && router.push("/personal");
-          }}>
-          Удалить объект
-        </span>
         <div className={styles.fieldWrap}>
           <label htmlFor='address' className={styles.fieldName}>
             Адрес объекта
@@ -97,7 +89,7 @@ export default function Profile({}) {
           </div>
         </div>
 
-        <label htmlFor='nickname' className={styles.fieldName}>
+        {/* <label htmlFor='nickname' className={styles.fieldName}>
           Повторите пароль
         </label>
         <div className={styles.fieldWrap + " " + styles.relative}>
@@ -107,7 +99,7 @@ export default function Profile({}) {
             onClick={() => {
               setSecure(!secure);
             }}></span>
-        </div>
+        </div> */}
 
         <div className={styles.fieldWrap}>
           <label htmlFor='address' className={styles.fieldName}>
@@ -138,8 +130,9 @@ export default function Profile({}) {
         </div>
 
         <div className={styles.editObjectBtnsWrap}>
-          <span className={styles.text}>Удалить аккаунт арендатора</span>
-          <span className={styles.text + " " + styles.border}>Написать администратору</span>
+          <span className={styles.text}>Добавить аккаунт арендатора</span>
+          {/* <span className={styles.text + " " + styles.border}>Написать администратору</span> */}
+          <span></span>
 
           <button
             type='button'
@@ -152,7 +145,7 @@ export default function Profile({}) {
           <span
             className={styles.text + " " + styles.border}
             onClick={() => {
-              confirm("Отменить изменение объекта? Данные не будут сохранены") && router.push("/personal");
+              confirm("Отменить создание объекта? Данные не будут сохранены") && router.push("/personal");
             }}>
             Отменить
           </span>
