@@ -488,7 +488,8 @@ export default function Chat(props) {
           </div>
           <div className={styles.chatFieldWrap}>
             <div className={styles.fieldTopBtns}>
-              <button className={styles.chatPlusBtn}>+</button>
+              {/* <button className={styles.chatPlusBtn}>+</button> */}
+              <span></span>
               <button
                 className={styles.chatScrollToBottomBtn}
                 onClick={() => {

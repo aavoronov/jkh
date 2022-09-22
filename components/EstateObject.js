@@ -106,7 +106,7 @@ export default function EstateObject(props) {
             <div className={styles.objectBtn}>
               <div className={styles.BtnIconRegular}>
                 <Image src={chatBtnIcon} alt='' height={55} width={55} />
-                <span className={styles.notificationsNumber}>{data.notifications.chat}</span>
+                <span className={styles.notificationsNumber}>{data.notifications.chat > 99 ? "99+" : data.notifications.chat}</span>
               </div>
               <span>
                 Внутридомовой
@@ -115,11 +115,11 @@ export default function EstateObject(props) {
               </span>
             </div>
           </Link>
-          <Link href='/map'>
+          <Link href='/interactive-map'>
             <div className={styles.objectBtn}>
               <div className={styles.BtnIconRegular}>
                 <Image src={mapBtnIcon} alt='' height={55} width={55} />
-                <span className={styles.notificationsNumber}>{data.notifications.map}</span>
+                {/* <span className={styles.notificationsNumber}>{data.notifications.map}</span> */}
               </div>
               <span>
                 Интерактивная
@@ -189,7 +189,7 @@ export default function EstateObject(props) {
           </div>
         </div>
         <div className={styles.objectOptionsWrap}>
-          <div className={styles.objectOptionsBtn + " " + styles.threeDotsBtn}></div>
+          {/* <div className={styles.objectOptionsBtn + " " + styles.threeDotsBtn}></div> */}
           <div
             className={
               objectIsExpanded

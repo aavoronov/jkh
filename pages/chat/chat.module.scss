@@ -680,6 +680,7 @@
   background-color: white;
   border-width: 0;
   background-image: url("/img/emoji.png");
+  background-repeat: no-repeat;
   background-size: 24px;
   width: 24px;
   height: 24px;
@@ -770,7 +771,7 @@
   }
 
   .collapseMenuBtn {
-    top: 78px;
+    top: 63px;
     left: 20px;
     border: 1px #c4c6d6 solid;
     padding: 6px 14px 4px 17px;
@@ -861,7 +862,7 @@
   position: fixed;
   z-index: 11;
   right: 285px;
-  top: 145px;
+  top: 126px;
   width: 290px;
   padding: 6px 10px 0 11px;
   height: 100%;
@@ -1043,7 +1044,7 @@
     bottom: 20px;
   }
   .searchPanel {
-    top: 132px;
+    top: 119px;
     right: 263px;
   }
 }
@@ -1097,5 +1098,8 @@
   }
   .messagePersonName {
     font-size: 12px;
+  }
+  .chatContainer {
+    height: calc(100vh - 200px);
   }
 }

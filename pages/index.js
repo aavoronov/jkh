@@ -69,18 +69,21 @@ function Home() {
                   <span className={styles.button__text}>Войти</span>
                 </div>
               </a>
-              <a href='#'>
-                <div className={[styles.header__button + " " + styles.gradient + " " + styles["header__button-small-res"]]}>
-                  <div className={styles.imgWrap}>
-                    <Image src={aboutIcon} className={styles.button__icon + " " + styles.about} alt='' width={35} height={33} />
+              <a href='/about'>
+                <Link href='/about'>
+                  <div className={[styles.header__button + " " + styles.gradient + " " + styles["header__button-small-res"]]}>
+                    <div className={styles.imgWrap}>
+                      <Image src={aboutIcon} className={styles.button__icon + " " + styles.about} alt='' width={35} height={33} />
+                    </div>
+
+                    <span className={styles.button__text}>О проекте</span>
                   </div>
-                  <span className={styles.button__text}>О проекте</span>
-                </div>
+                </Link>
               </a>
               <div className={[styles["banner-section__column"] + " " + styles["banner-section__menu"] + " " + styles.gradient]}>
                 <ul className={styles.banner__menu}>
                   <li className={styles.menu__item}>
-                    <a href='#'>Личный кабинет</a>
+                    <Link href='/personal'>Личный кабинет</Link>
                   </li>
                   <li className={styles.menu__item}>
                     <a href='#'>Кабинет мастеров</a>
@@ -96,13 +99,16 @@ function Home() {
               </div>
             </aside>
             <header className={styles.header}>
-              <a href='#'>
-                <div className={[styles.header__button + " " + styles.gradient]}>
-                  <div className={styles.imgWrap}>
-                    <Image src={aboutIcon} className={styles.button__icon + " " + styles.about} alt='' width={35} height={33} />
+              <a href='/about'>
+                <Link href='/about'>
+                  <div className={[styles.header__button + " " + styles.gradient]}>
+                    <div className={styles.imgWrap}>
+                      <Image src={aboutIcon} className={styles.button__icon + " " + styles.about} alt='' width={35} height={33} />
+                    </div>
+
+                    <span className={styles.button__text}>О проекте</span>
                   </div>
-                  <span className={styles.button__text}>О проекте</span>
-                </div>
+                </Link>
               </a>
               <div className={[styles.header__button + " " + styles.header__center + " " + styles.gradient]}>
                 <Image src={logo} className={styles.header__logo} alt='' />
@@ -146,13 +152,16 @@ function Home() {
               </div>
 
               <aside>
-                <a href='#'>
-                  <div className={[styles.header__button + " " + styles.gradient + " " + styles["header__button-small-res"]]}>
-                    <div className={styles.imgWrap}>
-                      <Image src={aboutIcon} className={styles.button__icon + " " + styles.about} alt='' width={35} height={33} />
+                <a href='/about'>
+                  <Link href='/about'>
+                    <div className={[styles.header__button + " " + styles.gradient + " " + styles["header__button-small-res"]]}>
+                      <div className={styles.imgWrap}>
+                        <Image src={aboutIcon} className={styles.button__icon + " " + styles.about} alt='' width={35} height={33} />
+                      </div>
+
+                      <span className={styles.button__text}>О проекте</span>
                     </div>
-                    <span className={styles.button__text}>О проекте</span>
-                  </div>
+                  </Link>
                 </a>
                 <div className={[styles["banner-section__column"] + " " + styles["banner-section__menu"] + " " + styles.gradient]}>
                   <ul className={styles.banner__menu}>

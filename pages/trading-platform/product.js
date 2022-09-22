@@ -341,7 +341,7 @@ export default function Product(props) {
             </button>
             <div className={styles.btnsWrap}>
               <button className={styles.adCallBtn}>Показать телефон</button>
-              <button className={styles.adWriteBtn}>Написать в чате</button>
+              {/* <button className={styles.adWriteBtn}>Написать в чате</button> */}
             </div>
             <span className={styles.messengersHeader}>Мессенджеры:</span>
             <div className={styles.messengersWrap}>

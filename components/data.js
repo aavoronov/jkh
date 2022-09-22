@@ -4,7 +4,7 @@ export const objectsData = [
     address: "Москва, ул. Маяковского, д.5, кв.125. Хотя скорее всего будет две строки или три даже",
     debtValue: 99875.89,
     notifications: {
-      chat: 5,
+      chat: 100,
       map: 10,
       general: 7,
     },
@@ -41,7 +41,7 @@ export const objectsData = [
     address: "Москва, ул. Другая, д.5, кв.125. Хотя скорее всего будет две строки или три даже",
     debtValue: 0,
     notifications: {
-      chat: 0,
+      chat: 3,
       map: 11,
       general: 7,
     },
