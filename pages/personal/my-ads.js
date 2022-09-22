@@ -20,7 +20,9 @@ export default function MyAds({}) {
         <span className={styles.createAd}>У вас пока нет ни одного размещенного объявления. Разместите объявление прямо сейчас</span>
       </div>
       <div className={styles.bottomBtnWrap + " " + styles.withProducts}>
-        <button className={styles.submitBtn}>Разместить</button>
+        <Link href='/trading-platform/new'>
+          <button className={styles.submitBtn}>Разместить</button>
+        </Link>
       </div>
     </LayoutPersonal>
   );

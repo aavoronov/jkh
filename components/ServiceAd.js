@@ -255,7 +255,7 @@ const ServiceAd = ({ data }) => {
                 </Swiper>
                 <div className={styles.masterBtnsWrap}>
                   <button className={styles.adCallBtn}>Позвонить</button>
-                  <button className={styles.adWriteBtn}>Написать в чате</button>
+                  {/* <button className={styles.adWriteBtn}>Написать в чате</button> */}
                 </div>
               </>
             ) : null}
@@ -335,7 +335,7 @@ const ServiceAd = ({ data }) => {
             </Swiper>
             <div className={styles.masterBtnsWrap}>
               <button className={styles.adCallBtn}>Позвонить</button>
-              <button className={styles.adWriteBtn}>Написать в чате</button>
+              {/* <button className={styles.adWriteBtn}>Написать в чате</button> */}
             </div>
           </>
         ) : null}

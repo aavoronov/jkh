@@ -435,15 +435,16 @@
   color: #78829b;
   &.active {
     color: #1c1c1c;
+    position: relative;
     &::before {
       content: "";
       width: 0;
       height: 0;
-      position: relative;
+      position: absolute;
       // display: inline;
-      top: 50px;
-      left: 30px;
-      z-index: -1;
+      top: 40px;
+      left: 10px;
+      // z-index: -1;
       border-left: 20px solid transparent;
       border-right: 20px solid transparent;
 

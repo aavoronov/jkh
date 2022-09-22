@@ -1,4 +1,4 @@
-import aboutIcon from "/public/img/aboutIcon.svg";
+import aboutIcon from "/public/img/about.png";
 import logo from "/public/img/logo.svg";
 import bell from "/public/img/bell.svg";
 import personal from "/public/img/personal.svg";
@@ -71,7 +71,9 @@ function Home() {
               </a>
               <a href='#'>
                 <div className={[styles.header__button + " " + styles.gradient + " " + styles["header__button-small-res"]]}>
-                  <Image src={aboutIcon} className={styles.button__icon} alt='' width={65} />
+                  <div className={styles.imgWrap}>
+                    <Image src={aboutIcon} className={styles.button__icon + " " + styles.about} alt='' width={35} height={33} />
+                  </div>
                   <span className={styles.button__text}>О проекте</span>
                 </div>
               </a>
@@ -96,7 +98,9 @@ function Home() {
             <header className={styles.header}>
               <a href='#'>
                 <div className={[styles.header__button + " " + styles.gradient]}>
-                  <Image src={aboutIcon} className={styles.button__icon} alt='' width={65} height={37} />
+                  <div className={styles.imgWrap}>
+                    <Image src={aboutIcon} className={styles.button__icon + " " + styles.about} alt='' width={35} height={33} />
+                  </div>
                   <span className={styles.button__text}>О проекте</span>
                 </div>
               </a>
@@ -144,7 +148,9 @@ function Home() {
               <aside>
                 <a href='#'>
                   <div className={[styles.header__button + " " + styles.gradient + " " + styles["header__button-small-res"]]}>
-                    <Image src={aboutIcon} className={styles.button__icon} alt='' width={65} />
+                    <div className={styles.imgWrap}>
+                      <Image src={aboutIcon} className={styles.button__icon + " " + styles.about} alt='' width={35} height={33} />
+                    </div>
                     <span className={styles.button__text}>О проекте</span>
                   </div>
                 </a>
