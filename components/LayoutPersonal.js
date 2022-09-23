@@ -64,6 +64,13 @@ export default function ServiceInner({ children, withProducts }) {
 
   return (
     <LayoutLoggedIn>
+      {width <= 768 && leftMenuIsOpen && (
+        <div
+          id={styles.overlay}
+          onClick={() => {
+            setLeftMenuIsOpen(false);
+          }}></div>
+      )}
       <aside className={leftMenuIsOpen ? styles.leftMenu : styles.leftMenu + " " + styles.collapsed}>
         <Link href='/personal'>
           <div className={styles.leftMenuItem}>Мой профиль</div>
@@ -80,7 +87,7 @@ export default function ServiceInner({ children, withProducts }) {
         <AdItem buttonText='подключить сервис' buttonLink='#' image={"/img/payAd.png"} width={245} height={342} />
       </aside>
       <div className={withProducts ? styles.container + " " + styles.withProducts : styles.container}>
-        {width < 768 ? (
+        {width <= 768 ? (
           <>
             <button
               className={leftMenuIsOpen ? styles.collapseMenuBtn : styles.collapseMenuBtn + " " + styles.collapsed}

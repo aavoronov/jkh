@@ -149,10 +149,12 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false }) 
         <ul className={styles.asideMenu}>
           <li>
             {/* <div className={styles.menuItem + " " + styles.active}> */}
-            <div className={styles.menuItem}>
-              <Image src={gear} alt='' />
-              <span className={styles.menuItemText}>О проекте</span>
-            </div>
+            <Link href='/about'>
+              <div className={styles.menuItem}>
+                <Image src={gear} alt='' />
+                <span className={styles.menuItemText}>О проекте</span>
+              </div>
+            </Link>
           </li>
           <li>
             <Link href='/utilities'>
