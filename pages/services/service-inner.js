@@ -64,6 +64,15 @@ export default function ServiceInner(props) {
 
   return (
     <LayoutLoggedIn>
+      {width <= 768 && leftMenuIsOpen && (
+        <div
+          id={styles.overlay}
+          className={styles.underneath}
+          onClick={() => {
+            setLeftMenuIsOpen(false);
+          }}></div>
+      )}
+
       {complaintActive ? (
         <>
           <div

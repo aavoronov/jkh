@@ -1,3 +1,22 @@
+#overlay {
+  position: fixed; /* Sit on top of the page content */
+  // display: none; /* Hidden by default */
+  width: 100%; /* Full width (cover the whole page) */
+  height: 100%; /* Full height (cover the whole page) */
+  // transition: all 5s;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Black background with opacity */
+  z-index: 1000; /* Specify a stack order in case you're using a different order for other elements */
+  cursor: pointer; /* Add a pointer on hover */
+  &.hidden {
+    display: none;
+    background-color: rgba(0, 0, 0, 0);
+  }
+}
+
 .leftMenu {
   position: fixed;
   z-index: 10;
@@ -8,7 +27,7 @@
   height: calc(100vh - 59px);
   overflow-y: scroll;
   scrollbar-width: thin;
-  scrollbar-color: #ff8c00 #f1f1f1;
+  scrollbar-color: #67666b #f1f1f1;
   padding: 32px 20px 0 26px;
   /* width */
   &::-webkit-scrollbar {
@@ -22,12 +41,12 @@
 
   /* Handle */
   &::-webkit-scrollbar-thumb {
-    background: #ff8c00;
+    background: #67666b;
   }
 
   /* Handle on hover */
   &::-webkit-scrollbar-thumb:hover {
-    background: #ff8c00;
+    background: #67666b;
   }
   z-index: 1;
   transition: all 0.2s;

@@ -55,6 +55,8 @@ export default function Chat(props) {
   const [startDate, setStartDate] = useState(new Date());
   const [chatDate, setChatDate] = useState(null);
 
+  const [collapseBtnVisible, setCollapseBtnVisible] = useState(true);
+
   const [scrollPosition, setScrollPosition] = useState(0);
   const handleScroll = () => {
     const position = window.pageYOffset;
@@ -542,6 +544,9 @@ export default function Chat(props) {
           /* Grey colors / C#2 */
 
           color: #a7aab4;
+        }
+        .react-datepicker__portal {
+          background-color: rgba(0, 0, 0, 0);
         }
         .react-datepicker__day {
           font-weight: 400;

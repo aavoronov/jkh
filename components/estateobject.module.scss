@@ -912,7 +912,7 @@
   .rightColumn .secondHalfBlock {
     overflow-x: scroll;
     scrollbar-width: thin;
-    scrollbar-color: #ff8c00 #f1f1f1;
+    scrollbar-color: #67666b #f1f1f1;
     /* width */
     &::-webkit-scrollbar {
       width: 10px;
@@ -925,12 +925,12 @@
 
     /* Handle */
     &::-webkit-scrollbar-thumb {
-      background: #ff8c00;
+      background: #67666b;
     }
 
     /* Handle on hover */
     &::-webkit-scrollbar-thumb:hover {
-      background: #ff8c00;
+      background: #67666b;
     }
   }
 }

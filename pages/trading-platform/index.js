@@ -117,6 +117,13 @@ export default function TradingPlatform(props) {
 
   return (
     <LayoutLoggedIn>
+      {width <= 768 && leftMenuIsOpen && (
+        <div
+          id={styles.overlay}
+          onClick={() => {
+            setLeftMenuIsOpen(false);
+          }}></div>
+      )}
       <aside className={leftMenuIsOpen ? styles.leftMenu : styles.leftMenu + " " + styles.collapsed}>
         {!category ? (
           <div className={styles.categories}>

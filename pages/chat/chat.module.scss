@@ -34,7 +34,7 @@
   // overflow-y: hidden;
   align-items: flex-start;
   // scrollbar-width: thin;
-  scrollbar-color: #ff8c00 #f1f1f1;
+  scrollbar-color: #67666b #f1f1f1;
   /* width */
   &::-webkit-scrollbar {
     width: 10px;
@@ -47,12 +47,12 @@
 
   /* Handle */
   &::-webkit-scrollbar-thumb {
-    background: #ff8c00;
+    background: #67666b;
   }
 
   /* Handle on hover */
   &::-webkit-scrollbar-thumb:hover {
-    background: #ff8c00;
+    background: #67666b;
   }
   & .objectLetters {
     margin: 10px 0;
@@ -195,7 +195,7 @@
   }
 
   scrollbar-width: thin;
-  scrollbar-color: #ff8c00 #f1f1f1;
+  scrollbar-color: #67666b #f1f1f1;
   /* width */
   &::-webkit-scrollbar {
     width: 10px;
@@ -208,12 +208,12 @@
 
   /* Handle */
   &::-webkit-scrollbar-thumb {
-    background: #ff8c00;
+    background: #67666b;
   }
 
   /* Handle on hover */
   &::-webkit-scrollbar-thumb:hover {
-    background: #ff8c00;
+    background: #67666b;
   }
 }
 
@@ -332,7 +332,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
-  scrollbar-color: #ff8c00 #f1f1f1;
+  scrollbar-color: #67666b #f1f1f1;
   /* width */
   &::-webkit-scrollbar {
     width: 10px;
@@ -345,12 +345,12 @@
 
   /* Handle */
   &::-webkit-scrollbar-thumb {
-    background: #ff8c00;
+    background: #67666b;
   }
 
   /* Handle on hover */
   &::-webkit-scrollbar-thumb:hover {
-    background: #ff8c00;
+    background: #67666b;
   }
 }
 
@@ -633,9 +633,15 @@
     width: 40px;
     height: 24px;
     position: absolute;
-    bottom: 7px;
+    bottom: 8px;
     right: 41px;
     // z-index: -1;
+  }
+}
+
+@-moz-document url-prefix() {
+  .fieldBottomBtns:after {
+    bottom: 7px;
   }
 }
 
@@ -650,7 +656,7 @@
   border-radius: 9px;
   font-size: 12px;
   scrollbar-width: thin;
-  scrollbar-color: #ff8c00 #f1f1f1;
+  scrollbar-color: #67666b #f1f1f1;
   /* width */
   &::-webkit-scrollbar {
     width: 10px;
@@ -663,12 +669,12 @@
 
   /* Handle */
   &::-webkit-scrollbar-thumb {
-    background: #ff8c00;
+    background: #67666b;
   }
 
   /* Handle on hover */
   &::-webkit-scrollbar-thumb:hover {
-    background: #ff8c00;
+    background: #67666b;
   }
 
   &:focus {
@@ -862,7 +868,7 @@
   position: fixed;
   z-index: 11;
   right: 285px;
-  top: 126px;
+  top: 143px;
   width: 290px;
   padding: 6px 10px 0 11px;
   height: 100%;
@@ -871,7 +877,7 @@
   border-radius: 0px 9px 9px 0px;
   overflow-y: scroll;
   scrollbar-width: thin;
-  scrollbar-color: #ff8c00 #f1f1f1;
+  scrollbar-color: #67666b #f1f1f1;
   /* width */
   &::-webkit-scrollbar {
     width: 10px;
@@ -884,12 +890,12 @@
 
   /* Handle */
   &::-webkit-scrollbar-thumb {
-    background: #ff8c00;
+    background: #67666b;
   }
 
   /* Handle on hover */
   &::-webkit-scrollbar-thumb:hover {
-    background: #ff8c00;
+    background: #67666b;
   }
 }
 
@@ -920,6 +926,7 @@
   justify-content: space-between;
   align-items: center;
   margin: 10px 0 20px;
+  position: relative;
   & .fieldWithBtn {
     margin-bottom: 0;
     margin-left: 0;
@@ -927,6 +934,10 @@
     & .field {
       width: 210px;
     }
+  }
+  & :last-child .react-datepicker-portal {
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0);
   }
 }
 
@@ -1044,7 +1055,7 @@
     bottom: 20px;
   }
   .searchPanel {
-    top: 119px;
+    top: 132px;
     right: 263px;
   }
 }

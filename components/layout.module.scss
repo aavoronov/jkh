@@ -223,7 +223,7 @@
   height: calc(100vh - 60px);
   overflow-y: scroll;
   scrollbar-width: thin;
-  scrollbar-color: #ff8c00 #344f5f;
+  scrollbar-color: #67666b #344f5f;
   /* width */
   &::-webkit-scrollbar {
     width: 10px;
@@ -236,12 +236,12 @@
 
   /* Handle */
   &::-webkit-scrollbar-thumb {
-    background: #ff8c00;
+    background: #67666b;
   }
 
   /* Handle on hover */
   &::-webkit-scrollbar-thumb:hover {
-    background: #ff8c00;
+    background: #67666b;
   }
   z-index: -1;
   transition: all 0.2s;
@@ -407,11 +407,20 @@
   // padding-top: 94px;
   // margin-left: 30px;
   background-color: #f5f5f5;
-  overflow-y: visible;
+  overflow-y: hidden;
   z-index: -10;
-  min-height: calc(100vh - 60px);
+  height: calc(100vh - 60px);
+  // width: calc(100vw - 279px);
+  // &.expanded {
+  //   width: calc(100vw - 42px);
   width: calc(100vw - 263px);
   &.expanded {
+    width: calc(100vw - 26px);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .containerMap.expanded {
     width: calc(100vw - 0px);
   }
 }

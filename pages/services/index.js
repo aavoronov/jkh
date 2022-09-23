@@ -86,6 +86,13 @@ export default function Services(props) {
 
   return (
     <LayoutLoggedIn>
+      {width <= 768 && leftMenuIsOpen && (
+        <div
+          id={styles.overlay}
+          onClick={() => {
+            setLeftMenuIsOpen(false);
+          }}></div>
+      )}
       <aside className={leftMenuIsOpen ? styles.leftMenu : styles.leftMenu + " " + styles.collapsed}>
         <div className={styles.filtersHeader}>Фильтр</div>
         <div className={styles.filterWrap}>

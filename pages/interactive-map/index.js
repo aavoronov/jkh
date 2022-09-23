@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { Field, Form, Formik, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -6,6 +6,7 @@ import { useDropzone } from "react-dropzone";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
 import { Carousel } from "react-responsive-carousel";
 import { Rating } from "react-simple-star-rating";
+import InputMask from "react-input-mask";
 
 import LayoutLoggedIn from "../../components/LayoutLoggedIn";
 import LayoutMap from "../../components/LayoutMap";
@@ -176,6 +177,9 @@ export default function InteractiveMap(props) {
   const [rating, setRating] = useState(0);
   const [complaintActive, setComplaintActive] = useState(false);
   const [complaintError, setComplaintError] = useState(false);
+
+  const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState(false);
 
   const { height, width } = useWindowDimensions();
 
@@ -844,12 +848,15 @@ export default function InteractiveMap(props) {
                 webPage: Yup.string().required("Обязательное поле"),
               })}
               onSubmit={(values) => {
-                values.coordinates = draggableCoords;
-                values.category = chosenCategory;
-                values.files = files;
-                values.sendToModerator = sendToModerator;
-                alert(JSON.stringify(values, null, 2));
-                setCreateObject(false);
+                if (phone.includes("_")) setPhoneError(true);
+                else {
+                  values.coordinates = draggableCoords;
+                  values.category = chosenCategory;
+                  values.files = files;
+                  values.sendToModerator = sendToModerator;
+                  alert(JSON.stringify(values, null, 2));
+                  setCreateObject(false);
+                }
               }}>
               <Form>
                 <div className={styles.fieldWrap}>
@@ -899,18 +906,31 @@ export default function InteractiveMap(props) {
                     Номер телефона
                   </label>
                   <div className={styles.phoneFieldWrap}>
-                    <span>+7 </span>
-                    <Field
-                      name='phoneNumber'
-                      type='tel'
-                      placeholder='Введите телефон объекта'
-                      maxLength={10}
-                      className={styles.field + " " + styles.phoneField}
+                    <InputMask
+                      className={styles.field}
+                      mask='+7 (999) 999-99-99'
+                      value={phone}
+                      onChange={(event) => {
+                        // setPhone(val);
+                        setPhone(event.target.value);
+                      }}
+                      onClick={() => {
+                        // console.log(phone.includes("_"));
+                        console.log(phoneError);
+                      }}
                     />
+                    {/* <Field
+                        // ref={phoneInputRef}
+                        name='phoneNumber'
+                        type='tel'
+                        placeholder='Введите телефон объекта'
+                        maxLength={10}
+                        className={styles.field + " " + styles.phoneField}
+                      /> */}
+                    {/* </InputMask> */}
+                    {/* <span>+7 </span> */}
                   </div>
-                  <span className={styles.errorText}>
-                    <ErrorMessage name='phoneNumber' />
-                  </span>
+                  {phoneError ? <span className={styles.errorText}>Введите телефон</span> : null}
                 </div>
                 <div className={styles.fieldWrap}>
                   <label htmlFor='webPage' className={styles.fieldName}>
@@ -970,7 +990,12 @@ export default function InteractiveMap(props) {
                   </div>
                 ) : null}
                 <div className={styles.fieldWrap}>
-                  <button type='submit' className={styles.submitBtn}>
+                  <button
+                    type='submit'
+                    className={styles.submitBtn}
+                    onClick={() => {
+                      // phone.includes("_") && setPhoneError(true);
+                    }}>
                     Отправить
                   </button>
                   <span
