@@ -82,18 +82,21 @@ function Home() {
               </a>
               <div className={[styles["banner-section__column"] + " " + styles["banner-section__menu"] + " " + styles.gradient]}>
                 <ul className={styles.banner__menu}>
-                  <li className={styles.menu__item}>
-                    <Link href='/personal'>Личный кабинет</Link>
-                  </li>
-                  <li className={styles.menu__item}>
-                    <a href='#'>Кабинет мастеров</a>
-                  </li>
-                  <li className={styles.menu__item}>
-                    <Link href='/interactive-map'>Интерактивная карта</Link>
-                  </li>
-                  <li className={styles.menu__item}>
-                    <Link href='/trading-platform'>Торговая площадка</Link>
-                  </li>
+                  <Link href='/personal'>
+                    <li className={styles.menu__item}>Личный кабинет</li>
+                  </Link>
+
+                  <a href='#'>
+                    <li className={styles.menu__item}>Кабинет мастеров </li>
+                  </a>
+
+                  <Link href='/interactive-map'>
+                    <li className={styles.menu__item}>Интерактивная карта</li>
+                  </Link>
+
+                  <Link href='/trading-platform'>
+                    <li className={styles.menu__item}>Торговая площадка </li>
+                  </Link>
                 </ul>
                 <AdItem appButtons={true} image={"/img/appAd.png"} width={180} height={180} />
               </div>
@@ -165,18 +168,21 @@ function Home() {
                 </a>
                 <div className={[styles["banner-section__column"] + " " + styles["banner-section__menu"] + " " + styles.gradient]}>
                   <ul className={styles.banner__menu}>
-                    <li className={styles.menu__item}>
-                      <Link href='/personal'>Личный кабинет</Link>
-                    </li>
-                    <li className={styles.menu__item}>
-                      <a href='#'>Кабинет мастеров</a>
-                    </li>
-                    <li className={styles.menu__item}>
-                      <Link href='/interactive-map'>Интерактивная карта</Link>
-                    </li>
-                    <li className={styles.menu__item}>
-                      <Link href='/trading-platform'>Торговая площадка</Link>
-                    </li>
+                    <Link href='/personal'>
+                      <li className={styles.menu__item}>Личный кабинет</li>
+                    </Link>
+
+                    <a href='#'>
+                      <li className={styles.menu__item}>Кабинет мастеров </li>
+                    </a>
+
+                    <Link href='/interactive-map'>
+                      <li className={styles.menu__item}>Интерактивная карта</li>
+                    </Link>
+
+                    <Link href='/trading-platform'>
+                      <li className={styles.menu__item}>Торговая площадка </li>
+                    </Link>
                   </ul>
                   <AdItem appButtons={true} image={"/img/menuAppAd.png"} width={240} height={204} />
                 </div>

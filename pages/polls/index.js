@@ -194,22 +194,22 @@ export default function Polls(props) {
       ) : null}
 
       <div className={styles.container}>
-        <div className={styles.threeDots}>
-          <div className={styles.threeDotsBtnMenu}>
-            <span
-              className={styles.optionsItem}
-              onClick={() => {
-                setComplaintActive(true);
-                console.log(complaintActive);
-              }}>
-              Пожаловаться
-            </span>
-          </div>
-        </div>
         <h1 className={styles.pageHeader}>Голосования</h1>
         <DropdownList objects={objectList} value={dropdownValue} setValue={setDropdownValue} />
         <div className={styles.poll}>
           <div className={styles.pollHeader}>Планируется проведение собрания на 24.07.2022. Кто прийдет</div>
+          <div className={styles.threeDots}>
+            <div className={styles.threeDotsBtnMenu}>
+              <span
+                className={styles.optionsItem}
+                onClick={() => {
+                  setComplaintActive(true);
+                  console.log(complaintActive);
+                }}>
+                Пожаловаться
+              </span>
+            </div>
+          </div>
 
           <Formik
             initialValues={{

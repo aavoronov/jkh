@@ -356,8 +356,18 @@
   }
 }
 
-.menu__item > a {
+.menu__item {
   text-decoration: none;
+  color: #9c9da7;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 130%;
+  /* identical to box height, or 21px */
+
+  letter-spacing: 0.04em;
+
+  /* 9C9DA7 */
+  cursor: pointer;
   color: #9c9da7;
 }
 

@@ -433,7 +433,9 @@ aside > .dropdownWrap {
   width: 36px;
   height: 36px;
   position: absolute;
-  right: calc(((100% - 614px) / 2) + 23px);
+  // right: calc(((100% - 614px) / 2) + 23px);
+  right: 10px;
+  top: 52px;
   cursor: pointer;
   &:hover {
     & .threeDotsBtnMenu {
@@ -605,7 +607,11 @@ aside > .dropdownWrap {
     padding: 0;
   }
   .threeDots {
-    right: 25px;
+    right: 0px;
+    top: -10px;
+  }
+  .pollHeader {
+    max-width: calc(100% - 46px);
   }
 }
 
