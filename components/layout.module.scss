@@ -364,6 +364,21 @@
   }
 }
 
+.eulaText {
+  font-size: 9px;
+  line-height: 160%;
+  font-feature-settings: "tnum" on, "lnum" on;
+  color: #2a2a28;
+}
+.eulaLink {
+  font-size: 9px;
+  line-height: 160%;
+  cursor: pointer;
+  text-decoration-line: underline;
+  font-feature-settings: "tnum" on, "lnum" on;
+  color: #4f4f4f;
+}
+
 @media screen and (max-width: 768px) {
   .name {
     display: none;
@@ -398,6 +413,9 @@
   width: calc(100vw - 263px);
   &.expanded {
     width: calc(100vw - 26px);
+  }
+  &.full {
+    width: 100%;
   }
 }
 

@@ -22,7 +22,7 @@ import useWindowDimensions from "./useWindowDimensionsSSR";
 
 // SwiperCore.use([Navigation]);
 
-export default function ServiceInner({ children, withProducts }) {
+export default function LayoutPersonal({ children, withProducts }) {
   const [guarantee, setGuarantee] = useState(false);
   const [withAccommodation, setWithAccommodation] = useState(false);
   const [withoutAccommodation, setWithoutAccommodation] = useState(false);

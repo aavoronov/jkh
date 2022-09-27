@@ -24,7 +24,7 @@ import logoutGrey from "/public/img/logoutGrey.png";
 
 import useWindowDimensions from "./useWindowDimensionsSSR";
 
-export default function LayoutLoggedIn({ children, menuIsCollapsible = false }) {
+export default function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = false }) {
   const [menuIsOpen, setMenuIsOpen] = useState(true);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -63,7 +63,7 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false }) 
   };
 
   const dropdownClickHandler = () => {
-    if (width < 768) setMenuIsOpen(!menuIsOpen);
+    if (width < 768 && !noRightMenu) setMenuIsOpen(!menuIsOpen);
     else return;
   };
 
@@ -73,13 +73,13 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false }) 
         <title>Create Next App</title>
         <link rel='icon' href='/favicon.ico' />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
-        <script
+        {/* <script
           src='https://api-maps.yandex.ru/2.1/?lang=ru_RU&amp;apikey=2a5c7497-20d8-493c-87a4-21c88a87d455'
-          type='text/javascript'></script>
+          type='text/javascript'></script> */}
       </Head>
       <div id={styles.overlay} className={menuIsOpen ? "" : styles.hidden} onClick={onClickHandler}></div>
 
-      <div className={styles.header + " " + styles.gradient}>
+      <header className={styles.header + " " + styles.gradient}>
         <div className={styles.headerLogoWrap}>
           <Link href='/'>
             {/* <> */}
@@ -109,7 +109,7 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false }) 
             onMouseLeave={() => setDropdownVisible(false)}
             onClick={dropdownClickHandler}>
             <Image src={arrow} alt='' />
-            {dropdownVisible && width > 768 ? (
+            {dropdownVisible && (width > 768 || noRightMenu) ? (
               <div className={styles.dropdownMenu}>
                 <ul>
                   <li>
@@ -133,106 +133,112 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false }) 
             ) : null}
           </div>
         </div>
-      </div>
-      <div className={menuIsOpen ? styles.container : styles.container + " " + styles.expanded}>{children}</div>
+      </header>
 
-      <aside className={menuIsOpen ? styles.rightMenu : styles.rightMenu + " " + styles.collapsed}>
-        {menuIsCollapsible || width <= 768 ? (
-          <button
-            className={menuIsOpen ? styles.collapseMenuBtn : styles.collapseMenuBtn + " " + styles.collapsed}
-            onClick={() => {
-              setMenuIsOpen(!menuIsOpen);
-            }}>
-            <Image src={arrowRight} alt='' />
-          </button>
-        ) : null}
-        <ul className={styles.asideMenu}>
-          <li>
-            {/* <div className={styles.menuItem + " " + styles.active}> */}
-            <Link href='/about'>
-              <div className={styles.menuItem}>
-                <Image src={gear} alt='' />
-                <span className={styles.menuItemText}>О проекте</span>
-              </div>
-            </Link>
-          </li>
-          <li>
-            <Link href='/utilities'>
-              <div className={styles.menuItem}>
-                <Image src={list} alt='' /> <span className={styles.menuItemText}>Платежи ЖКХ</span>
-              </div>
-            </Link>
-          </li>
-          <li>
-            <Link href='/chat'>
-              <div className={styles.menuItem}>
-                <Image src={chat} alt='' />
-
-                <span className={styles.menuItemText}>Домовые чаты</span>
-              </div>
-            </Link>
-          </li>
-          <li>
-            <Link href='/services'>
-              <div className={styles.menuItem}>
-                <Image src={worker} alt='' />
-                <span className={styles.menuItemText}>Услуги мастеров</span>
-              </div>
-            </Link>
-          </li>
-          <li>
-            <Link href='/interactive-map'>
-              <div className={styles.menuItem}>
-                <Image src={location} alt='' />
-
-                <span className={styles.menuItemText}>Интерактивная карта</span>
-              </div>
-            </Link>
-          </li>
-          <li>
-            <Link href='/polls'>
-              <div className={styles.menuItem}>
-                <Image src={stats} alt='' />
-                <span className={styles.menuItemText}>Голосования, опросы</span>
-              </div>
-            </Link>
-          </li>
-          <li>
-            <Link href='/trading-platform'>
-              <div className={styles.menuItem}>
-                <Image src={cart} alt='' />
-
-                <span className={styles.menuItemText}>Торговая площадка</span>
-              </div>
-            </Link>
-          </li>
-          {width < 768 ? (
-            <>
-              <li>
-                <Link href='/personal'>
-                  <div className={styles.menuItem}>
-                    <Image src={personGrey} alt='' />
-                    <span className={styles.menuItemText}>Личный кабинет</span>
-                  </div>
-                </Link>
-              </li>
-              <li>
-                <Link href='/'>
-                  <div className={styles.menuItem}>
-                    <Image src={logoutGrey} alt='' />
-                    <span className={styles.menuItemText}>Выйти</span>
-                  </div>
-                </Link>
-              </li>
-            </>
+      {noRightMenu ? (
+        <div className={styles.container + " " + styles.full}>{children}</div>
+      ) : (
+        <div className={menuIsOpen ? styles.container : styles.container + " " + styles.expanded}>{children}</div>
+      )}
+      {!noRightMenu && (
+        <aside className={menuIsOpen ? styles.rightMenu : styles.rightMenu + " " + styles.collapsed}>
+          {menuIsCollapsible || width <= 768 ? (
+            <button
+              className={menuIsOpen ? styles.collapseMenuBtn : styles.collapseMenuBtn + " " + styles.collapsed}
+              onClick={() => {
+                setMenuIsOpen(!menuIsOpen);
+              }}>
+              <Image src={arrowRight} alt='' />
+            </button>
           ) : null}
-        </ul>
-        <div className={styles.menuAd}>
-          <a href='#' className={styles.menuAdBtn}>
-            подключить сервис
-          </a>
-        </div>
-      </aside>
+          <ul className={styles.asideMenu}>
+            <li>
+              {/* <div className={styles.menuItem + " " + styles.active}> */}
+              <Link href='/about'>
+                <div className={styles.menuItem}>
+                  <Image src={gear} alt='' />
+                  <span className={styles.menuItemText}>О проекте</span>
+                </div>
+              </Link>
+            </li>
+            <li>
+              <Link href='/utilities'>
+                <div className={styles.menuItem}>
+                  <Image src={list} alt='' /> <span className={styles.menuItemText}>Платежи ЖКХ</span>
+                </div>
+              </Link>
+            </li>
+            <li>
+              <Link href='/chat'>
+                <div className={styles.menuItem}>
+                  <Image src={chat} alt='' />
+
+                  <span className={styles.menuItemText}>Домовые чаты</span>
+                </div>
+              </Link>
+            </li>
+            <li>
+              <Link href='/services'>
+                <div className={styles.menuItem}>
+                  <Image src={worker} alt='' />
+                  <span className={styles.menuItemText}>Услуги мастеров</span>
+                </div>
+              </Link>
+            </li>
+            <li>
+              <Link href='/interactive-map'>
+                <div className={styles.menuItem}>
+                  <Image src={location} alt='' />
+
+                  <span className={styles.menuItemText}>Интерактивная карта</span>
+                </div>
+              </Link>
+            </li>
+            <li>
+              <Link href='/polls'>
+                <div className={styles.menuItem}>
+                  <Image src={stats} alt='' />
+                  <span className={styles.menuItemText}>Голосования, опросы</span>
+                </div>
+              </Link>
+            </li>
+            <li>
+              <Link href='/trading-platform'>
+                <div className={styles.menuItem}>
+                  <Image src={cart} alt='' />
+
+                  <span className={styles.menuItemText}>Торговая площадка</span>
+                </div>
+              </Link>
+            </li>
+            {width < 768 ? (
+              <>
+                <li>
+                  <Link href='/personal'>
+                    <div className={styles.menuItem}>
+                      <Image src={personGrey} alt='' />
+                      <span className={styles.menuItemText}>Личный кабинет</span>
+                    </div>
+                  </Link>
+                </li>
+                <li>
+                  <Link href='/'>
+                    <div className={styles.menuItem}>
+                      <Image src={logoutGrey} alt='' />
+                      <span className={styles.menuItemText}>Выйти</span>
+                    </div>
+                  </Link>
+                </li>
+              </>
+            ) : null}
+          </ul>
+          <div className={styles.menuAd}>
+            <a href='#' className={styles.menuAdBtn}>
+              подключить сервис
+            </a>
+          </div>
+        </aside>
+      )}
       <style jsx>{`
         .container {
           width: 100%;

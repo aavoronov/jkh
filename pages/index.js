@@ -86,9 +86,9 @@ function Home() {
                     <li className={styles.menu__item}>Личный кабинет</li>
                   </Link>
 
-                  <a href='#'>
+                  <Link href='/workers'>
                     <li className={styles.menu__item}>Кабинет мастеров </li>
-                  </a>
+                  </Link>
 
                   <Link href='/interactive-map'>
                     <li className={styles.menu__item}>Интерактивная карта</li>
@@ -145,12 +145,12 @@ function Home() {
                     капитальный ремонт общего имущества многоквартирного дома и вывоз бытовых отходов. Правила предоставления коммунальных
                     услуг.
                   </span>
-                  <a href='#' className={styles.banner__btn}>
+                  <span className={styles.banner__btn} onClick={() => setModalToDisplay("authByLogin")}>
                     Хочу пользоваться платформой
-                  </a>
-                  <a href='#' className={styles.banner__link}>
+                  </span>
+                  <span className={styles.banner__link} onClick={() => setModalToDisplay("partnership")}>
                     <span className={styles.banner__text}>Сотрудничество</span>
-                  </a>
+                  </span>
                 </div>
               </div>
 
@@ -172,9 +172,9 @@ function Home() {
                       <li className={styles.menu__item}>Личный кабинет</li>
                     </Link>
 
-                    <a href='#'>
+                    <Link href='/workers'>
                       <li className={styles.menu__item}>Кабинет мастеров </li>
-                    </a>
+                    </Link>
 
                     <Link href='/interactive-map'>
                       <li className={styles.menu__item}>Интерактивная карта</li>
