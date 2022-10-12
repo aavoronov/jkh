@@ -225,7 +225,7 @@ export default function ServiceInner(props) {
             <div className={styles.adInfoWrap}>
               <div className={styles.threeDotsBtn}>
                 <div className={styles.threeDotsBtnMenu}>
-                  <span className={styles.objectOptionsItem}>Поделиться</span>
+                  {/* <span className={styles.objectOptionsItem}>Поделиться</span> */}
                   <span
                     className={styles.objectOptionsItem}
                     onClick={() => {
