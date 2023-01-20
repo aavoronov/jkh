@@ -1,3 +1,177 @@
+.thumbsContainer {
+  display: grid;
+  // position: absolute;
+  top: 0;
+  left: 0;
+  width: 60px;
+  height: 60px;
+  grid-template-columns: repeat(1, 1fr);
+  z-index: 10;
+  // flex-direction: "row";
+  // flex-wrap: "wrap";
+}
+
+.thumb {
+  display: inline-flex;
+  // border-radius: 20px;
+  // margin-bottom: 8px;
+  // margin-right: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 4px;
+  overflow: hidden;
+  // border: 1px solid #e0e0e0;
+  filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.04));
+  border-radius: 10px;
+}
+.thumbInner {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  flex-direction: column;
+  & img {
+    border-radius: 5px;
+  }
+}
+.img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.fileName {
+  font-size: 10px;
+}
+.imageRemove {
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0;
+  width: 25px;
+  min-height: 25px;
+  border-radius: 15px;
+  background: none;
+  border: 1px solid black;
+  background-color: white;
+  background-image: url("/img/cross.png");
+  background-repeat: no-repeat;
+  background-size: 12px;
+  background-position: center;
+  transition: all 0.2s;
+  cursor: pointer;
+  &:hover {
+    background-color: #d8d8d8;
+    transition: all 0.2s;
+  }
+}
+
+.dragndropWrap {
+  background-color: #ffffff;
+  position: absolute;
+  pointer-events: visible;
+  // opacity: 0;
+  width: calc(100% - 60px);
+  height: 50px;
+  border-radius: 9px;
+
+  // margin: 0 auto;
+}
+
+.dragndropField {
+  // background-color: #f5f5f5;
+  // background-image: url("/img/Camera.png");
+  // background-size: 51px;
+  // background-position: 50%;
+  // background-repeat: no-repeat;
+
+  border-color: #c4c6d6;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  // padding: 50px 42px;
+  transition: all 0.2s;
+
+  &:hover .dragndropFieldBtn {
+    filter: brightness(120%);
+    transition: all 0.2s;
+  }
+  &.hoveredOver {
+    // background-color: #bdbdbd;
+    background-image: none;
+    // border: 1px solid #c4c6d6;
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='5' ry='5' stroke='%23C4C6D6FF' stroke-width='2' stroke-dasharray='6%2c 6' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+    transition: all 0.2s;
+    &::after {
+      filter: brightness(120%);
+      transition: all 0.2s;
+    }
+  }
+}
+
+.dragndropText {
+  font-size: 12px;
+  text-align: center;
+}
+
+.dragndropWarn {
+  font-size: 10px;
+  text-align: center;
+}
+
+.dragndropPlaceholder {
+  height: 100%;
+  display: block;
+  line-height: 36px;
+  font-weight: 400;
+  font-size: 12px;
+
+  /* or 19px */
+
+  /* 07244E */
+
+  color: #07244e;
+  padding-left: 16px;
+}
+
+.dragndropFieldBtn {
+  display: block;
+  position: absolute;
+  right: 14px;
+  bottom: 6px;
+  background: #ff8c00;
+  width: 24px;
+  height: 24px;
+  color: #fff;
+  font-size: 20px;
+  line-height: 24px;
+  text-align: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  background-image: url("/img/plusWhiteSmall.png");
+  background-size: 14px;
+  background-repeat: no-repeat;
+  background-position: 50%;
+  &.filled {
+    background-image: url("/img/trashWhite.png");
+    &::before {
+      content: "";
+      background-image: url("/img/dropzoneCheck.png");
+      background-size: 12px;
+      width: 12px;
+      height: 12px;
+      display: block;
+      position: absolute;
+      top: 5px;
+      left: -20px;
+    }
+  }
+}
+//--------------------------dropzone--------------------------//
+
 #overlay {
   position: fixed; /* Sit on top of the page content */
   // display: none; /* Hidden by default */
@@ -234,6 +408,34 @@
     top: 6px;
     right: 10px;
     cursor: pointer;
+    background: url("/img/Search.png") 50%;
+    background-size: 24px; // background-color: black;
+  }
+}
+
+.fieldWithBtn.users {
+  &::after {
+    display: none;
+  }
+}
+
+.fieldWithBtnUsers {
+  padding-bottom: 0;
+  position: relative;
+  margin-bottom: 28px;
+  display: block;
+  &:after {
+    content: "";
+    display: block;
+    width: 24px;
+    height: 24px;
+    position: absolute;
+
+    // bottom: 30px;
+    // left: 215px;
+    top: 6px;
+    right: 10px;
+    // cursor: pointer;
     background: url("/img/Search.png") 50%;
     background-size: 24px; // background-color: black;
   }
@@ -646,10 +848,13 @@
 }
 
 .chatField {
+  // pointer-events: none;
+  cursor: text;
   resize: none;
   background-color: #fff;
   border-width: 0;
-  width: calc(100% - 60px);
+  // width: calc(100% - 60px);
+  width: 100%;
   height: 50px;
   padding: 10px 56px;
   box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
@@ -695,6 +900,7 @@
   bottom: 20px;
   left: 17px;
   cursor: pointer;
+  z-index: 3;
 }
 
 .paperclipBtn {
@@ -706,11 +912,11 @@
   height: 24px;
   display: block;
   position: absolute;
-  bottom: 20px;
+  top: 15px;
   // left: 17px;
-  right: 77px;
+  right: 20px;
   cursor: pointer;
-  z-index: 3;
+  z-index: 33;
 }
 
 .sendBtn {

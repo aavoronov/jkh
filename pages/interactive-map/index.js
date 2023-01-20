@@ -21,6 +21,7 @@ import arrowLeft from "/public/img/arrowLeft.png";
 import allPlaces from "/public/img/allPlaces.png";
 import objectPhoto from "/public/img/churchObjectCard.png";
 import objectPhoto2 from "/public/img/churchObjectCard2.png";
+import { useSelector } from "react-redux";
 
 const myLoader = ({ src }) => {
   return `/_next/static/media/${src}`;
@@ -182,6 +183,10 @@ export default function InteractiveMap(props) {
   const [phoneError, setPhoneError] = useState(false);
 
   const { height, width } = useWindowDimensions();
+  const token = useSelector((state) => state.user.token);
+  useEffect(() => {
+    console.log(token || "net tokena");
+  }, [token]);
 
   const FilterBlock = ({ filterList }) => {
     return (
@@ -583,7 +588,7 @@ export default function InteractiveMap(props) {
           <span className={styles.mapOptionsItem}>Показать предложенные объекты</span>
         </div>
       </button>
-      <YMaps>
+      <YMaps query={{ apikey: "2a5c7497-20d8-493c-87a4-21c88a87d455" }}>
         {width < 769 ? (
           <button
             className={leftMenuIsOpen ? styles.collapseMenuBtn : styles.collapseMenuBtn + " " + styles.collapsed}

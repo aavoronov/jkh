@@ -23,10 +23,30 @@ import personGrey from "/public/img/personGrey.png";
 import logoutGrey from "/public/img/logoutGrey.png";
 
 import useWindowDimensions from "./useWindowDimensionsSSR";
+import { getCookie, setCookie } from "cookies-next";
+import { useDispatch, useSelector } from "react-redux";
+import { updateEmail, updateProfile, updateRole } from "../store/userSlice";
+import { useRouter } from "next/router";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import { toggle } from "../store/notificationSlice";
 
 export default function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = false }) {
   const [menuIsOpen, setMenuIsOpen] = useState(true);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  const router = useRouter();
+
+  // const role = useSelector((state) => state.user.role);
+  // useEffect(() => {
+  //   console.log(getCookie("jkh-token"));
+  //   console.log(role);
+  //   if (role === "") {
+  //     router.replace("/");
+  //     setCookie("jkh-token", "");
+  //     // router.push("/");
+  //   }
+  // }, [role]);
 
   const { height, width } = useWindowDimensions();
 
@@ -41,6 +61,39 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
       setMenuIsOpen(false);
     }
   }, [width]);
+
+  const notification = useSelector((state) => state.notification);
+
+  useEffect(() => {
+    if (notification.text) {
+      switch (notification.type) {
+        case "info":
+          toast.info(notification.text);
+          break;
+        case "success":
+          toast.success(notification.text);
+          break;
+        case "warning":
+          toast.warning(notification.text);
+          break;
+        case "error":
+          toast.error(notification.text);
+          break;
+        case "default":
+          toast(notification.text);
+          break;
+        default:
+          notification.text && toast(notification.text);
+      }
+    }
+  }, [notification]);
+
+  // useEffect(() => {
+  //   toast.warning("test");
+  // }, []);
+  useEffect(() => {
+    if (notification.text !== "") setTimeout(() => dispatch(toggle({ text: "", type: null })), 5000);
+  }, [notification]);
 
   const hasWindow = typeof window !== "undefined";
   useEffect(() => {
@@ -67,8 +120,65 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
     else return;
   };
 
+  const dispatch = useDispatch();
+
+  // useEffect(() => {
+  //   if (!getCookie("jkh-token")) {
+  //     dispatch(updateRole({ role: "" }));
+  //   }
+  // }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!!getCookie("jkh-token")) {
+        try {
+          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/reauth`, {
+            headers: {
+              Authorization: getCookie("jkh-token"),
+            },
+          });
+          console.log(res.data);
+          dispatch(updateRole({ role: res.data.role }));
+          dispatch(updateEmail({ email: res.data.email }));
+        } catch (e) {
+          console.log(e.response.data);
+          setCookie("jkh-token", "");
+        }
+      } else {
+        router.push("/");
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    async function getProfile() {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
+        headers: { Authorization: getCookie("jkh-token") },
+      });
+
+      const updatePseudonym = res.data.pseudonym === null ? "" : res.data.pseudonym;
+      console.log(updatePseudonym);
+      dispatch(updateProfile({ pseudonym: updatePseudonym, color: res.data.color }));
+    }
+    getProfile();
+  }, []);
+
+  const pseudonym = useSelector((state) => state.user.pseudonym);
+
   return (
     <div className={styles.pageWrap}>
+      <ToastContainer
+        position='top-left'
+        // autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Head>
         <title>Create Next App</title>
         <link rel='icon' href='/favicon.ico' />
@@ -101,7 +211,7 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
             <div className={styles.userNameWrap}>
               <Image src={user} alt='' />
             </div>
-            <span className={styles.name}>Анна-Мария-Генриетта К.</span>
+            <span className={styles.name}>{pseudonym}</span>
           </div>
           <div
             className={styles.dropdownBtn}
@@ -121,12 +231,23 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
                     </Link>
                   </li>
                   <li>
-                    <Link href='/'>
+                    {/* <Link href='/'>
                       <div className={styles.dropdownMenuItem}>
                         <Image src={logout} alt='' />
                         <span>Выйти</span>
                       </div>
-                    </Link>
+                    </Link> */}
+                    <span
+                      onClick={() => {
+                        dispatch(updateRole(""));
+                        router.replace("/");
+                        setCookie("jkh-token", "");
+                      }}>
+                      <div className={styles.dropdownMenuItem}>
+                        <Image src={logout} alt='' />
+                        <span>Выйти</span>
+                      </div>
+                    </span>
                   </li>
                 </ul>
               </div>

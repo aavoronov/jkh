@@ -20,7 +20,7 @@ const ProductCard = ({ isPaidAd = false, isVip = false, isOnMyAdsPage = false, i
         <>
           {isOnMyFavesPage && !favorite ? null : (
             <div className={styles.productItem}>
-              <div className={styles.border}>
+              <div className={styles.border} style={{ borderColor: isVip ? "#F54019" : "#c4c6d6" }}>
                 <div className={styles.imageWrap}>
                   {/* <Image src='/img/temp/broshurator.png' layout='fill' /> */}
                   <Carousel

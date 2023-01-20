@@ -5,10 +5,18 @@ import * as Yup from "yup";
 import OtpInput from "react-otp-input-rc-17";
 import OTPInput from "./OTPInput";
 import { useDropzone } from "react-dropzone";
+import axios from "axios";
+import { setCookie } from "cookies-next";
+import { useDispatch } from "react-redux";
+import { updateRole } from "../store/userSlice";
+import { toggle } from "../store/notificationSlice";
+import { redirect } from "next/dist/server/api-utils";
+import { useRouter } from "next/router";
 
 const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
   //   const [modalActive, setModalActive] = useState(false);
   const [popupError, setPopupError] = useState(false);
+  const dispatch = useDispatch();
   // const [otp, setOtp] = useState("");
   // const [timer, setTimer] = useState(null);
 
@@ -53,6 +61,20 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
   };
 
   const AuthByLogin = () => {
+    // const KeyboardEvent = (event) => event.key === "Enter" && signInHandler();
+    const signInHandler = async (values) => {
+      try {
+        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/auth`, { ...values });
+        dispatch(updateRole({ role: res.data.user.role }));
+        setModalToDisplay("");
+        setPopupError(false);
+
+        setCookie("jkh-token", res.data.token, { maxAge: 3600 * 24 * 30 });
+      } catch (e) {
+        console.log(e);
+        dispatch(toggle({ text: e.response.data.message, type: "error" }));
+      }
+    };
     return (
       <div className={styles.popup}>
         <CloseBtn />
@@ -67,38 +89,28 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
           <div className={styles.popupFieldWrap}>
             <Formik
               initialValues={{
-                login: "",
+                email: "",
                 password: "",
               }}
               validationSchema={Yup.object({
-                login: Yup.string().required("Введите e-mail"),
+                email: Yup.string().required("Введите e-mail"),
                 password: Yup.string().required("Введите пароль"),
-                // name: Yup.string()
-                // .max(20, "Must be 20 characters or less")
-                //   .required("Обязательное поле"),
-                // description: Yup.string().required("Обязательное поле"),
-                // phoneNumber: Yup.string()
-                //   .matches(/\d{10}/, "10 цифр")
-                //   .required("Обязательное поле"),
-                // webPage: Yup.string().required("Обязательное поле"),
               })}
               onSubmit={(values) => {
-                alert(JSON.stringify(values, null, 2));
-                setPopupError(false);
-                alert("Авторизовались");
-                setModalToDisplay("");
+                signInHandler(values);
+                // alert(JSON.stringify(values, null, 2));
               }}>
               {({ values }) => (
                 <Form>
                   <div className={styles.popupFieldWrap + " " + styles.column}>
-                    <Field name='login' type='text' placeholder='Введите e-mail' className={styles.field} />
+                    <Field name='email' type='text' placeholder='Введите e-mail' className={styles.field} />
                     <span className={styles.errorText}>
-                      <ErrorMessage name='login' />
+                      <ErrorMessage name='email' />
                     </span>
                   </div>
 
                   <div className={styles.popupFieldWrap + " " + styles.column}>
-                    <Field name='password' type='text' placeholder='Введите пароль' className={styles.field} />
+                    <Field name='password' type='password' placeholder='Введите пароль' className={styles.field} />
                     <span className={styles.errorText}>
                       <ErrorMessage name='password' />
                     </span>
@@ -125,7 +137,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                       type='button'
                       className={styles.secondaryOption}
                       onClick={() => {
-                        setModalToDisplay("signUpByPhone");
+                        setModalToDisplay("signUpByEmail");
                       }}>
                       Зарегистрироваться
                     </button>
@@ -309,6 +321,17 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
   };
 
   const SignUpByEmail = () => {
+    const signUpHandler = async (values) => {
+      try {
+        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/`, { ...values });
+        console.log(res.data);
+        setModalToDisplay("emailConfirmation");
+        setCounter(60);
+      } catch (e) {
+        dispatch(toggle({ text: e.response.data.message, type: "error" }));
+      }
+    };
+
     return (
       <div className={styles.popup}>
         <CloseBtn />
@@ -325,7 +348,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
               initialValues={{
                 email: "",
                 password: "",
-                passwordRepeat: "",
+                passwordConfirmation: "",
               }}
               validationSchema={Yup.object({
                 //   login: Yup.string().required("Введите логин"),
@@ -341,8 +364,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
               })}
               onSubmit={(values) => {
                 // alert(JSON.stringify(values, null, 2));
-                setModalToDisplay("emailConfirmation");
-                setCounter(60);
+                signUpHandler(values);
               }}>
               {({ values }) => (
                 <Form>
@@ -360,15 +382,15 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                   </div>
 
                   <div className={styles.popupFieldWrap + " " + styles.column}>
-                    <Field name='passwordRepeat' type='password' placeholder='Повторите пароль' className={styles.field} />
+                    <Field name='passwordConfirmation' type='password' placeholder='Повторите пароль' className={styles.field} />
                     <span className={styles.errorText}>
-                      <ErrorMessage name='passwordRepeat' />
+                      <ErrorMessage name='passwordConfirmation' />
                     </span>
                   </div>
 
                   <div className={styles.popupFieldWrap}>
                     <button type='submit' className={styles.submitBtn}>
-                      Получить код
+                      Зарегистрироваться
                     </button>
                   </div>
 
@@ -383,7 +405,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                       onClick={() => {
                         setModalToDisplay("signUpByPhone");
                       }}>
-                      Регистарция по телефону
+                      Регистрация по телефону
                     </button>
                   </div>
 
@@ -479,14 +501,10 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
       <div className={styles.popup}>
         <CloseBtn />
         <div className={styles.formWrap}>
-          <span
-            className={styles.popupHeading}
-            onClick={() => {
-              console.log(modalToDisplay);
-            }}>
-            Подтвердите email
-          </span>
-          <div className={styles.popupFieldWrap}>
+          <span className={styles.popupHeading}>Аккаунт создан</span>
+          <span className={styles.popupText}>Перейдите по ссылке в отправленном вам письме, чтобы подтвердить аккаунт</span>
+
+          {/* <div className={styles.popupFieldWrap}>
             <div className={styles.popupFieldWrap}>
               <button
                 type='button'
@@ -498,24 +516,29 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                 <br /> {Timer(60)}
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     );
   };
 
   const PasswordReset1 = () => {
+    const resetHandler = async (values) => {
+      try {
+        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/restore`, { ...values });
+        console.log(res.data);
+        setModalToDisplay("passwordReset2");
+        setCounter(60);
+      } catch (e) {
+        dispatch(toggle({ text: e.response.data.message, type: "error" }));
+      }
+    };
+
     return (
       <div className={styles.popup}>
         <CloseBtn />
         <div className={styles.formWrap}>
-          <span
-            className={styles.popupHeading}
-            onClick={() => {
-              console.log(modalToDisplay);
-            }}>
-            Сброс пароля
-          </span>
+          <span className={styles.popupHeading}>Сброс пароля</span>
           <div className={styles.popupFieldWrap}>
             <Formik
               initialValues={{
@@ -523,21 +546,10 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                 // password: "",
               }}
               validationSchema={Yup.object({
-                //   login: Yup.string().required("Введите логин"),
-                //   password: Yup.string().required("Введите пароль"),
-                // name: Yup.string()
-                // .max(20, "Must be 20 characters or less")
-                //   .required("Обязательное поле"),
-                // description: Yup.string().required("Обязательное поле"),
-                // phoneNumber: Yup.string()
-                //   .matches(/\d{10}/, "10 цифр")
-                //   .required("Обязательное поле"),
-                // webPage: Yup.string().required("Обязательное поле"),
+                email: Yup.string().required("Введите почту"),
               })}
               onSubmit={(values) => {
-                // alert(JSON.stringify(values, null, 2));
-                setModalToDisplay("passwordReset2");
-                setCounter(60);
+                resetHandler(values);
               }}>
               {({ values }) => (
                 <Form>
@@ -578,30 +590,32 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
             onClick={() => {
               console.log(modalToDisplay);
             }}>
-            На указанный адрес отправлено письмо восстановления пароля
+            Ваш пароль сброшен
           </span>
           <div className={styles.popupFieldWrap}>
             <div className={styles.popupFieldWrap}>
-              <button
+              {/* <button
                 type='button'
                 className={counter ? styles.resendInactive : styles.resendActive}
                 onClick={() => {
-                  counter ? null : setCounter(60);
+                  // counter ? null : setCounter(60);
+
                 }}>
                 Отправить еще раз
                 <br /> {Timer(60)}
-              </button>
+              </button> */}
+              <span style={{ textAlign: "center" }}>На указанный адрес отправлено письмо с новыми данными для входа</span>
             </div>
           </div>
-          <div className={styles.popupFieldWrap}>
+          {/* <div className={styles.popupFieldWrap}>
             <span
               onClick={() => {
-                setModalToDisplay("passwordReset3");
+                setModalToDisplay("");
               }}
               style={{ cursor: "pointer" }}>
               Имитация перехода с письма
             </span>
-          </div>
+          </div> */}
         </div>
       </div>
     );
@@ -624,7 +638,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
             <Formik
               initialValues={{
                 password: "",
-                passwordRepeat: "",
+                passwordConfirmation: "",
               }}
               validationSchema={Yup.object({
                 // login: Yup.string().required("Введите логин"),
@@ -660,13 +674,13 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
 
                   <div className={styles.popupFieldWrap + " " + styles.column}>
                     <Field
-                      name='passwordRepeat'
+                      name='passwordConfirmation'
                       type={secure ? "password" : "text"}
                       placeholder='Повторите пароль'
                       className={styles.field}
                     />
                     <span className={styles.errorText}>
-                      <ErrorMessage name='passwordRepeat' />
+                      <ErrorMessage name='passwordConfirmation' />
                     </span>
                   </div>
 
@@ -956,7 +970,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
             <Formik
               initialValues={{
                 password: "",
-                passwordRepeat: "",
+                passwordConfirmation: "",
               }}
               validationSchema={Yup.object({
                 // login: Yup.string().required("Введите логин"),

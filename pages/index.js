@@ -11,6 +11,9 @@ import Layout from "../components/Layout";
 import AdItem from "../components/AdItem";
 
 import ModalsLayer from "../components/Modals";
+import { useDispatch } from "react-redux";
+import { updateToken } from "../store/userSlice";
+import { getCookie } from "cookies-next";
 
 function Home() {
   const BurgerMenuBtn = () => {
@@ -42,6 +45,8 @@ function Home() {
 
   const [menuIsOpen, setMenuIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const dispatch = useDispatch();
 
   const [modalToDisplay, setModalToDisplay] = useState(null);
   // const [popupError, setPopupError] = useState(false);

@@ -1,68 +1,362 @@
-import React, { useEffect, useState, useRef, forwardRef } from "react";
+import ru from "date-fns/locale/ru";
 import Image from "next/image";
 import Link from "next/link";
-import DatePicker, { registerLocale } from "react-datepicker";
+import React, { forwardRef, useEffect, useRef, useState } from "react";
+import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import ru from "date-fns/locale/ru";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
-import { Carousel } from "react-responsive-carousel";
-import { Rating } from "react-simple-star-rating";
-import { RotatingLines } from "react-loader-spinner";
 
 import LayoutLoggedIn from "../../components/LayoutLoggedIn";
-import LayoutMap from "../../components/LayoutMap";
-import AdItem from "../../components/AdItem";
-import ServiceAd from "../../components/ServiceAd";
 // import DropdownList from "../components/DropdownList";
 import arrowLeft from "/public/img/arrowLeft.png";
-import ProductCard from "../../components/ProductCard";
 
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Thumbs } from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/thumbs";
 
 import styles from "./chat.module.scss";
-import { objectList, servicesList, portfolio, mastersData } from "../../components/data";
 
 import useWindowDimensions from "../../components/useWindowDimensionsSSR";
+import axios from "axios";
+import { useSelector } from "react-redux";
 
-export default function Chat(props) {
-  const [category, setCategory] = useState(null);
-  const [categoryHorizontal, setCategoryHorizontal] = useState("Любая категория");
-  const [location, setLocation] = useState("Москва и Московская область");
-  const [withPhotos, setWithPhotos] = useState(false);
-  const [buySellMode, setBuySellMode] = useState("Куплю");
-  const [productNew, setProductNew] = useState(false);
-  const [productUsed, setProductUsed] = useState(false);
+import io, { Manager } from "socket.io-client";
+import { getCookie } from "cookies-next";
+import { useDropzone } from "react-dropzone";
+import styled from "@emotion/styled";
+import { current } from "@reduxjs/toolkit";
+// import { socket } from "../../service/socket";
 
-  const [favorite, setFavorite] = useState(false);
-  const [thumbsSwiper, setThumbsSwiper] = useState(null);
-  const [priceSuggestion, setPriceSuggestion] = useState(false);
-  const [popupError, setPopupError] = useState(false);
+// const socket = io("http://localhost:5000/", {
+//   autoConnect: false,
+//   query: `pseudonym=${pseudonym}`,
+// });
 
-  const navigationPrevRef = useRef(null);
-  const navigationNextRef = useRef(null);
+const Dropzone = ({ files, filename, setFilename, setFiles, chatTextValue, setChatTextValue, handleKeyPress }) => {
+  const [isDraggedOver, setIsDraggedOver] = useState(false);
 
+  const hiddenFileInput = useRef(null);
+
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: {
+      "image/*": [],
+    },
+    onDrop: (acceptedFiles) => {
+      // !files.length &&
+      setFiles(
+        files
+          .concat(
+            acceptedFiles.map((file) =>
+              Object.assign(file, {
+                preview: URL.createObjectURL(file),
+              })
+            )
+          )
+          .slice(0, 1)
+      );
+      setFilename(acceptedFiles[0].name);
+
+      setIsDraggedOver(false);
+    },
+    onDragOver: () => {
+      setIsDraggedOver(true);
+    },
+    onDragLeave: () => {
+      setIsDraggedOver(false);
+    },
+    maxFiles: 1,
+    maxSize: 1000000,
+    multiple: false,
+  });
+  // const { getRootProps, getInputProps } = useDropzone({ maxFiles: 10, maxSize: 3000000, multiple: true, onDrop });
+
+  const removeFile = (file) => {
+    const newFiles = [...files];
+    newFiles.splice(newFiles.indexOf(file), 1);
+    setFiles(newFiles);
+    console.log(files);
+  };
+
+  const removeAll = () => {
+    setFiles([]);
+    setFilename("");
+  };
+  const thumbs = files.map((i) => (
+    <div
+      className={styles.thumb}
+      // key={i.name}
+      key={Math.random().toString()}>
+      <div className={styles.thumbInner}>
+        <img
+          src={i.preview}
+          className={styles.img}
+          // Revoke data uri after image is loaded
+          onLoad={() => {
+            URL.revokeObjectURL(i.preview);
+          }}
+        />
+        <button className={styles.imageRemove} onClick={() => removeAll()}></button>
+        {/* <span className={styles.fileName}>{filename}</span> */}
+      </div>
+    </div>
+  ));
+
+  useEffect(() => {
+    // Make sure to revoke the data uris to avoid memory leaks, will run on unmount
+    return () => files.forEach((i) => URL.revokeObjectURL(i.preview));
+  }, []);
+
+  return (
+    <>
+      <div className={styles.dragndropWrap}>
+        {/* <div {...getRootProps({ className: isDraggedOver ? styles.hoveredOver : "" })}> */}
+        <div className={isDraggedOver ? styles.hoveredOver : ""}>
+          {!files.length && <input {...getInputProps()} className={styles.paperclipBtn} ref={hiddenFileInput} />}
+          <button className={styles.paperclipBtn} onClick={() => hiddenFileInput.current.click()}></button>
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            {" "}
+            <textarea
+              className={
+                isDraggedOver
+                  ? styles.chatField + " " + styles.dragndropField + " " + styles.hoveredOver
+                  : styles.chatField + " " + styles.dragndropField
+              }
+              style={{ boxShadow: "none" }}
+              value={chatTextValue}
+              onChange={(event) => setChatTextValue(event.target.value)}
+              onKeyPress={handleKeyPress}
+            />{" "}
+            <aside className={styles.thumbsContainer}>{thumbs}</aside>
+          </div>
+          {/* <button
+            className={styles.paperclipBtn}
+            // {...getInputProps()}
+            style={{ display: "block" }}
+            onClick={() => console.log(files)}></button> */}
+          {/* {files.length ? (
+            <span className={styles.dragndropFieldBtn + " " + styles.filled} onClick={removeAll}></span>
+          ) : (
+            <span className={styles.dragndropFieldBtn}></span>
+          )} */}
+        </div>
+      </div>
+    </>
+  );
+};
+
+const getHumanReadableDate = (date) => {
+  const monthNames = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+  return date.getDate() + " " + monthNames[date.getMonth()];
+};
+
+const getHumanReadableDateCompare = (datePrev, date) => {
+  const monthNames = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+
+  return datePrev.getDate() === date.getDate() && datePrev.getMonth() === date.getMonth()
+    ? ""
+    : date.getDate() + " " + monthNames[date.getMonth()];
+};
+
+export default function Chat() {
   const datepickerRef = useRef(null);
 
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(null);
-  const [scrollToBottom, setScrollToBottom] = useState(true);
+  const [scrollToBottom, setScrollToBottom] = useState(0);
   const [searchActive, setSearchActive] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
   const [chatDate, setChatDate] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [chatTextValue, setChatTextValue] = useState("");
+  const [files, setFiles] = useState([]);
+  const [filename, setFilename] = useState("");
+  const [myChats, setMyChats] = useState([]);
+  const [currentChat, setCurrentChat] = useState("");
+  const [currentChatId, setCurrentChatId] = useState("");
+  const [chatUsers, setChatUsers] = useState([]);
+  const [chatUsersSearchField, setChatUsersSearchField] = useState("");
+  const [query, setQuery] = useState("");
+  const [searchMessages, setSeatchMessages] = useState([]);
+
+  const pseudonym = useSelector((state) => state.user.pseudonym);
+  const email = useSelector((state) => state.user.email);
+
+  useEffect(() => {
+    async function getMessages() {
+      if (!!email) {
+        try {
+          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/${email}`, {
+            headers: {
+              Authorization: getCookie("jkh-token"),
+            },
+          });
+
+          const initialMessages = res.data.data.map((item) => {
+            const serverDate = item.createdAt;
+            const localDate = new Date(serverDate);
+            return {
+              message: item.message,
+              date: localDate,
+              time: localDate.getHours().toString().padStart(2, "0") + ":" + localDate.getMinutes().toString().padStart(2, "0"),
+              name: item.user.profile.pseudonym,
+              color: item.user.profile.color,
+              file: item.file,
+              roomId: item.roomId,
+            };
+          });
+          // console.log(initialMessages);
+          setMessages(initialMessages);
+          // console.log(messages);
+          setScrollToBottom((prev) => prev + 1);
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    }
+    getMessages();
+  }, [email]);
+
+  const handleNewMessage = (data) => {
+    // setMessages([...messages, data]);
+    console.log("newmsg");
+    if (!!data.file) {
+      const blob = new Blob([data.file]);
+      const url = URL.createObjectURL(blob);
+      console.log(url);
+      data = { ...data, file: url };
+    }
+    console.log(data);
+    // messages.push(data);
+    // messages = [...messages, data];
+    setMessages((prev) => [...prev, data]);
+    console.log(messages);
+    setScrollToBottom((prev) => prev + 1);
+  };
+
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      if (event.shiftKey) {
+        // setChatTextValue(chatTextValue + "\n");
+      } else {
+        event.preventDefault();
+        !!chatTextValue && sendMessage({ email: email, text: chatTextValue, color: personalColor, filename, roomId: currentChatId });
+        setChatTextValue("");
+        setFiles([]);
+        setFilename("");
+      }
+    }
+  };
+
+  const manager = new Manager("http://localhost:5000/", {
+    autoConnect: false,
+    query: `pseudonym=${pseudonym}`,
+  });
+
+  const socket = manager.socket("/chat"); // main namespace
 
   const [collapseBtnVisible, setCollapseBtnVisible] = useState(true);
 
   const [scrollPosition, setScrollPosition] = useState(0);
   const handleScroll = () => {
     const position = window.pageYOffset;
-    console.log();
+    // console.log();
     setScrollPosition(position);
   };
+
+  const [isConnected, setIsConnected] = useState(false);
+  const [lastPong, setLastPong] = useState(null);
+  const personalColor = useSelector((state) => state.user.color);
+
+  socket.connect();
+  console.log("connect");
+
+  useEffect(() => {}, []);
+
+  useEffect(() => {
+    if (!!myChats.length) {
+      socket.on("connect", () => {
+        setIsConnected(true);
+      });
+
+      socket.on("disconnect", () => {
+        setIsConnected(false);
+      });
+
+      socket.on("pong", () => {
+        setLastPong(new Date().toISOString());
+        console.log("pong!");
+      });
+
+      // socket.on(
+      //   "newConnection",
+      //   (payload) => {
+      //     console.log(payload);
+      //   },
+      //   { room: currentChatId }
+      // );
+
+      socket.on("message", (data) => {
+        console.log("msg");
+        handleNewMessage(data);
+
+        // console.log(data);
+      });
+
+      socket.emit(
+        "joinRoom",
+        myChats.map((item) => item.id)
+      );
+
+      return () => {
+        socket.disconnect();
+        socket.off("connect");
+        socket.off("disconnect");
+        socket.off("pong");
+        socket.off("newConnection");
+        socket.off("message");
+      };
+    }
+  }, [myChats]);
+
+  const sendPing = () => {
+    socket.emit("ping");
+  };
+
+  const sendMessage = async (payload) => {
+    if (!!files.length) payload = { ...payload, file: files[0] };
+    socket.emit("message", payload);
+
+    try {
+      const msgFormData = new FormData();
+      msgFormData.append("sender", payload.email);
+      msgFormData.append("message", payload.text);
+      msgFormData.append("roomId", payload.roomId);
+      !!files.length && msgFormData.append("file", files[0], filename);
+
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/chat`, msgFormData, {
+        headers: { Authorization: getCookie("jkh-token"), "Content-Type": !files.length ? "application/json" : "multipart/form-data" },
+      });
+      console.log(res);
+    } catch (e) {
+      console.log(e);
+    }
+
+    // email: email, text: chatTextValue, color: personalColor
+
+    // let msg = payload;
+  };
+
+  useEffect(() => {
+    const regularPing = setInterval(() => sendPing(), 1000);
+    return clearInterval(regularPing);
+  }, []);
+
+  // useEffect(() => {
+  //   async function chatConnect() {
+  //     const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat`);
+  //     console.log(res);
+  //   }
+  //   chatConnect();
+  // }, []);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -72,7 +366,7 @@ export default function Chat(props) {
     };
   }, []);
 
-  const { height, width } = useWindowDimensions();
+  const { width } = useWindowDimensions();
 
   useEffect(() => {
     if (width > 900) {
@@ -94,19 +388,132 @@ export default function Chat(props) {
     }
 
     // chatRef.current.scrollIntoView({ behavior: "smooth" });
-  });
+  }, [scrollToBottom]);
 
-  const handleLinksInString = (str) => {
-    if (!str.includes("http")) {
-      return "no";
+  const CalendarBtnInput = forwardRef(({ onClick }, ref) => <button className={styles.calendarBtn} onClick={onClick} ref={ref}></button>);
+
+  async function getSearchMessages() {
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat?query=${query}`);
+  }
+
+  const ChatMessage = ({ isMine = false, isPaid = false, name, text, profilePic, time, file, color }) => {
+    if (!!file && !file.includes("blob")) {
+      file = `${process.env.NEXT_PUBLIC_API_URL}/chat/uploads/${file}`;
+      // console.log(img);
+      // console.log(file.includes("blob"));
     }
-    let position = str.search(/http/i);
-    return position;
+    // if (!!file) {
+    //   const img = new Image({ src: file, layout: "fill" });
+    // img.src = file;
+    // img.onload = () => {
+    // img.width
+    // img.height
+    // console.log(img.width);
+    // };
+    // }
+    return (
+      <div className={isMine ? styles.chatMessageMine : styles.chatMessage}>
+        {!isMine ? (
+          !profilePic ? (
+            <span className={styles.objectLetters} style={{ backgroundColor: color }}>
+              {name.split(" ").length > 1 ? name.split(" ")[0][0] + name.split(" ")[1][0] : name.slice(0, 2)}
+            </span>
+          ) : (
+            <div className={styles.participantPic}>
+              <Image src={profilePic} width={35} height={35} />
+            </div>
+          )
+        ) : null}
+        <div className={styles.messageBubble}>
+          {!isMine && !isPaid && !!name && (
+            <span className={styles.messagePersonName} style={{ color: color }}>
+              {name}
+            </span>
+          )}
+          {!!file && (
+            <div className={styles.chatPicWrap}>
+              <img src={file} layout='responsive' style={{ maxWidth: "100%" }} />
+
+              {/* <Image src='/img/temp/chatPic.png' width='100%' height='100%' layout='responsive' className={styles.chatPic} /> */}
+            </div>
+          )}
+          {/* <img
+            src='http://localhost:5000/uploads/MC4wMTU4ODcxNTg0Nzc4MDI2NDMxNjczNTIzMzc0ODg4.png'
+            layout='responsive'
+            width='100%'
+            height='100%'
+          /> */}
+          <span className={styles.messageText}>{text}</span>
+
+          {!isPaid ? (
+            <span className={styles.messageTime}>
+              {/* <span className={styles.checkSent}></span> */}
+              {/* <span className={styles.checkDelivered}></span> */}
+              {time}
+            </span>
+          ) : (
+            <div className={styles.partnerTimeWrap}>
+              <span className={styles.partnerInfo}>
+                Это <span className={styles.hashtag}>#партнерский</span> пост
+              </span>
+              <span className={styles.messageTime}>{time}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
-  const CalendarBtnInput = forwardRef(({ value, onClick }, ref) => (
-    <button className={styles.calendarBtn} onClick={onClick} ref={ref}></button>
-  ));
+  useEffect(() => {
+    async function getMyChats() {
+      if (!!email) {
+        try {
+          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat-rooms/my/${email}`, {
+            headers: {
+              Authorization: getCookie("jkh-token"),
+            },
+          });
+
+          const chats = res.data.map((item) => item.chat);
+          console.log(chats);
+          setMyChats(chats);
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    }
+    getMyChats();
+  }, [email]);
+
+  useEffect(() => {
+    if (!!myChats.length) {
+      setCurrentChat(myChats[0].address);
+      setCurrentChatId(parseInt(myChats[0].id));
+    }
+  }, [myChats]);
+
+  useEffect(() => {
+    if (!!myChats.length) {
+      const users = [];
+      myChats.forEach((item) => {
+        async function getChatUsers() {
+          try {
+            const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat-rooms/room/${item.id}/users`, {
+              headers: { Authorization: getCookie("jkh-token") },
+            });
+            // console.log(res.data);
+            users.push(res.data);
+            // return res.data;
+          } catch (e) {
+            console.log(e);
+          }
+        }
+        getChatUsers();
+      });
+      console.log(users);
+      setChatUsers(users);
+    }
+  }, [myChats]);
 
   return (
     <LayoutLoggedIn>
@@ -121,30 +528,18 @@ export default function Chat(props) {
           </button>
         ) : null}
         <div className={styles.tabWrap}>
-          <div className={styles.chatTab + " " + styles.active}>
-            <span className={styles.objectLetters}>ММ</span>
-            <span className={styles.objectName}>Маяковского, 5</span>
-          </div>
-          <div className={styles.chatTab}>
-            <span className={styles.objectLetters}>ММ</span>
-            <span className={styles.objectName}>Маяковского, 5</span>
-          </div>
-          <div className={styles.chatTab}>
-            <span className={styles.objectLetters}>ММ</span>
-            <span className={styles.objectName}>Маяковского, 5Маяковского, 5Маяковского, 5</span>
-          </div>
-          <div className={styles.chatTab}>
-            <span className={styles.objectLetters}>ММ</span>
-            <span className={styles.objectName}>Маяковского, 5</span>
-          </div>
-          <div className={styles.chatTab}>
-            <span className={styles.objectLetters}>ММ</span>
-            <span className={styles.objectName}>Маяковского, 5</span>
-          </div>
-          <div className={styles.chatTab}>
-            <span className={styles.objectLetters}>ММ</span>
-            <span className={styles.objectName}>Маяковского, 5</span>
-          </div>
+          {myChats.map((item, index) => (
+            <div
+              className={item.address === currentChat ? styles.chatTab + " " + styles.active : styles.chatTab}
+              key={index}
+              onClick={() => {
+                setCurrentChat(item.address);
+                setCurrentChatId(parseInt(item.id));
+              }}>
+              <span className={styles.objectLetters}>{item.address.split(" ")[0][0] + item.address.split(" ")[1][0]}</span>
+              <span className={styles.objectName}>{item.address}</span>
+            </div>
+          ))}
           <div className={styles.chatTab + " " + styles.active + " " + styles.addChat}>
             <Link href='/chat/add-chat'>
               <span className={styles.objectLetters}>+</span>
@@ -153,145 +548,86 @@ export default function Chat(props) {
         </div>
 
         <div className={styles.chatContainer}>
+          {/* <div>
+            <p>Connected: {"" + isConnected}</p>
+            <p>Last pong: {lastPong || "-"}</p>
+            <button onClick={sendPing}>Send ping</button>
+          </div> */}
           <aside className={leftMenuIsOpen ? styles.leftMenu : styles.leftMenu + " " + styles.collapsed}>
-            <div className={styles.fieldWithBtn}>
-              <input name='name' type='text' placeholder='Поиск' className={styles.field} />
+            <div className={styles.fieldWithBtn + " " + styles.users}>
+              <input
+                name='name'
+                type='text'
+                placeholder='Поиск'
+                className={styles.field}
+                value={chatUsersSearchField}
+                onChange={(e) => setChatUsersSearchField(e.target.value)}
+              />
             </div>
             <div className={styles.participantsBlock}>
-              <div className={styles.participant}>
+              {!!chatUsers.length &&
+                chatUsers
+                  .filter((item) => parseInt(item.roomId) === currentChatId)[0]
+                  .users.map(
+                    (item) =>
+                      item.user.profile.pseudonym.toLowerCase().includes(chatUsersSearchField.toLowerCase()) && (
+                        <div className={styles.participant}>
+                          <span className={styles.objectLetters} style={{ backgroundColor: item.user.profile.color }}>
+                            {item.user.profile.pseudonym.split(" ").length > 1
+                              ? item.user.profile.pseudonym.split(" ")[0][0] + item.user.profile.pseudonym.split(" ")[1][0]
+                              : item.user.profile.pseudonym.slice(0, 2)}
+                          </span>
+                          <span className={styles.participantName}>{item.user.profile.pseudonym}</span>
+                        </div>
+                      )
+                  )}
+
+              {/* <div className={styles.participant}>
                 <span className={styles.objectLetters}>ЛИ</span>
                 <span className={styles.participantName}>Лариса Иванова</span>
               </div>
               <div className={styles.participant}>
-                <span className={styles.objectLetters}>ЛИ</span>
-                <span className={styles.participantName}>Лариса Иванова</span>
-              </div>
-              <div className={styles.participant}>
-                {/* <span className={styles.objectLetters}>ЛИ</span>s */}
                 <div className={styles.participantPic}>
                   <Image src='/img/temp/fox.png' width={35} height={35} />
                 </div>
 
                 <span className={styles.participantName}>Лисенок 45</span>
-              </div>
-              <div className={styles.participant}>
-                <span className={styles.objectLetters}>ЛИ</span>
-                <span className={styles.participantName}>Лариса Иванова</span>
-              </div>
-              <div className={styles.participant}>
-                <span className={styles.objectLetters}>ЛИ</span>
-                <span className={styles.participantName}>Лариса Иванова</span>
-              </div>
-              <div className={styles.participant}>
-                {/* <span className={styles.objectLetters}>ЛИ</span>s */}
-                <div className={styles.participantPic}>
-                  <Image src='/img/temp/fox.png' width={35} height={35} />
-                </div>
-
-                <span className={styles.participantName}>Лисенок 45</span>
-              </div>
-              <div className={styles.participant}>
-                <span className={styles.objectLetters}>ЛИ</span>
-                <span className={styles.participantName}>Лариса Иванова</span>
-              </div>
-              <div className={styles.participant}>
-                <span className={styles.objectLetters}>ЛИ</span>
-                <span className={styles.participantName}>Лариса Иванова</span>
-              </div>
-              <div className={styles.participant}>
-                {/* <span className={styles.objectLetters}>ЛИ</span>s */}
-                <div className={styles.participantPic}>
-                  <Image src='/img/temp/fox.png' width={35} height={35} />
-                </div>
-
-                <span className={styles.participantName}>Лисенок 45</span>
-              </div>
-              <div className={styles.participant}>
-                <span className={styles.objectLetters}>ЛИ</span>
-                <span className={styles.participantName}>Лариса Иванова</span>
-              </div>
-              <div className={styles.participant}>
-                <span className={styles.objectLetters}>ЛИ</span>
-                <span className={styles.participantName}>Лариса Иванова</span>
-              </div>
-              <div className={styles.participant}>
-                {/* <span className={styles.objectLetters}>ЛИ</span>s */}
-                <div className={styles.participantPic}>
-                  <Image src='/img/temp/fox.png' width={35} height={35} />
-                </div>
-
-                <span className={styles.participantName}>Лисенок 45</span>
-              </div>
-              <div className={styles.participant}>
-                <span className={styles.objectLetters}>ЛИ</span>
-                <span className={styles.participantName}>Лариса Иванова</span>
-              </div>
-              <div className={styles.participant}>
-                <span className={styles.objectLetters}>ЛИ</span>
-                <span className={styles.participantName}>Лариса Иванова</span>
-              </div>
-              <div className={styles.participant}>
-                {/* <span className={styles.objectLetters}>ЛИ</span>s */}
-                <div className={styles.participantPic}>
-                  <Image src='/img/temp/fox.png' width={35} height={35} />
-                </div>
-
-                <span className={styles.participantName}>Лисенок 45</span>
-              </div>
-              <div className={styles.participant}>
-                <span className={styles.objectLetters}>ЛИ</span>
-                <span className={styles.participantName}>Лариса Иванова</span>
-              </div>
-              <div className={styles.participant}>
-                <span className={styles.objectLetters}>ЛИ</span>
-                <span className={styles.participantName}>Лариса Иванова</span>
-              </div>
-              <div className={styles.participant}>
-                {/* <span className={styles.objectLetters}>ЛИ</span>s */}
-                <div className={styles.participantPic}>
-                  <Image src='/img/temp/fox.png' width={35} height={35} />
-                </div>
-
-                <span className={styles.participantName}>Лисенок 45</span>
-              </div>{" "}
-              <div className={styles.participant}>
-                <span className={styles.objectLetters}>ЛИ</span>
-                <span className={styles.participantName}>Лариса Иванова</span>
-              </div>
-              <div className={styles.participant}>
-                <span className={styles.objectLetters}>ЛИ</span>
-                <span className={styles.participantName}>Лариса Иванова</span>
-              </div>
-              <div className={styles.participant}>
-                {/* <span className={styles.objectLetters}>ЛИ</span>s */}
-                <div className={styles.participantPic}>
-                  <Image src='/img/temp/fox.png' width={35} height={35} />
-                </div>
-
-                <span className={styles.participantName}>Лисенок 45</span>
-              </div>
+              </div> */}
             </div>
           </aside>
           <div className={styles.chatControls}>
-            <div className={styles.chatTab + " " + styles.active}>
-              <span className={styles.objectLetters}>ММ</span>
-              <span className={styles.objectName}>Москва, ул. Маяковского, дом 5</span>
-            </div>
-            <div className={styles.controlBtns}>
-              <span
-                className={styles.chatBtn + " " + styles.chatSearch}
-                onClick={() => {
-                  setSearchActive(!searchActive);
-                }}></span>
-              <div className={styles.chatBtn + " " + styles.chatThreeDots}>
-                <div className={styles.threeDotsBtnMenu}>
-                  <span className={styles.chatOptionsItem}>Покинуть чат</span>
-                  <span className={styles.chatOptionsItem}>Отключить уведомления</span>
+            {!!currentChat.length && (
+              <>
+                <div className={styles.chatTab + " " + styles.active}>
+                  <span className={styles.objectLetters}>
+                    {currentChat ? currentChat.split(" ")[0][0] + currentChat.split(" ")[1][0] : ""}
+                  </span>
+                  <span className={styles.objectName}>{currentChat}</span>
                 </div>
-              </div>
-            </div>
+                <div className={styles.controlBtns}>
+                  <span
+                    className={styles.chatBtn + " " + styles.chatSearch}
+                    onClick={() => {
+                      setSearchActive(!searchActive);
+                    }}></span>
+                  <div className={styles.chatBtn + " " + styles.chatThreeDots}>
+                    <div className={styles.threeDotsBtnMenu}>
+                      <span className={styles.chatOptionsItem}>Покинуть чат</span>
+                      <span className={styles.chatOptionsItem}>Отключить уведомления</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           <div className={styles.chat}>
+            {!currentChat.length && (
+              <div style={{ width: "100%", height: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ textAlign: "center" }}>
+                  Вы не зарегистрированы ни в одном домовом чате. Нажмите на кнопку "+" выше, чтобы посмотреть доступные домовые чаты.
+                </span>
+              </div>
+            )}
             {searchActive ? (
               <div className={styles.searchPanel}>
                 <div className={styles.searchControls}>
@@ -349,163 +685,130 @@ export default function Chat(props) {
                 </div>
               </div>
             ) : null}
-            <div className={styles.chatDate}>10 мая</div>
-            <div className={styles.chatMessage}>
-              {/* <span className={styles.objectLetters}>ЛИ</span>s */}
-              <div className={styles.participantPic}>
-                <Image src='/img/temp/fox.png' width={35} height={35} />
-              </div>
-              <div className={styles.messageBubble}>
-                <span className={styles.messagePersonName}>Валентина Петровна 4</span>
-                <span className={styles.messageText}>Что ему сказать? ))</span>
-                <span className={styles.messageTime}>18:20</span>
-              </div>
-            </div>
-            <div className={styles.chatMessage}>
-              <span className={styles.objectLetters}>ЛИ</span>
-              {/* <div className={styles.participantPic}>
-                <Image src='/img/temp/fox.png' width={35} height={35} />
-              </div> */}
-              <div className={styles.messageBubble}>
-                <span className={styles.messagePersonName}>Валентина Петровна 4</span>
-                <span className={styles.messageText}>
-                  Скажи, что у нас в доме скоро будет производиться ремонт и отключение горячей воды по графику будет перенесено на другую
-                  дату
-                </span>
-                <span className={styles.messageTime}>18:20</span>
-              </div>
-            </div>
-            <div className={styles.chatMessage}>
-              {/* <span className={styles.objectLetters}>ЛИ</span> */}
-              <div className={styles.participantPic}>
-                <Image src='/img/temp/fox.png' width={35} height={35} />
-              </div>
-              <div className={styles.messageBubble}>
-                <span className={styles.messagePersonName}>Валентина Петровна 4</span>
-                <span className={styles.messageText}>Что ему сказать? )))))))))) 1111 11 11 1</span>
-                <span className={styles.messageTime}>18:20</span>
-              </div>
-            </div>
-            <div className={styles.chatMessageMine}>
-              <div className={styles.messageBubble}>
-                <span className={styles.messageText}>Что ему сказать?</span>
 
-                <span className={styles.messageTime}>
-                  {/* <span className={styles.checkSent}></span> */}
-                  <span className={styles.checkDelivered}></span>
-                  18:20
-                </span>
-              </div>
-            </div>
-            <div className={styles.chatMessageMine}>
-              <div className={styles.messageBubble}>
-                <span className={styles.messageText}>А?</span>
+            {/* <div className={styles.chatDate}>10 мая</div>
 
-                <span className={styles.messageTime}>
-                  {/* <span className={styles.checkSent}></span> */}
-                  <span className={styles.checkDelivered}></span>
-                  18:20
-                </span>
-              </div>
-            </div>
-            <div className={styles.chatMessage}>
-              {/* <span className={styles.objectLetters}>ЛИ</span>s */}
-              <div className={styles.participantPic}>
-                <Image src='/img/temp/fox.png' width={35} height={35} />
-              </div>
-              <div className={styles.messageBubble}>
-                <span className={styles.messagePersonName}>Валентина Петровна 4</span>
-                <span className={styles.messageText}>А?</span>
-                <span className={styles.messageTime}>18:20</span>
-              </div>
-            </div>
-            <div className={styles.chatMessageMine}>
-              <div className={styles.messageBubble}>
-                <span className={styles.messageText}>
-                  {/* {`Что ему сказать? Я не болтушка, но и не молчунья. Может это не самое подходящее начало для такой заметки, но дело не в
-                  этом. Бывает, что ты узнаешь о человеке то, что сам человек еще не смог толком пережить. И это не просто слова. Самое
-                  ужасное потерять кого-то. Все так неожиданно. Ты просто просыпаешься утром, а Его рядом нет. Небо такое же синее, солнце
-                  такое же яркое и люди все точно такие же вокруг. Но..... Чего то не хватает. И не просто чего-то. Что-то сердцем. Оно
-                  пустое и холодное, как снег в вакууме. И кажеться, что чуть-чуть и что-то оборвется и жизнь больше никогда-никогда не
-                  будет такой, как сейчас. Ни слезы, ни переживания, не сочувствие не поможет.https://dev.to/adrien/creating-a-custom-react-hook-to-get-the-window-s-dimensions-in-next-js-135k`.replace(
-                    /(http|https)\:\/\/(\S+)/g,
-                    '<a href="$1://$2" target="_blank" rel="nofollow">$1://$2</a>'
-                  )} */}
-                  Что ему сказать? Я не болтушка, но и не молчунья. Может это не самое подходящее начало для такой заметки, но дело не в
-                  этом. Бывает, что ты узнаешь о человеке то, что сам человек еще не смог толком пережить. И это не просто слова. Самое
-                  ужасное потерять кого-то. Все так неожиданно. Ты просто просыпаешься утром, а Его рядом нет. Небо такое же синее, солнце
-                  такое же яркое и люди все точно такие же вокруг. Но..... Чего то не хватает. И не просто чего-то. Что-то сердцем. Оно
-                  пустое и холодное, как снег в вакууме. И кажеться, что чуть-чуть и что-то оборвется и жизнь больше никогда-никогда не
-                  будет такой, как сейчас. Ни слезы, ни переживания, не сочувствие не поможет.
-                </span>
-
-                <span className={styles.messageTime}>
-                  {/* <span className={styles.checkSent}></span> */}
-                  <span className={styles.checkDelivered}></span>
-                  18:20
-                </span>
-              </div>
-            </div>
+            <ChatMessage name='Валентина Петровна 4' text='Что ему сказать? ))' profilePic='/img/temp/fox.png' time='18:20' />
+            <ChatMessage
+              name='Валентина Петровна 4'
+              text='Скажи, что у нас в доме скоро будет производиться ремонт и отключение горячей воды по графику будет перенесено на другую дату'
+              profilePic='/img/temp/fox.png'
+              time='18:20'
+            />
+            <ChatMessage
+              name='Валентина Петровна 4'
+              text='Что ему сказать? )))))))))) 1111 11 11 1'
+              profilePic='/img/temp/fox.png'
+              time='18:20'
+            />
+            <ChatMessage isMine name='Валентина Петровна 4' text='Что ему сказать?' profilePic='/img/temp/fox.png' time='18:20' />
+            <ChatMessage isMine name='Валентина Петровна 4' text='А?' profilePic='/img/temp/fox.png' time='18:20' />
+            <ChatMessage name='Валентина Петровна 4' text='А?' profilePic='/img/temp/fox.png' time='18:20' />
+            <ChatMessage
+              isMine
+              name='Валентина Петровна 4'
+              text='Что ему сказать? Я не болтушка, но и не молчунья. Может это не самое подходящее начало для такой заметки, но дело не в этом. Бывает, что ты узнаешь о человеке то, что сам человек еще не смог толком пережить. И это не просто слова. Самое ужасное потерять кого-то. Все так неожиданно. Ты просто просыпаешься утром, а Его рядом нет. Небо такое же синее, солнце такое же яркое и люди все точно такие же вокруг. Но..... Чего то не хватает. И не просто чего-то. Что-то сердцем. Оно пустое и холодное, как снег в вакууме. И кажеться, что чуть-чуть и что-то оборвется и жизнь больше никогда-никогда не будет такой, как сейчас. Ни слезы, ни переживания, не сочувствие не поможет.'
+              profilePic='/img/temp/fox.png'
+              time='18:20'
+            />
             <div className={styles.chatDate}>11 мая</div>
-            <div className={styles.chatMessage}>
-              {/* <span className={styles.objectLetters}>ЛИ</span> */}
-              <div className={styles.participantPic}>
-                <Image src='/img/temp/fox.png' width={35} height={35} />
-              </div>
-              <div className={styles.messageBubble}>
-                <span className={styles.messagePersonName}>Валентина Петровна 4</span>
-                <div className={styles.chatPicWrap}>
-                  <img src='/img/temp/chatPic.png' layout='responsive' width='100%' height='100%' />
-                  {/* <Image src='/img/temp/chatPic.png' width='100%' height='100%' layout='responsive' className={styles.chatPic} /> */}
-                </div>
-                <span className={styles.messageText}>Приятно отдохнуть!</span>
-                <span className={styles.messageTime}>18:20</span>
-              </div>
-            </div>
+            <ChatMessage
+              name='Валентина Петровна 4'
+              text='Приятно отдохнуть!'
+              profilePic='/img/temp/fox.png'
+              time='18:20'
+              pic='/img/temp/chatPic.png'
+            />
+            <ChatMessage
+              isPaid
+              name='Валентина Петровна 4'
+              text=' С 27 мая по 11 июня скидки до 100% на товары помеченные желтым ценником. Приобретая товары в www.magazintut.ru вы можете
+                  выиграть главный приз. Спешите делать покупки и не упустить возможность отдохнуть на Гаваях.'
+              profilePic='/img/temp/partnerProfilePic.png'
+              time='18:20'
+              pic='/img/temp/partnerMessagePic.png'
+            /> */}
 
-            <div className={styles.chatMessagePartner}>
-              {/* <span className={styles.objectLetters}>ЛИ</span> */}
-              <div className={styles.participantPic}>
-                <Image src='/img/temp/partnerProfilePic.png' width={35} height={35} />
-              </div>
-              <div className={styles.messageBubble}>
-                <div className={styles.chatPicWrap}>
-                  <img src='/img/temp/partnerMessagePic.png' layout='responsive' width='100%' height='100%' />
-                  {/* <Image src='/img/temp/chatPic.png' width='100%' height='100%' layout='responsive' className={styles.chatPic} /> */}
-                </div>
-                <span className={styles.messageText}>
-                  С 27 мая по 11 июня скидки до 100% на товары помеченные желтым ценником. Приобретая товары в www.magazintut.ru вы можете
-                  выиграть главный приз. Спешите делать покупки и не упустить возможность отдохнуть на Гаваях.
-                </span>
-                <div className={styles.partnerTimeWrap}>
-                  <span className={styles.partnerInfo}>
-                    Это <span className={styles.hashtag}>#партнерский</span> пост
-                  </span>
-                  <span className={styles.messageTime}>18:20</span>
-                </div>
-              </div>
-            </div>
+            {/* {messages.map((item, index) => { */}
+            {messages
+              .filter((item) => item.roomId === currentChatId)
+              .map((item, index) => {
+                let date = "";
+
+                // const chatsIds = myChats.map((item) => item.id);
+                // console.log(chatsIds);
+
+                if (!!item.date) {
+                  if (index === 0) {
+                    date = getHumanReadableDate(item.date);
+                  } else {
+                    date = getHumanReadableDateCompare(messages.filter((item) => item.roomId === currentChatId)[index - 1].date, item.date);
+                  }
+                }
+                // console.log(messages.filter((item) => item.roomId === currentChatId));
+                return (
+                  <>
+                    {date && <div className={styles.chatDate}>{date}</div>}
+                    {/* <div className={styles.chatDate}>{date}</div> */}
+                    <ChatMessage
+                      key={index}
+                      name={item.name}
+                      text={item.message.replace(/\n/g, "<br/>")}
+                      isMine={item.name === pseudonym}
+                      time={item.time}
+                      color={item.color}
+                      file={item.file}
+                    />
+                  </>
+                );
+                // isMine = false, isPaid = false, name, text, profilePic, time, pic = false
+              })}
 
             <div className={styles.scrollDummy} ref={chatRef}></div>
           </div>
-          <div className={styles.chatFieldWrap}>
-            <div className={styles.fieldTopBtns}>
-              {/* <button className={styles.chatPlusBtn}>+</button> */}
-              <span></span>
-              <button
-                className={styles.chatScrollToBottomBtn}
-                onClick={() => {
-                  setScrollToBottom(!scrollToBottom);
-                }}></button>
+          {!!currentChat && (
+            <div className={styles.chatFieldWrap}>
+              <div className={styles.fieldTopBtns}>
+                {/* <button className={styles.chatPlusBtn}>+</button> */}
+                <span></span>
+                <button
+                  className={styles.chatScrollToBottomBtn}
+                  onClick={() => {
+                    setScrollToBottom((prev) => prev + 1);
+                    console.log(scrollToBottom);
+                  }}></button>
+              </div>
+              <div className={styles.fieldBottomBtns}>
+                <button className={styles.emojiBtn} onClick={() => console.log(chatUsers)}></button>
+                <Dropzone
+                  files={files}
+                  filename={filename}
+                  setFilename={setFilename}
+                  setFiles={setFiles}
+                  placeholder='Договор'
+                  chatTextValue={chatTextValue}
+                  setChatTextValue={setChatTextValue}
+                  handleKeyPress={handleKeyPress}
+                />
+                {/* <textarea
+                className={styles.chatField}
+                value={chatTextValue}
+                onChange={(event) => setChatTextValue(event.target.value)}
+                onKeyPress={handleKeyPress}></textarea> */}
+                {/* <input type='file' className={styles.paperclipBtn}></input> */}
+                {/* <button className={styles.paperclipBtn} onClick={() => console.log("test")}></button> */}
+                <button
+                  className={styles.sendBtn}
+                  onClick={() => {
+                    !!chatTextValue &&
+                      sendMessage({ email: email, text: chatTextValue, color: personalColor, filename, roomId: currentChatId });
+                    setChatTextValue("");
+                    setFiles([]);
+                    setFilename("");
+                  }}></button>
+              </div>
             </div>
-            <div className={styles.fieldBottomBtns}>
-              <button className={styles.emojiBtn}></button>
-              <textarea className={styles.chatField} />
-              {/* <input type='file' className={styles.paperclipBtn}></input> */}
-              <button className={styles.paperclipBtn}></button>
-              <button className={styles.sendBtn}></button>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 

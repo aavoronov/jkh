@@ -7,26 +7,52 @@ import styles from "./personal-sections.module.scss";
 import { useDropzone } from "react-dropzone";
 
 import LayoutPersonal from "../../components/LayoutPersonal";
+import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
+import { getCookie } from "cookies-next";
+import { updateProfile } from "../../store/userSlice";
 
 export default function Profile({}) {
-  const profileData = {
-    photo: "/img/temp/adProfilePic.png",
-    nickname: "Александр Константинович",
-  };
+  // const profileData = {
+  //   photo: "/img/temp/adProfilePic.png",
+  //   nickname: "Александр Константинович",
+  // };
 
   const [files, setFiles] = useState([]);
-  const [nickname, setNickname] = useState(profileData.nickname);
-  const [email, setEmail] = useState("");
 
   const [secure, setSecure] = useState(true);
 
   const [block1, setBlock1] = useState(true);
   const [block2, setBlock2] = useState(true);
   const [block3, setBlock3] = useState(true);
+  const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   profileData.photo && setFiles(profileData.photo);
-  // }, []);
+  useEffect(() => {
+    async function getProfile() {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
+          headers: { Authorization: getCookie("jkh-token") },
+        });
+
+        const updatePseudonym = res.data.pseudonym === null ? "" : res.data.pseudonym;
+        console.log(updatePseudonym);
+        dispatch(updateProfile({ pseudonym: updatePseudonym, color: res.data.color }));
+        console.log(nicknameLocal);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    getProfile();
+  }, []);
+
+  const pseudonym = useSelector((state) => state.user.pseudonym);
+  const email = useSelector((state) => state.user.email);
+  const [nicknameLocal, setNicknameLocal] = useState(pseudonym);
+  const [emailLocal, setEmailLocal] = useState(pseudonym);
+  useEffect(() => {
+    setNicknameLocal(pseudonym);
+    setEmailLocal(email);
+  }, [pseudonym, email]);
 
   const Dropzone = () => {
     const [isDraggedOver, setIsDraggedOver] = useState(false);
@@ -145,10 +171,11 @@ export default function Profile({}) {
             type='text'
             placeholder=''
             className={styles.field}
-            value={nickname}
+            value={nicknameLocal}
             onChange={(e) => {
-              setNickname(e.target.value);
-              console.log(e.target.value);
+              // dispatch(updateProfile({ pseudonym: e.target.value }));
+              setNicknameLocal(e.target.value);
+              // console.log(e.target.value);
             }}
           />
           <span className={styles.headsUp}>Вы можете ввести ФИО или сохранить анонимность, используя псевдоним</span>
@@ -162,10 +189,11 @@ export default function Profile({}) {
             name='email'
             type='email'
             placeholder=''
+            disabled
             className={styles.field}
             value={email}
             onChange={(e) => {
-              setNickname(e.target.value);
+              // setNickname(e.target.value);
               console.log(e.target.value);
             }}
           />
@@ -200,7 +228,21 @@ export default function Profile({}) {
         </div>
 
         <div className={styles.fieldWrap}>
-          <button type='button' className={styles.submitBtn + " " + styles.saveBtn} onClick={() => {}}>
+          <button
+            type='button'
+            className={styles.submitBtn + " " + styles.saveBtn}
+            onClick={async () => {
+              const values = { pseudonym: nicknameLocal };
+              const res = await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/users/update`,
+                { pseudonym: nicknameLocal },
+                {
+                  headers: { Authorization: getCookie("jkh-token") },
+                }
+              );
+              console.log(res.data);
+              dispatch(updateProfile({ pseudonym: nicknameLocal }));
+            }}>
             Сохранить
           </button>
           <span className={styles.cancelBtn} onClick={() => {}}>
@@ -210,12 +252,12 @@ export default function Profile({}) {
 
         <span className={styles.sectionHeader}>Сменить email</span>
 
-        <label htmlFor='oldEmail' className={styles.fieldName}>
+        {/* <label htmlFor='oldEmail' className={styles.fieldName}>
           Текущий email
         </label>
         <div className={styles.fieldWrap + " " + styles.relative}>
           <input name='oldEmail' type='text' placeholder='' className={styles.field} />
-        </div>
+        </div> */}
 
         <div className={styles.fieldWrap}>
           <label htmlFor='newEmail' className={styles.fieldName}>
@@ -225,7 +267,14 @@ export default function Profile({}) {
         </div>
 
         <div className={styles.fieldWrap}>
-          <button type='button' className={styles.submitBtn + " " + styles.saveBtn} onClick={() => {}}>
+          <label htmlFor='newEmail' className={styles.fieldName}>
+            Введите пароль от учетной записи
+          </label>
+          <input name='newEmail' type='text' placeholder='' className={styles.field} />
+        </div>
+
+        <div className={styles.fieldWrap}>
+          <button type='button' className={styles.submitBtn + " " + styles.saveBtn}>
             Сохранить
           </button>
           <span className={styles.cancelBtn} onClick={() => {}}>

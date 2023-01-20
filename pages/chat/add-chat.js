@@ -28,32 +28,39 @@ import styles from "./add-chat.module.scss";
 import { objectList, servicesList, portfolio, mastersData } from "../../components/data";
 
 import useWindowDimensions from "../../components/useWindowDimensionsSSR";
+import axios from "axios";
+import { getCookie } from "cookies-next";
+import { useDispatch, useSelector } from "react-redux";
+import { toggle } from "../../store/notificationSlice";
 
-export default function Product(props) {
+export default function AddChat() {
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(null);
-  const [category, setCategory] = useState(null);
-  const [categoryHorizontal, setCategoryHorizontal] = useState("Любая категория");
-  const [location, setLocation] = useState("Москва и Московская область");
-  const [withPhotos, setWithPhotos] = useState(false);
-  const [buySellMode, setBuySellMode] = useState("Куплю");
-  const [productNew, setProductNew] = useState(false);
-  const [productUsed, setProductUsed] = useState(false);
 
-  const [favorite, setFavorite] = useState(false);
-  const [thumbsSwiper, setThumbsSwiper] = useState(null);
-  const [priceSuggestion, setPriceSuggestion] = useState(false);
-  const [popupError, setPopupError] = useState(false);
-
-  const [activeObject, setActiveObject] = useState(objectList[0]);
+  const [activeObject, setActiveObject] = useState("");
+  const [activeObjectId, setActiveObjectId] = useState("");
   const [notify, setNotify] = useState(true);
-
+  const [chatList, setChatList] = useState([]);
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const [scrollPosition, setScrollPosition] = useState(0);
   const handleScroll = () => {
     const position = window.pageYOffset;
     setScrollPosition(position);
   };
+
+  useEffect(() => {
+    async function getChats() {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat-rooms`, {
+        headers: { Authorization: getCookie("jkh-token") },
+      });
+      setChatList(res.data);
+      setActiveObject(res.data[0].address);
+      setActiveObjectId(res.data[0].id);
+      console.log(res.data);
+    }
+    getChats();
+  }, []);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -73,8 +80,6 @@ export default function Product(props) {
     }
   }, [width]);
 
-  const data = objectList;
-
   const DropdownList = ({ objects, value, setValue }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     return (
@@ -87,13 +92,14 @@ export default function Product(props) {
           <ul className={styles.dropdownList}>
             {objects.map((item, index) => (
               <li
-                key={index}
+                key={item.id}
                 className={styles.dropdownListItem}
                 onClick={() => {
-                  setValue(item);
+                  setValue(item.address);
+                  setActiveObjectId(item.id);
                   setDropdownOpen(false);
                 }}>
-                {item}
+                {item.address}
               </li>
             ))}
           </ul>
@@ -200,6 +206,19 @@ export default function Product(props) {
     );
   };
 
+  const email = useSelector((state) => state.user.email);
+
+  async function chatRoomSignUp() {
+    try {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/chat-rooms/sign-up`, { email: email, chat: activeObjectId });
+      console.log(res.data);
+      dispatch(toggle({ text: "Регистрация прошла успешно", type: "success" }));
+    } catch (e) {
+      console.log(e.response.data.message);
+      dispatch(toggle({ text: e.response.data.message, type: "error" }));
+    }
+  }
+
   return (
     <LayoutLoggedIn>
       <div className={styles.container}>
@@ -227,9 +246,9 @@ export default function Product(props) {
                 <label htmlFor='category' className={styles.fieldName}>
                   Выберите адрес объекта
                 </label>
-                <DropdownList objects={data} value={activeObject} setValue={setActiveObject} />
+                <DropdownList objects={chatList} value={activeObject} setValue={setActiveObject} />
               </div>
-              <div className={styles.fieldWrap}>
+              {/* <div className={styles.fieldWrap}>
                 <label htmlFor='nickname' className={styles.fieldName}>
                   Укажите как вас отображать в чате
                 </label>
@@ -237,14 +256,14 @@ export default function Product(props) {
                 <span className={styles.errorText}>
                   <ErrorMessage name='nickname' />
                 </span>
-              </div>
+              </div> */}
 
-              <div className={styles.fieldWrap}>
+              {/* <div className={styles.fieldWrap}>
                 <label htmlFor='photos' className={styles.fieldName + " " + styles.center}>
                   Добавьте аватарку
                 </label>
                 <Dropzone />
-              </div>
+              </div> */}
               <div className={styles.fieldWrap}>
                 {/* <input type='checkbox' name='sendToModerator' id='sendToModerator' className={styles.checkbox} /> */}
                 <label htmlFor='notify' className={styles.fieldName + " " + styles.checkboxWrap}>
@@ -261,7 +280,7 @@ export default function Product(props) {
               </div>
 
               <div className={styles.fieldWrap}>
-                <button type='submit' className={styles.submitBtn}>
+                <button type='submit' className={styles.submitBtn} onClick={() => chatRoomSignUp()}>
                   Зарегистрироваться
                 </button>
                 <span
