@@ -175,7 +175,7 @@ export default function Chat() {
   const [chatUsers, setChatUsers] = useState([]);
   const [chatUsersSearchField, setChatUsersSearchField] = useState("");
   const [query, setQuery] = useState("");
-  const [searchMessages, setSeatchMessages] = useState([]);
+  const [searchMessages, setSearchMessages] = useState([]);
 
   const pseudonym = useSelector((state) => state.user.pseudonym);
   const email = useSelector((state) => state.user.email);
@@ -393,7 +393,11 @@ export default function Chat() {
   const CalendarBtnInput = forwardRef(({ onClick }, ref) => <button className={styles.calendarBtn} onClick={onClick} ref={ref}></button>);
 
   async function getSearchMessages() {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat?query=${query}`);
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/search/${email}?query=${query}`, {
+      headers: { Authorization: getCookie("jkh-token") },
+    });
+    console.log(res);
+    setSearchMessages(res.data.data);
   }
 
   const ChatMessage = ({ isMine = false, isPaid = false, name, text, profilePic, time, file, color }) => {
@@ -636,8 +640,16 @@ export default function Chat() {
                     onClick={() => {
                       setSearchActive(!searchActive);
                     }}></button>
-                  <div className={styles.fieldWithBtn}>
-                    <input name='name' type='text' placeholder='Поиск по сообщениям' className={styles.field} />
+                  <div className={styles.fieldWithBtn} style={{ display: "flex", flexDirection: "row" }}>
+                    <input
+                      name='name'
+                      type='text'
+                      placeholder='Поиск по сообщениям'
+                      className={styles.field}
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                    />
+                    <span className={styles.searchFieldBtn} onClick={() => getSearchMessages()}></span>
                   </div>
 
                   <DatePicker
@@ -664,70 +676,52 @@ export default function Chat() {
                   </DatePicker>
                 </div>
                 <div className={styles.searchResults}>
-                  <span className={styles.resultsHeader}>10 сообщений найдено</span>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((item, index) => (
-                    <div className={styles.searchResultsItem} key={index}>
-                      <span className={styles.objectLetters}>ЛИ</span>
+                  {!!searchMessages.length && <span className={styles.resultsHeader}>{searchMessages.length} сообщений найдено</span>}
+                  {searchMessages.map((item, index) => {
+                    const datetime = new Date(item.createdAt);
+                    // console.log(datetime.getDate());
+                    // console.log((datetime.getMonth() + 1).toString().padStart(2, "0"));
+                    // console.log(datetime.getFullYear().toString().slice(2));
+                    // console.log(datetime.getHours());
+                    // console.log(datetime.getMinutes());
 
-                      <div className={styles.searchMsgWrap}>
-                        <span className={styles.SearchMsgName}>
-                          {"Валентина Петровна 4".length > 15 ? "Валентина Петровна 4".substring(0, 15) + "..." : "Валентина Петровна 4"}
+                    return (
+                      <div className={styles.searchResultsItem} key={index}>
+                        <span className={styles.objectLetters} style={{ backgroundColor: item.user.profile.color }}>
+                          {item.user.profile.pseudonym.split(" ").length > 1
+                            ? item.user.profile.pseudonym.split(" ")[0][0] + item.user.profile.pseudonym.split(" ")[1][0]
+                            : item.user.profile.pseudonym.slice(0, 2)}
                         </span>
-                        <span className={styles.SearchMsgText}>
-                          {" Скажи, что у нас в доме скоро".length > 15
-                            ? " Скажи, что у нас в доме скоро".substring(0, 25) + "..."
-                            : " Скажи, что у нас в доме скоро"}
+
+                        <div className={styles.searchMsgWrap}>
+                          <span className={styles.SearchMsgName}>
+                            {item.user.profile.pseudonym.length > 15
+                              ? item.user.profile.pseudonym.substring(0, 15) + "..."
+                              : item.user.profile.pseudonym}
+                          </span>
+                          <span className={styles.SearchMsgText}>
+                            {item.message.length > 15 ? item.message.substring(0, 25) + "..." : item.message}
+                          </span>
+                        </div>
+                        <span className={styles.SearchMsgTime}>
+                          {datetime.getDate() +
+                            "." +
+                            (datetime.getMonth() + 1).toString().padStart(2, "0") +
+                            "." +
+                            datetime.getFullYear().toString().slice(2) +
+                            " " +
+                            datetime.getHours() +
+                            ":" +
+                            datetime.getMinutes()}
                         </span>
+
+                        {/* date.getDate() + " " + monthNames[date.getMonth()]; */}
                       </div>
-                      <span className={styles.SearchMsgTime}>18:20</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ) : null}
-
-            {/* <div className={styles.chatDate}>10 мая</div>
-
-            <ChatMessage name='Валентина Петровна 4' text='Что ему сказать? ))' profilePic='/img/temp/fox.png' time='18:20' />
-            <ChatMessage
-              name='Валентина Петровна 4'
-              text='Скажи, что у нас в доме скоро будет производиться ремонт и отключение горячей воды по графику будет перенесено на другую дату'
-              profilePic='/img/temp/fox.png'
-              time='18:20'
-            />
-            <ChatMessage
-              name='Валентина Петровна 4'
-              text='Что ему сказать? )))))))))) 1111 11 11 1'
-              profilePic='/img/temp/fox.png'
-              time='18:20'
-            />
-            <ChatMessage isMine name='Валентина Петровна 4' text='Что ему сказать?' profilePic='/img/temp/fox.png' time='18:20' />
-            <ChatMessage isMine name='Валентина Петровна 4' text='А?' profilePic='/img/temp/fox.png' time='18:20' />
-            <ChatMessage name='Валентина Петровна 4' text='А?' profilePic='/img/temp/fox.png' time='18:20' />
-            <ChatMessage
-              isMine
-              name='Валентина Петровна 4'
-              text='Что ему сказать? Я не болтушка, но и не молчунья. Может это не самое подходящее начало для такой заметки, но дело не в этом. Бывает, что ты узнаешь о человеке то, что сам человек еще не смог толком пережить. И это не просто слова. Самое ужасное потерять кого-то. Все так неожиданно. Ты просто просыпаешься утром, а Его рядом нет. Небо такое же синее, солнце такое же яркое и люди все точно такие же вокруг. Но..... Чего то не хватает. И не просто чего-то. Что-то сердцем. Оно пустое и холодное, как снег в вакууме. И кажеться, что чуть-чуть и что-то оборвется и жизнь больше никогда-никогда не будет такой, как сейчас. Ни слезы, ни переживания, не сочувствие не поможет.'
-              profilePic='/img/temp/fox.png'
-              time='18:20'
-            />
-            <div className={styles.chatDate}>11 мая</div>
-            <ChatMessage
-              name='Валентина Петровна 4'
-              text='Приятно отдохнуть!'
-              profilePic='/img/temp/fox.png'
-              time='18:20'
-              pic='/img/temp/chatPic.png'
-            />
-            <ChatMessage
-              isPaid
-              name='Валентина Петровна 4'
-              text=' С 27 мая по 11 июня скидки до 100% на товары помеченные желтым ценником. Приобретая товары в www.magazintut.ru вы можете
-                  выиграть главный приз. Спешите делать покупки и не упустить возможность отдохнуть на Гаваях.'
-              profilePic='/img/temp/partnerProfilePic.png'
-              time='18:20'
-              pic='/img/temp/partnerMessagePic.png'
-            /> */}
 
             {/* {messages.map((item, index) => { */}
             {messages

@@ -460,6 +460,17 @@
   font-size: 12px;
 }
 
+.searchFieldBtn {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  background: url("/img/Search.png") 50%;
+  background-size: 24px; // background-color: black;
+  cursor: pointer;
+}
+
 .participantsBlock {
   display: flex;
   flex-direction: column;
@@ -1227,8 +1238,8 @@
 }
 
 .SearchMsgTime {
-  font-size: 12px;
-  line-height: 130%;
+  font-size: 10px;
+  line-height: 150%;
   letter-spacing: 0.04em;
   color: #78829b;
   align-self: flex-end;
