@@ -210,7 +210,11 @@ export default function AddChat() {
 
   async function chatRoomSignUp() {
     try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/chat-rooms/sign-up`, { email: email, chat: activeObjectId });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/chat-rooms/sign-up`,
+        { email: email, chat: activeObjectId },
+        { headers: { Authorization: getCookie("jkh-token") } }
+      );
       console.log(res.data);
       dispatch(toggle({ text: "Регистрация прошла успешно", type: "success" }));
     } catch (e) {

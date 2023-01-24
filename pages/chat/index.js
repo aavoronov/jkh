@@ -18,13 +18,17 @@ import styles from "./chat.module.scss";
 
 import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 import axios from "axios";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import io, { Manager } from "socket.io-client";
 import { getCookie } from "cookies-next";
 import { useDropzone } from "react-dropzone";
 import styled from "@emotion/styled";
 import { current } from "@reduxjs/toolkit";
+import { toggle } from "../../store/notificationSlice";
+
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
 // import { socket } from "../../service/socket";
 
 // const socket = io("http://localhost:5000/", {
@@ -36,6 +40,8 @@ const Dropzone = ({ files, filename, setFilename, setFiles, chatTextValue, setCh
   const [isDraggedOver, setIsDraggedOver] = useState(false);
 
   const hiddenFileInput = useRef(null);
+
+  const pseudonym = useSelector((state) => state.user.pseudonym);
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -112,7 +118,8 @@ const Dropzone = ({ files, filename, setFilename, setFiles, chatTextValue, setCh
         {/* <div {...getRootProps({ className: isDraggedOver ? styles.hoveredOver : "" })}> */}
         <div className={isDraggedOver ? styles.hoveredOver : ""}>
           {!files.length && <input {...getInputProps()} className={styles.paperclipBtn} ref={hiddenFileInput} />}
-          <button className={styles.paperclipBtn} onClick={() => hiddenFileInput.current.click()}></button>
+          {!files.length && <button className={styles.paperclipBtn} onClick={() => hiddenFileInput.current.click()}></button>}
+
           <div style={{ display: "flex", flexDirection: "row" }}>
             {" "}
             <textarea
@@ -121,6 +128,8 @@ const Dropzone = ({ files, filename, setFilename, setFiles, chatTextValue, setCh
                   ? styles.chatField + " " + styles.dragndropField + " " + styles.hoveredOver
                   : styles.chatField + " " + styles.dragndropField
               }
+              placeholder={!pseudonym ? "Введите свой псевдоним в личном кабинете, чтобы отправлять сообщения" : ""}
+              readOnly={!pseudonym}
               style={{ boxShadow: "none" }}
               value={chatTextValue}
               onChange={(event) => setChatTextValue(event.target.value)}
@@ -176,9 +185,12 @@ export default function Chat() {
   const [chatUsersSearchField, setChatUsersSearchField] = useState("");
   const [query, setQuery] = useState("");
   const [searchMessages, setSearchMessages] = useState([]);
+  const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
 
   const pseudonym = useSelector((state) => state.user.pseudonym);
   const email = useSelector((state) => state.user.email);
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     async function getMessages() {
@@ -238,13 +250,34 @@ export default function Chat() {
         // setChatTextValue(chatTextValue + "\n");
       } else {
         event.preventDefault();
-        !!chatTextValue && sendMessage({ email: email, text: chatTextValue, color: personalColor, filename, roomId: currentChatId });
-        setChatTextValue("");
-        setFiles([]);
-        setFilename("");
+        !!chatTextValue.length && sendMessage({ email: email, text: chatTextValue, color: personalColor, filename, roomId: currentChatId });
       }
     }
   };
+
+  async function leaveChat() {
+    try {
+      const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/chat-rooms/sign-up?email=${email}&chat=${currentChatId}`, {
+        headers: { Authorization: getCookie("jkh-token") },
+      });
+      console.log(res.data);
+      dispatch(toggle({ text: "Чат успешно удален", type: "success" }));
+      const newChats = myChats.filter((item) => item.id !== currentChatId);
+      setMyChats(newChats);
+      if (!!myChats.length) {
+        setCurrentChat(myChats[0].chat);
+        setCurrentChatId(myChats[0].id);
+      } else {
+        // setMessages([]);
+        // setChatUsers([]);
+        // setCurrentChat("");
+        // setCurrentChatId("");
+      }
+    } catch (e) {
+      console.log(e);
+      // dispatch(toggle({ text: e.response.data.message, type: "error" }));
+    }
+  }
 
   const manager = new Manager(`${process.env.NEXT_PUBLIC_WS_ADDRESS}`, {
     autoConnect: false,
@@ -268,8 +301,6 @@ export default function Chat() {
 
   socket.connect();
   console.log("connect");
-
-  useEffect(() => {}, []);
 
   useEffect(() => {
     if (!!myChats.length) {
@@ -336,6 +367,9 @@ export default function Chat() {
         headers: { Authorization: getCookie("jkh-token"), "Content-Type": !files.length ? "application/json" : "multipart/form-data" },
       });
       console.log(res);
+      setChatTextValue("");
+      setFiles([]);
+      setFilename("");
     } catch (e) {
       console.log(e);
     }
@@ -493,6 +527,10 @@ export default function Chat() {
     if (!!myChats.length) {
       setCurrentChat(myChats[0].address);
       setCurrentChatId(parseInt(myChats[0].id));
+    } else {
+      setCurrentChat("");
+      setCurrentChatId("");
+      setMessages([]);
     }
   }, [myChats]);
 
@@ -516,6 +554,8 @@ export default function Chat() {
       });
       console.log(users);
       setChatUsers(users);
+    } else {
+      setChatUsers([]);
     }
   }, [myChats]);
 
@@ -600,7 +640,7 @@ export default function Chat() {
             </div>
           </aside>
           <div className={styles.chatControls}>
-            {!!currentChat.length && (
+            {!!currentChat?.length && (
               <>
                 <div className={styles.chatTab + " " + styles.active}>
                   <span className={styles.objectLetters}>
@@ -616,7 +656,9 @@ export default function Chat() {
                     }}></span>
                   <div className={styles.chatBtn + " " + styles.chatThreeDots}>
                     <div className={styles.threeDotsBtnMenu}>
-                      <span className={styles.chatOptionsItem}>Покинуть чат</span>
+                      <span className={styles.chatOptionsItem} onClick={() => leaveChat()}>
+                        Покинуть чат
+                      </span>
                       <span className={styles.chatOptionsItem}>Отключить уведомления</span>
                     </div>
                   </div>
@@ -625,13 +667,14 @@ export default function Chat() {
             )}
           </div>
           <div className={styles.chat}>
-            {!currentChat.length && (
+            {!currentChat?.length && (
               <div style={{ width: "100%", height: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <span style={{ textAlign: "center" }}>
                   Вы не зарегистрированы ни в одном домовом чате. Нажмите на кнопку "+" выше, чтобы посмотреть доступные домовые чаты.
                 </span>
               </div>
             )}
+
             {searchActive ? (
               <div className={styles.searchPanel}>
                 <div className={styles.searchControls}>
@@ -762,6 +805,21 @@ export default function Chat() {
           </div>
           {!!currentChat && (
             <div className={styles.chatFieldWrap}>
+              {emojiPickerVisible && (
+                <div style={{ position: "absolute", bottom: 70 }}>
+                  <Picker
+                    data={data}
+                    onEmojiSelect={(emoji) => setChatTextValue((prev) => prev + emoji.native)}
+                    locale='ru'
+                    onClickOutside={() => setEmojiPickerVisible(false)}
+                    navPosition='bottom'
+                    previewPosition='none'
+                    searchPosition='none'
+                    skinTonePosition='none'
+                    theme='light'
+                  />
+                </div>
+              )}
               <div className={styles.fieldTopBtns}>
                 {/* <button className={styles.chatPlusBtn}>+</button> */}
                 <span></span>
@@ -773,7 +831,8 @@ export default function Chat() {
                   }}></button>
               </div>
               <div className={styles.fieldBottomBtns}>
-                <button className={styles.emojiBtn} onClick={() => console.log(chatUsers)}></button>
+                <button className={styles.emojiBtn} onClick={() => setEmojiPickerVisible(true)}></button>
+
                 <Dropzone
                   files={files}
                   filename={filename}
@@ -796,9 +855,6 @@ export default function Chat() {
                   onClick={() => {
                     !!chatTextValue &&
                       sendMessage({ email: email, text: chatTextValue, color: personalColor, filename, roomId: currentChatId });
-                    setChatTextValue("");
-                    setFiles([]);
-                    setFilename("");
                   }}></button>
               </div>
             </div>
