@@ -246,7 +246,7 @@ export default function Chat() {
     }
   };
 
-  const manager = new Manager("http://localhost:5000/", {
+  const manager = new Manager(`${process.env.NEXT_PUBLIC_WS_ADDRESS}`, {
     autoConnect: false,
     query: `pseudonym=${pseudonym}`,
   });

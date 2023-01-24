@@ -398,7 +398,7 @@
   display: block;
   &:after {
     content: "";
-    display: block;
+    display: none;
     width: 24px;
     height: 24px;
     position: absolute;
@@ -417,6 +417,17 @@
   &::after {
     display: none;
   }
+}
+
+.searchIcon {
+  background: url("/img/Search.png") 50%;
+  background-size: 24px;
+  position: absolute;
+  right: 10px;
+  top: 7px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
 }
 
 .fieldWithBtnUsers {
