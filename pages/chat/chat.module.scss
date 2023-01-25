@@ -857,7 +857,7 @@
     width: 40px;
     height: 24px;
     position: absolute;
-    bottom: 8px;
+    bottom: 3px;
     right: 41px;
     // z-index: -1;
   }
@@ -865,7 +865,7 @@
 
 @-moz-document url-prefix() {
   .fieldBottomBtns:after {
-    bottom: 7px;
+    bottom: 3px;
   }
 }
 
@@ -877,7 +877,7 @@
   border-width: 0;
   // width: calc(100% - 60px);
   width: 100%;
-  height: 50px;
+  height: 48px;
   padding: 10px 56px;
   box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
   border-radius: 9px;
@@ -922,7 +922,7 @@
   height: 24px;
   display: block;
   position: absolute;
-  bottom: 20px;
+  bottom: 16px;
   left: 17px;
   cursor: pointer;
   z-index: 3;
@@ -937,7 +937,7 @@
   height: 24px;
   display: block;
   position: absolute;
-  top: 15px;
+  bottom: 13px;
   // left: 17px;
   right: 20px;
   cursor: pointer;

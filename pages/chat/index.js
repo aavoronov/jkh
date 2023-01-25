@@ -173,8 +173,8 @@ export default function Chat() {
   const [scrollToBottom, setScrollToBottom] = useState(0);
   const [searchActive, setSearchActive] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
-  const [chatDate, setChatDate] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [calendarMessages, setCalendarMessages] = useState([]);
   const [chatTextValue, setChatTextValue] = useState("");
   const [files, setFiles] = useState([]);
   const [filename, setFilename] = useState("");
@@ -427,11 +427,38 @@ export default function Chat() {
   const CalendarBtnInput = forwardRef(({ onClick }, ref) => <button className={styles.calendarBtn} onClick={onClick} ref={ref}></button>);
 
   async function getSearchMessages() {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/search/${email}?query=${query}`, {
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/search/${email}?query=${query}&chat=${currentChatId}`, {
       headers: { Authorization: getCookie("jkh-token") },
     });
     console.log(res);
     setSearchMessages(res.data.data);
+  }
+
+  async function getCalendarMessages(date) {
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/calendar/${email}?date=${date}&chat=${currentChatId}`, {
+        headers: { Authorization: getCookie("jkh-token") },
+      });
+      console.log(res.data.data);
+      const messages = res.data.data.map((item) => {
+        const serverDate = item.createdAt;
+        const localDate = new Date(serverDate);
+        return {
+          message: item.message,
+          date: localDate,
+          time: localDate.getHours().toString().padStart(2, "0") + ":" + localDate.getMinutes().toString().padStart(2, "0"),
+          name: item.user.profile.pseudonym,
+          color: item.user.profile.color,
+          file: item.file,
+          roomId: item.roomId,
+        };
+      });
+      // console.log(initialMessages);
+      setCalendarMessages(messages);
+      // setMessages(res.data.data);}
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   const ChatMessage = ({ isMine = false, isPaid = false, name, text, profilePic, time, file, color }) => {
@@ -692,10 +719,11 @@ export default function Chat() {
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                     />
-                    <span className={styles.searchFieldBtn} onClick={() => getSearchMessages()}></span>
+                    <span className={styles.searchFieldBtn} onClick={() => query && getSearchMessages()}></span>
                   </div>
 
                   <DatePicker
+                    maxDate={Date.now()}
                     selected={startDate}
                     withPortal
                     locale={ru}
@@ -710,9 +738,10 @@ export default function Chat() {
                     <div
                       className={styles.confirmDate}
                       onClick={() => {
-                        setChatDate(startDate);
-                        console.log(chatDate);
+                        // setChatDate(startDate);
+                        // console.log(chatDate);
                         datepickerRef.current.setOpen(false);
+                        getCalendarMessages(startDate);
                       }}>
                       Перейти к дате
                     </div>
@@ -767,39 +796,79 @@ export default function Chat() {
             ) : null}
 
             {/* {messages.map((item, index) => { */}
-            {messages
-              .filter((item) => item.roomId === currentChatId)
-              .map((item, index) => {
-                let date = "";
+            {!calendarMessages.length
+              ? messages
+                  .filter((item) => item.roomId === currentChatId)
+                  .map((item, index) => {
+                    let date = "";
 
-                // const chatsIds = myChats.map((item) => item.id);
-                // console.log(chatsIds);
+                    // const chatsIds = myChats.map((item) => item.id);
+                    // console.log(chatsIds);
 
-                if (!!item.date) {
-                  if (index === 0) {
-                    date = getHumanReadableDate(item.date);
-                  } else {
-                    date = getHumanReadableDateCompare(messages.filter((item) => item.roomId === currentChatId)[index - 1].date, item.date);
-                  }
-                }
-                // console.log(messages.filter((item) => item.roomId === currentChatId));
-                return (
-                  <>
-                    {date && <div className={styles.chatDate}>{date}</div>}
-                    {/* <div className={styles.chatDate}>{date}</div> */}
-                    <ChatMessage
-                      key={index}
-                      name={item.name}
-                      text={item.message.replace(/\n/g, "<br/>")}
-                      isMine={item.name === pseudonym}
-                      time={item.time}
-                      color={item.color}
-                      file={item.file}
-                    />
-                  </>
-                );
-                // isMine = false, isPaid = false, name, text, profilePic, time, pic = false
-              })}
+                    if (!!item.date) {
+                      if (index === 0) {
+                        date = getHumanReadableDate(item.date);
+                      } else {
+                        date = getHumanReadableDateCompare(
+                          messages.filter((item) => item.roomId === currentChatId)[index - 1].date,
+                          item.date
+                        );
+                      }
+                    }
+                    // console.log(messages.filter((item) => item.roomId === currentChatId));
+                    return (
+                      <>
+                        {date && <div className={styles.chatDate}>{date}</div>}
+                        {/* <div className={styles.chatDate}>{date}</div> */}
+                        <ChatMessage
+                          key={index}
+                          name={item.name}
+                          text={item.message.replace(/\n/g, "<br/>")}
+                          isMine={item.name === pseudonym}
+                          time={item.time}
+                          color={item.color}
+                          file={item.file}
+                        />
+                      </>
+                    );
+                    // isMine = false, isPaid = false, name, text, profilePic, time, pic = false
+                  })
+              : calendarMessages
+                  // .filter((item) => item.roomId === currentChatId)
+                  .map((item, index) => {
+                    let date = "";
+
+                    // const chatsIds = myChats.map((item) => item.id);
+                    // console.log(chatsIds);
+
+                    if (!!item.date) {
+                      if (index === 0) {
+                        date = getHumanReadableDate(item.date);
+                      } else {
+                        date = getHumanReadableDateCompare(
+                          calendarMessages.filter((item) => item.roomId === currentChatId)[index - 1].date,
+                          item.date
+                        );
+                      }
+                    }
+                    // console.log(messages.filter((item) => item.roomId === currentChatId));
+                    return (
+                      <>
+                        {date && <div className={styles.chatDate}>{date}</div>}
+                        {/* <div className={styles.chatDate}>{date}</div> */}
+                        <ChatMessage
+                          key={index}
+                          name={item.name}
+                          text={item.message.replace(/\n/g, "<br/>")}
+                          isMine={item.name === pseudonym}
+                          time={item.time}
+                          color={item.color}
+                          file={item.file}
+                        />
+                      </>
+                    );
+                    // isMine = false, isPaid = false, name, text, profilePic, time, pic = false
+                  })}
 
             <div className={styles.scrollDummy} ref={chatRef}></div>
           </div>
@@ -828,34 +897,37 @@ export default function Chat() {
                   onClick={() => {
                     setScrollToBottom((prev) => prev + 1);
                     console.log(scrollToBottom);
+                    setCalendarMessages([]);
                   }}></button>
               </div>
-              <div className={styles.fieldBottomBtns}>
-                <button className={styles.emojiBtn} onClick={() => setEmojiPickerVisible(true)}></button>
+              <div style={{ width: "100%", backgroundColor: "#d7d8de", height: "100%", paddingTop: "5px" }}>
+                <div className={styles.fieldBottomBtns}>
+                  <button className={styles.emojiBtn} onClick={() => setEmojiPickerVisible(true)}></button>
 
-                <Dropzone
-                  files={files}
-                  filename={filename}
-                  setFilename={setFilename}
-                  setFiles={setFiles}
-                  placeholder='Договор'
-                  chatTextValue={chatTextValue}
-                  setChatTextValue={setChatTextValue}
-                  handleKeyPress={handleKeyPress}
-                />
-                {/* <textarea
+                  <Dropzone
+                    files={files}
+                    filename={filename}
+                    setFilename={setFilename}
+                    setFiles={setFiles}
+                    placeholder='Договор'
+                    chatTextValue={chatTextValue}
+                    setChatTextValue={setChatTextValue}
+                    handleKeyPress={handleKeyPress}
+                  />
+                  {/* <textarea
                 className={styles.chatField}
                 value={chatTextValue}
                 onChange={(event) => setChatTextValue(event.target.value)}
                 onKeyPress={handleKeyPress}></textarea> */}
-                {/* <input type='file' className={styles.paperclipBtn}></input> */}
-                {/* <button className={styles.paperclipBtn} onClick={() => console.log("test")}></button> */}
-                <button
-                  className={styles.sendBtn}
-                  onClick={() => {
-                    !!chatTextValue &&
-                      sendMessage({ email: email, text: chatTextValue, color: personalColor, filename, roomId: currentChatId });
-                  }}></button>
+                  {/* <input type='file' className={styles.paperclipBtn}></input> */}
+                  {/* <button className={styles.paperclipBtn} onClick={() => console.log("test")}></button> */}
+                  <button
+                    className={styles.sendBtn}
+                    onClick={() => {
+                      !!chatTextValue &&
+                        sendMessage({ email: email, text: chatTextValue, color: personalColor, filename, roomId: currentChatId });
+                    }}></button>
+                </div>
               </div>
             </div>
           )}
