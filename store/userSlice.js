@@ -7,6 +7,7 @@ const userSlice = createSlice({
     role: "",
     pseudonym: "",
     color: "",
+    notifications: 0,
   },
   reducers: {
     updateRole(state, action) {
@@ -25,8 +26,11 @@ const userSlice = createSlice({
       console.log(state);
       console.log(action);
     },
+    updateNotifications(state, action) {
+      state.notifications = action.payload.notifications;
+    },
   },
 });
 
-export const { updateRole, updateProfile, updateEmail } = userSlice.actions;
+export const { updateRole, updateProfile, updateEmail, updateNotifications } = userSlice.actions;
 export default userSlice.reducer;

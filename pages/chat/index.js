@@ -186,44 +186,47 @@ export default function Chat() {
   const [query, setQuery] = useState("");
   const [searchMessages, setSearchMessages] = useState([]);
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
+  const [scrollPage, setScrollPage] = useState(1);
 
   const pseudonym = useSelector((state) => state.user.pseudonym);
   const email = useSelector((state) => state.user.email);
 
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    async function getMessages() {
-      if (!!email) {
-        try {
-          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/${email}`, {
-            headers: {
-              Authorization: getCookie("jkh-token"),
-            },
-          });
+  async function getMessages() {
+    if (!!email) {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/${email}?page=${scrollPage}`, {
+          headers: {
+            Authorization: getCookie("jkh-token"),
+          },
+        });
 
-          const initialMessages = res.data.data.map((item) => {
-            const serverDate = item.createdAt;
-            const localDate = new Date(serverDate);
-            return {
-              message: item.message,
-              date: localDate,
-              time: localDate.getHours().toString().padStart(2, "0") + ":" + localDate.getMinutes().toString().padStart(2, "0"),
-              name: item.user.profile.pseudonym,
-              color: item.user.profile.color,
-              file: item.file,
-              roomId: item.roomId,
-            };
-          });
-          // console.log(initialMessages);
-          setMessages(initialMessages);
-          // console.log(messages);
-          setScrollToBottom((prev) => prev + 1);
-        } catch (e) {
-          console.log(e);
-        }
+        const fetchedMessages = res.data.data.map((item) => {
+          const serverDate = item.createdAt;
+          const localDate = new Date(serverDate);
+          return {
+            message: item.message,
+            date: localDate,
+            time: localDate.getHours().toString().padStart(2, "0") + ":" + localDate.getMinutes().toString().padStart(2, "0"),
+            name: item.user.profile.pseudonym,
+            color: item.user.profile.color,
+            file: item.file,
+            roomId: item.roomId,
+          };
+        });
+        // console.log(initialMessages);
+        setMessages([...fetchedMessages, ...messages]);
+        // console.log(messages);
+        setScrollPage((prev) => prev + 1);
+        // setScrollToBottom((prev) => prev + 1);
+      } catch (e) {
+        console.log(e);
       }
     }
+  }
+
+  useEffect(() => {
     getMessages();
   }, [email]);
 
@@ -349,8 +352,22 @@ export default function Chat() {
   }, [myChats]);
 
   const sendPing = () => {
-    socket.emit("ping");
+    // socket.emit("ping", email, currentChatId);
+    if (!!email && !!currentChatId) {
+      socket.emit("ping", [email, currentChatId]);
+      // console.log(email, currentChatId);
+    }
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      //
+      sendPing();
+      // console.log("This will run every 10 seconds!");
+    }, 1000 * 300);
+    return () => clearInterval(interval);
+    // setTimeout(sendPing, 10000);
+  }, [email, currentChatId]);
 
   const sendMessage = async (payload) => {
     if (!!files.length) payload = { ...payload, file: files[0] };
@@ -460,6 +477,13 @@ export default function Chat() {
       console.log(e);
     }
   }
+
+  const handleScrollUp = (e) => {
+    let element = e.target;
+    if (element.scrollTop === 0) {
+      getMessages();
+    }
+  };
 
   const ChatMessage = ({ isMine = false, isPaid = false, name, text, profilePic, time, file, color }) => {
     if (!!file && !file.includes("blob")) {
@@ -693,7 +717,7 @@ export default function Chat() {
               </>
             )}
           </div>
-          <div className={styles.chat}>
+          <div className={styles.chat} onScroll={handleScrollUp}>
             {!currentChat?.length && (
               <div style={{ width: "100%", height: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <span style={{ textAlign: "center" }}>

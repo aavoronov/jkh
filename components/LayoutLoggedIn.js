@@ -25,7 +25,7 @@ import logoutGrey from "/public/img/logoutGrey.png";
 import useWindowDimensions from "./useWindowDimensionsSSR";
 import { getCookie, setCookie } from "cookies-next";
 import { useDispatch, useSelector } from "react-redux";
-import { updateEmail, updateProfile, updateRole } from "../store/userSlice";
+import { updateEmail, updateNotifications, updateProfile, updateRole } from "../store/userSlice";
 import { useRouter } from "next/router";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
@@ -128,6 +128,9 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
   //   }
   // }, []);
 
+  const email = useSelector((state) => state.user.email);
+  const notifications = useSelector((state) => state.user.notifications);
+
   useEffect(() => {
     const fetchData = async () => {
       if (!!getCookie("jkh-token")) {
@@ -141,7 +144,8 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
           dispatch(updateRole({ role: res.data.role }));
           dispatch(updateEmail({ email: res.data.email }));
         } catch (e) {
-          console.log(e.response.data);
+          // console.log(e.response.data);
+          console.log(e);
           setCookie("jkh-token", "");
         }
       } else {
@@ -150,6 +154,28 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const getNotifications = async () => {
+      if (!!email) {
+        try {
+          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/notifications/${email}`, {
+            headers: {
+              Authorization: getCookie("jkh-token"),
+            },
+          });
+          console.log(res.data);
+          const amount = 0;
+          res.data.data.forEach((item) => (amount = amount + item.amount));
+          dispatch(updateNotifications({ notifications: amount }));
+        } catch (e) {
+          console.log(e);
+          // setCookie("jkh-token", "");
+        }
+      }
+    };
+    getNotifications();
+  }, [email]);
 
   useEffect(() => {
     async function getProfile() {
@@ -205,7 +231,7 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
               console.log(width < 768);
             }}>
             <Image src={bell} alt='' />
-            <span className={styles.notificationsNumber}>15</span>
+            {!!notifications && <span className={styles.notificationsNumber}>{notifications}</span>}
           </div>
           <div className={styles.userWrap}>
             <div className={styles.userNameWrap}>
