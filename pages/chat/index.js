@@ -36,6 +36,15 @@ import Picker from "@emoji-mart/react";
 //   query: `pseudonym=${pseudonym}`,
 // });
 
+const manager = new Manager(`${process.env.NEXT_PUBLIC_WS_ADDRESS}`, {
+  autoConnect: false,
+});
+
+const socket = manager.socket("/chat"); // main namespace
+
+socket.connect();
+console.log("connect");
+
 const Dropzone = ({ files, filename, setFilename, setFiles, chatTextValue, setChatTextValue, handleKeyPress }) => {
   const [isDraggedOver, setIsDraggedOver] = useState(false);
 
@@ -253,7 +262,8 @@ export default function Chat() {
         // setChatTextValue(chatTextValue + "\n");
       } else {
         event.preventDefault();
-        !!chatTextValue.length && sendMessage({ email: email, text: chatTextValue, color: personalColor, filename, roomId: currentChatId });
+        !!chatTextValue.length &&
+          sendMessage({ email: email, pseudonym: pseudonym, text: chatTextValue, color: personalColor, filename, roomId: currentChatId });
       }
     }
   };
@@ -282,13 +292,6 @@ export default function Chat() {
     }
   }
 
-  const manager = new Manager(`${process.env.NEXT_PUBLIC_WS_ADDRESS}`, {
-    autoConnect: false,
-    query: `pseudonym=${pseudonym}`,
-  });
-
-  const socket = manager.socket("/chat"); // main namespace
-
   const [collapseBtnVisible, setCollapseBtnVisible] = useState(true);
 
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -301,9 +304,6 @@ export default function Chat() {
   const [isConnected, setIsConnected] = useState(false);
   const [lastPong, setLastPong] = useState(null);
   const personalColor = useSelector((state) => state.user.color);
-
-  socket.connect();
-  console.log("connect");
 
   useEffect(() => {
     if (!!myChats.length) {
@@ -949,7 +949,14 @@ export default function Chat() {
                     className={styles.sendBtn}
                     onClick={() => {
                       !!chatTextValue &&
-                        sendMessage({ email: email, text: chatTextValue, color: personalColor, filename, roomId: currentChatId });
+                        sendMessage({
+                          email: email,
+                          pseudonym: pseudonym,
+                          text: chatTextValue,
+                          color: personalColor,
+                          filename,
+                          roomId: currentChatId,
+                        });
                     }}></button>
                 </div>
               </div>
