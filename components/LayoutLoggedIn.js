@@ -122,12 +122,6 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
 
   const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   if (!getCookie("jkh-token")) {
-  //     dispatch(updateRole({ role: "" }));
-  //   }
-  // }, []);
-
   const email = useSelector((state) => state.user.email);
   const notifications = useSelector((state) => state.user.notifications);
 

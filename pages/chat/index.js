@@ -205,7 +205,40 @@ export default function Chat() {
   async function getMessages() {
     if (!!email) {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/${email}?page=${scrollPage}`, {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/${email}`, {
+          headers: {
+            Authorization: getCookie("jkh-token"),
+          },
+        });
+
+        const fetchedMessages = res.data.data.map((item) => {
+          const serverDate = item.createdAt;
+          const localDate = new Date(serverDate);
+          return {
+            message: item.message,
+            date: localDate,
+            time: localDate.getHours().toString().padStart(2, "0") + ":" + localDate.getMinutes().toString().padStart(2, "0"),
+            name: item.user.profile.pseudonym,
+            color: item.user.profile.color,
+            file: item.file,
+            roomId: item.roomId,
+          };
+        });
+        // console.log(initialMessages);
+        setMessages([...fetchedMessages]);
+        // console.log(messages);
+        setScrollPage((prev) => prev + 1);
+        // setScrollToBottom((prev) => prev + 1);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  }
+
+  async function getMoreMessages() {
+    if (!!email) {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/${email}?page=${scrollPage}&chat=${currentChatId}`, {
           headers: {
             Authorization: getCookie("jkh-token"),
           },
@@ -242,12 +275,12 @@ export default function Chat() {
   const handleNewMessage = (data) => {
     // setMessages([...messages, data]);
     console.log("newmsg");
-    if (!!data.file) {
-      const blob = new Blob([data.file]);
-      const url = URL.createObjectURL(blob);
-      console.log(url);
-      data = { ...data, file: url };
-    }
+    // if (!!data.file) {
+    //   const blob = new Blob([data.file]);
+    //   const url = URL.createObjectURL(blob);
+    //   console.log(url);
+    //   data = { ...data, file: url };
+    // }
     console.log(data);
     // messages.push(data);
     // messages = [...messages, data];
@@ -373,27 +406,24 @@ export default function Chat() {
     if (!!files.length) payload = { ...payload, file: files[0] };
     socket.emit("message", payload);
 
-    try {
-      const msgFormData = new FormData();
-      msgFormData.append("sender", payload.email);
-      msgFormData.append("message", payload.text);
-      msgFormData.append("roomId", payload.roomId);
-      !!files.length && msgFormData.append("file", files[0], filename);
+    // try {
+    //   const msgFormData = new FormData();
+    //   msgFormData.append("sender", payload.email);
+    //   msgFormData.append("message", payload.text);
+    //   msgFormData.append("roomId", payload.roomId);
+    //   !!files.length && msgFormData.append("file", files[0], filename);
+    //   console.log(JSON.stringify(msgFormData));
 
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/chat`, msgFormData, {
-        headers: { Authorization: getCookie("jkh-token"), "Content-Type": !files.length ? "application/json" : "multipart/form-data" },
-      });
-      console.log(res);
-      setChatTextValue("");
-      setFiles([]);
-      setFilename("");
-    } catch (e) {
-      console.log(e);
-    }
-
-    // email: email, text: chatTextValue, color: personalColor
-
-    // let msg = payload;
+    //   const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/chat`, msgFormData, {
+    //     headers: { Authorization: getCookie("jkh-token"), "Content-Type": !files.length ? "application/json" : "multipart/form-data" },
+    //   });
+    //   console.log(res);
+    setChatTextValue("");
+    setFiles([]);
+    setFilename("");
+    // } catch (e) {
+    //   console.log(e);
+    // }
   };
 
   useEffect(() => {
@@ -481,13 +511,14 @@ export default function Chat() {
   const handleScrollUp = (e) => {
     let element = e.target;
     if (element.scrollTop === 0) {
-      getMessages();
+      getMoreMessages();
     }
   };
 
   const ChatMessage = ({ isMine = false, isPaid = false, name, text, profilePic, time, file, color }) => {
     if (!!file && !file.includes("blob")) {
-      file = `${process.env.NEXT_PUBLIC_API_URL}/chat/uploads/${file}`;
+      // file = `${process.env.NEXT_PUBLIC_API_URL}/chat/uploads/${file}`;
+      file = file.slice(0, 4) === "data" ? file : `${process.env.NEXT_PUBLIC_API_URL}/chat/uploads/${file}`;
       // console.log(img);
       // console.log(file.includes("blob"));
     }
@@ -500,6 +531,9 @@ export default function Chat() {
     // console.log(img.width);
     // };
     // }
+    const dateObj = new Date(time);
+    const actualTime =
+      time.length > 5 ? dateObj.getHours().toString().padStart(2, "0") + ":" + dateObj.getMinutes().toString().padStart(2, "0") : time;
     return (
       <div className={isMine ? styles.chatMessageMine : styles.chatMessage}>
         {!isMine ? (
@@ -538,14 +572,14 @@ export default function Chat() {
             <span className={styles.messageTime}>
               {/* <span className={styles.checkSent}></span> */}
               {/* <span className={styles.checkDelivered}></span> */}
-              {time}
+              {actualTime}
             </span>
           ) : (
             <div className={styles.partnerTimeWrap}>
               <span className={styles.partnerInfo}>
                 Это <span className={styles.hashtag}>#партнерский</span> пост
               </span>
-              <span className={styles.messageTime}>{time}</span>
+              <span className={styles.messageTime}>{actualTime}</span>
             </div>
           )}
         </div>
