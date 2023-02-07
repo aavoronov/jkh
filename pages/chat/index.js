@@ -196,6 +196,7 @@ export default function Chat() {
   const [searchMessages, setSearchMessages] = useState([]);
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const [scrollPage, setScrollPage] = useState(1);
+  const [startReached, setStartReached] = useState(false);
 
   const pseudonym = useSelector((state) => state.user.pseudonym);
   const email = useSelector((state) => state.user.email);
@@ -203,7 +204,7 @@ export default function Chat() {
   const dispatch = useDispatch();
 
   async function getMessages() {
-    if (!!email) {
+    if (!!email && !startReached) {
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/${email}`, {
           headers: {
@@ -225,6 +226,7 @@ export default function Chat() {
           };
         });
         // console.log(initialMessages);
+        if (!fetchedMessages.length) setStartReached((prev) => !prev);
         setMessages([...fetchedMessages]);
         // console.log(messages);
         setScrollPage((prev) => prev + 1);
@@ -236,9 +238,9 @@ export default function Chat() {
   }
 
   async function getMoreMessages() {
-    if (!!email) {
+    if (!!email && !startReached) {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/${email}?page=${scrollPage}&chat=${currentChatId}`, {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/more/${email}?page=${scrollPage}&chat=${currentChatId}`, {
           headers: {
             Authorization: getCookie("jkh-token"),
           },
@@ -258,6 +260,7 @@ export default function Chat() {
           };
         });
         // console.log(initialMessages);
+        if (!fetchedMessages.length) setStartReached((prev) => !prev);
         setMessages([...fetchedMessages, ...messages]);
         // console.log(messages);
         setScrollPage((prev) => prev + 1);
@@ -270,7 +273,7 @@ export default function Chat() {
 
   useEffect(() => {
     getMessages();
-  }, [email]);
+  }, [email, currentChatId]);
 
   const handleNewMessage = (data) => {
     // setMessages([...messages, data]);
@@ -852,7 +855,7 @@ export default function Chat() {
                 </div>
               </div>
             ) : null}
-
+            {!calendarMessages.length && startReached && <div className={styles.chatDate}>{"Начало истории чата"}</div>}
             {/* {messages.map((item, index) => { */}
             {!calendarMessages.length
               ? messages
