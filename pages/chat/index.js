@@ -195,7 +195,7 @@ export default function Chat() {
   const [query, setQuery] = useState("");
   const [searchMessages, setSearchMessages] = useState([]);
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
-  const [scrollPage, setScrollPage] = useState(1);
+  const [scrollPage, setScrollPage] = useState(0);
   const [startReached, setStartReached] = useState(false);
 
   const pseudonym = useSelector((state) => state.user.pseudonym);
@@ -843,9 +843,9 @@ export default function Chat() {
                             "." +
                             datetime.getFullYear().toString().slice(2) +
                             " " +
-                            datetime.getHours() +
+                            datetime.getHours().toString().slice(2) +
                             ":" +
-                            datetime.getMinutes()}
+                            datetime.getMinutes().toString().slice(2)}
                         </span>
 
                         {/* date.getDate() + " " + monthNames[date.getMonth()]; */}
