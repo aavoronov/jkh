@@ -15,7 +15,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { toggle } from "../../store/notificationSlice";
 import { getCookie } from "cookies-next";
 
-// const WhateverThisThingIs = () => {
 //   const LengthPrinter = React.useMemo(() => {
 //     return ({ ymaps, route }) => {
 //       const [routeLength, setRouteLength] = React.useState(null);
@@ -57,19 +56,11 @@ import { getCookie } from "cookies-next";
 // };
 
 export default function Profile({}) {
-  const profileData = {
-    photo: "/img/temp/adProfilePic.png",
-    nickname: "Александр Константинович",
-  };
-
-  const [files, setFiles] = useState([]);
-  const [nickname, setNickname] = useState(profileData.nickname);
-  const [address, setAddress] = useState("Ликино-Дулево, Юбилейная");
-  const [house, setHouse] = useState("3");
-  const [apartment, setApartment] = useState("15");
+  const [address, setAddress] = useState("");
+  const [house, setHouse] = useState("");
+  const [apartment, setApartment] = useState("");
   const [account, setAccount] = useState("");
   const [isOwner, setIsOwner] = useState(true);
-  const [mapWidth, setMapWidth] = useState("calc(100vw - 263px)");
 
   const router = useRouter();
   const dispatch = useDispatch();
@@ -196,9 +187,6 @@ export default function Profile({}) {
             value={account}
             onChange={(e) => {
               const re = /^[0-9\b]+$/;
-
-              // if value is not blank, then test the regex
-
               if (e.target.value === "" || re.test(e.target.value)) {
                 setAccount(e.target.value);
               }
