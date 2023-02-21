@@ -10,7 +10,6 @@ import LayoutPersonal from "../../components/LayoutPersonal";
 import ProductCard from "../../components/ProductCard";
 import { getCookie } from "cookies-next";
 import axios from "axios";
-import ReactPaginate from "react-paginate";
 import Pagination from "../../components/Pagination";
 import { useDispatch } from "react-redux";
 import { loading } from "../../store/loaderSlice";
