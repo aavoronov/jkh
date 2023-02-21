@@ -7,6 +7,7 @@ const userSlice = createSlice({
     role: "",
     pseudonym: "",
     color: "",
+    profilePic: "",
     notifications: 0,
   },
   reducers: {
@@ -18,6 +19,7 @@ const userSlice = createSlice({
     updateProfile(state, action) {
       state.pseudonym = action.payload.pseudonym;
       state.color = action.payload.color;
+      state.profilePic = action.payload.profilePic;
       console.log(state);
       console.log(action);
     },

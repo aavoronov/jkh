@@ -588,7 +588,7 @@ export default function InteractiveMap(props) {
           <span className={styles.mapOptionsItem}>Показать предложенные объекты</span>
         </div>
       </button>
-      <YMaps query={{ apikey: "2a5c7497-20d8-493c-87a4-21c88a87d455" }}>
+      <YMaps query={{ apikey: process.env.NEXT_PUBLIC_YMAPS_KEY }}>
         {width < 769 ? (
           <button
             className={leftMenuIsOpen ? styles.collapseMenuBtn : styles.collapseMenuBtn + " " + styles.collapsed}
@@ -619,7 +619,7 @@ export default function InteractiveMap(props) {
               ? points.map((item, index) =>
                   item.category == activeFilter || activeFilter == "all" ? (
                     <Placemark
-                      onCLick={() => {
+                      onClick={() => {
                         console.log(getObjectProperties(item));
                         // setObjectInfoActive(objectInfoActive == item.id ? null : item.id);
                         setObjectInfoActive(getObjectProperties(item));

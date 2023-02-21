@@ -270,6 +270,15 @@
   padding-left: 20px;
 }
 
+.createAd {
+  font-size: 12px;
+  line-height: 150%;
+  text-align: center;
+  color: #1c1c1c;
+  margin: 25px 0 40px;
+  display: block;
+}
+
 .productsHeader {
   font-weight: 500;
   font-size: 16px;
@@ -290,6 +299,7 @@
   padding-bottom: 20px;
   border-bottom: 1px solid #c4c6d6;
   margin-bottom: 20px;
+  padding-left: 10px;
 }
 
 .subcategoryName {
@@ -300,32 +310,32 @@
   cursor: pointer;
   margin-bottom: 8px;
   display: block;
-  &:before {
-    content: "";
-    position: absolute;
-    top: 4px;
-    // right: 100px;
-    left: -20px;
-    display: inline-block;
-    width: 8px;
-    height: 12px;
-    background-color: #254a63;
-    -webkit-mask-image: url("/img/tradeFilterArrow.svg");
-    mask-image: url("/img/tradeFilterArrow.svg");
-    mask-repeat: no-repeat;
-    mask-position: 50%;
-    transition: all 0.2s;
-  }
+  // &:before {
+  //   content: "";
+  //   position: absolute;
+  //   top: 4px;
+  //   // right: 100px;
+  //   left: -20px;
+  //   display: inline-block;
+  //   width: 8px;
+  //   height: 12px;
+  //   background-color: #254a63;
+  //   -webkit-mask-image: url("/img/tradeFilterArrow.svg");
+  //   mask-image: url("/img/tradeFilterArrow.svg");
+  //   mask-repeat: no-repeat;
+  //   mask-position: 50%;
+  //   transition: all 0.2s;
+  // }
   &.expanded {
     font-weight: 500;
     font-size: 14px;
     line-height: 150%;
     color: #ff8c00;
-    &::before {
-      background-color: #ff8c00;
-      transform: rotate(90deg);
-      transition: all 0.2s;
-    }
+    // &::before {
+    //   background-color: #ff8c00;
+    //   transform: rotate(90deg);
+    //   transition: all 0.2s;
+    // }
   }
 }
 

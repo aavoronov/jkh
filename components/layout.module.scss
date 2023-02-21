@@ -82,11 +82,24 @@
     display: none;
     background-color: rgba(0, 0, 0, 0);
   }
+  &.loader {
+    z-index: 10000;
+  }
+}
+
+.loaderWrap {
+  position: absolute;
+  top: 50vh;
+  left: 50vw;
+  margin: 0 auto;
 }
 
 @media screen and (min-width: 769px) {
   #overlay {
     display: none;
+    &.loader {
+      display: block;
+    }
   }
 }
 

@@ -30,12 +30,15 @@ import { useRouter } from "next/router";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import { toggle } from "../store/notificationSlice";
+import { RotatingLines } from "react-loader-spinner";
 
 export default function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = false }) {
   const [menuIsOpen, setMenuIsOpen] = useState(true);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
   const router = useRouter();
+
+  const isLoading = useSelector((state) => state.loader.visible);
 
   // const role = useSelector((state) => state.user.role);
   // useEffect(() => {
@@ -173,13 +176,20 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
 
   useEffect(() => {
     async function getProfile() {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
-        headers: { Authorization: getCookie("jkh-token") },
-      });
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
+          headers: { Authorization: getCookie("jkh-token") },
+        });
+        console.log(res);
 
-      const updatePseudonym = res.data.pseudonym === null ? "" : res.data.pseudonym;
-      console.log(updatePseudonym);
-      dispatch(updateProfile({ pseudonym: updatePseudonym, color: res.data.color }));
+        const updatePseudonym = res.data.pseudonym === null ? "" : res.data.pseudonym;
+        const updateProfilePic = res.data.profilePic === null ? "" : res.data.profilePic;
+        console.log(updatePseudonym);
+        dispatch(updateProfile({ pseudonym: updatePseudonym, color: res.data.color, profilePic: updateProfilePic }));
+        // console.log(nicknameLocal);
+      } catch (e) {
+        console.log(e);
+      }
     }
     getProfile();
   }, []);
@@ -199,6 +209,22 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
         draggable
         pauseOnHover
       />
+      {isLoading ? (
+        <div id={styles.overlay} className={styles.loader}>
+          <div className={styles.loaderWrap}>
+            <RotatingLines
+              strokeColor='#FF8C00'
+              strokeWidth='5'
+              animationDuration='0.75'
+              width='40'
+              visible={true}
+              className={styles.loader}
+            />
+          </div>
+        </div>
+      ) : null}
+      {/* {isLoading && <div style={{ width: 1000, height: 1000, backgroundColor: "tomato", position: "absolute" }}>TEST</div>} */}
+
       <Head>
         <title>Create Next App</title>
         <link rel='icon' href='/favicon.ico' />
@@ -279,7 +305,11 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
       {noRightMenu ? (
         <div className={styles.container + " " + styles.full}>{children}</div>
       ) : (
-        <div className={menuIsOpen ? styles.container : styles.container + " " + styles.expanded}>{children}</div>
+        <div className={menuIsOpen ? styles.container : styles.container + " " + styles.expanded}>
+          {/* {isLoading && <div style={{ width: 1000, height: 1000, backgroundColor: "tomato", position: "absolute" }}>TEST</div>} */}
+
+          {children}
+        </div>
       )}
       {!noRightMenu && (
         <aside className={menuIsOpen ? styles.rightMenu : styles.rightMenu + " " + styles.collapsed}>
@@ -363,12 +393,17 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
                   </Link>
                 </li>
                 <li>
-                  <Link href='/'>
+                  <span
+                    onClick={() => {
+                      dispatch(updateRole(""));
+                      router.replace("/");
+                      setCookie("jkh-token", "");
+                    }}>
                     <div className={styles.menuItem}>
                       <Image src={logoutGrey} alt='' />
                       <span className={styles.menuItemText}>Выйти</span>
                     </div>
-                  </Link>
+                  </span>
                 </li>
               </>
             ) : null}

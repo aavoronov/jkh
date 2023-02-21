@@ -1,0 +1,140 @@
+.pagination-container {
+  display: flex;
+  list-style-type: none;
+  justify-content: center;
+  margin-bottom: 40px;
+  padding-left: 0;
+
+  .paginationItem {
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 154.4%;
+    text-align: center;
+    background-color: #fff;
+    border-radius: 15px;
+    color: #828287;
+    margin-right: 10px;
+    display: block;
+    // width: 32px;
+    // height: 32px;
+    padding: 4px 12px;
+    text-align: center;
+
+    cursor: pointer;
+    &.active {
+      color: #ffffff;
+      background: linear-gradient(149.38deg, #f8b42f 20.73%, rgba(231, 115, 8, 0.9) 84.77%);
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    }
+  }
+
+  .paginationArrow {
+    background: url("/img/pagination-arrow.png") 50%;
+    background-size: 6px 12px;
+    background-repeat: no-repeat;
+    display: block;
+    padding: 10px;
+    cursor: pointer;
+    &.disabled {
+      pointer-events: none;
+      filter: grayscale(1);
+      // background-color: tomato;
+    }
+    &.left {
+      // transform: rotate(-135deg) translate(-1px);
+      transform: rotate(180deg);
+      margin-right: 10px;
+    }
+  }
+
+  .pagination-item {
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 154.4%;
+    text-align: center;
+    background-color: #fff;
+    border-radius: 15px;
+    color: #828287;
+    margin-right: 10px;
+    display: block;
+    // width: 32px;
+    // height: 32px;
+    padding: 4px 12px;
+    text-align: center;
+
+    cursor: pointer;
+
+    &.dots:hover {
+      background-color: transparent;
+      cursor: default;
+    }
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.4);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    &.selected {
+      color: #ffffff;
+      background: linear-gradient(149.38deg, #f8b42f 20.73%, rgba(231, 115, 8, 0.9) 84.77%);
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    }
+
+    .arrow {
+      width: 20px;
+      height: 20px;
+      padding: 0 !important;
+      background: url("/img/pagination-arrow.png") 50%;
+      background-size: 6px 12px;
+      background-repeat: no-repeat;
+      // &::before {
+      //   position: relative;
+      //   /* top: 3pt; Uncomment this to lower the icons as requested in comments*/
+      //   content: "";
+      //   /* By using an em scale, the arrows will size with the font */
+      //   display: inline-block;
+      //   width: 0.4em;
+      //   height: 0.4em;
+      //   border-right: 0.12em solid rgba(0, 0, 0, 0.87);
+      //   border-top: 0.12em solid rgba(0, 0, 0, 0.87);
+      //   background-size: 6px 12px;
+
+      //   // background-position: center;
+      //   // top: 3px;
+      //   width: 10px;
+      //   height: 10px;
+      //   background-repeat: no-repeat;
+      //   /* display: block; */
+      //   /* padding: 10px; */
+      //   cursor: pointer;
+      // }
+
+      &.left {
+        // transform: rotate(-135deg) translate(-1px);
+        transform: rotate(180deg);
+        &::before {
+          top: 1px;
+        }
+      }
+
+      &.right {
+        // transform: rotate(45deg);
+      }
+    }
+
+    &.disabled {
+      pointer-events: none;
+      // background-color: tomato;
+
+      .arrow::before {
+        border-right: 0.12em solid rgba(0, 0, 0, 0.43);
+        border-top: 0.12em solid rgba(0, 0, 0, 0.43);
+      }
+
+      &:hover {
+        background-color: transparent;
+        cursor: default;
+      }
+    }
+  }
+}

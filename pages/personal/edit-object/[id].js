@@ -1,62 +1,15 @@
-import React, { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 import { useRouter } from "next/router";
-import Link from "next/link";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import styles from "./personal-sections.module.scss";
-import { useDropzone } from "react-dropzone";
+import React, { useEffect, useState } from "react";
+import styles from "../personal-sections.module.scss";
 
-import LayoutPersonal from "../../components/LayoutPersonal";
-import { Map, withYMaps, YMaps } from "@pbe/react-yandex-maps";
-import { render } from "react-dom";
 import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
-import { toggle } from "../../store/notificationSlice";
 import { getCookie } from "cookies-next";
+import { useDispatch, useSelector } from "react-redux";
+import LayoutPersonal from "../../../components/LayoutPersonal";
+import { loading } from "../../../store/loaderSlice";
+import { toggle } from "../../../store/notificationSlice";
 
-// const WhateverThisThingIs = () => {
-//   const LengthPrinter = React.useMemo(() => {
-//     return ({ ymaps, route }) => {
-//       const [routeLength, setRouteLength] = React.useState(null);
-
-//       React.useEffect(() => {
-//         let canceled = false;
-
-//         if (ymaps && ymaps.route) {
-//           ymaps.route(route).then((route) => {
-//             if (!canceled) {
-//               setRouteLength(route.getHumanLength().replace("&#160;", " "));
-//             }
-//           });
-//         }
-
-//         return () => (canceled = true);
-//       }, [ymaps, ...route]);
-
-//       return routeLength ? (
-//         <p>
-//           The route from <strong>{route[0]}</strong> to <strong>{route[1]}</strong> is <strong>{routeLength}</strong> long
-//         </p>
-//       ) : (
-//         <p>Loading route...</p>
-//       );
-//     };
-//   }, []);
-
-//   const ConnectedLengthPrinter = React.useMemo(() => {
-//     return withYMaps(LengthPrinter, true, ["route"]);
-//   }, [LengthPrinter]);
-
-//   return (
-//     <YMaps query={{ lang: "en_RU", apikey: "2a5c7497-20d8-493c-87a4-21c88a87d455" }}>
-//       <ConnectedLengthPrinter route={["Moscow, Russia", "Berlin, Germany"]} />
-//       <span onClick={(ymaps) => ymaps.geocode("Орехово-Зуево, Ленина 99")}>test</span>
-//     </YMaps>
-//   );
-// };
-
-export default function Profile({}) {
+export default function Profile({ id }) {
   const profileData = {
     photo: "/img/temp/adProfilePic.png",
     nickname: "Александр Константинович",
@@ -64,17 +17,72 @@ export default function Profile({}) {
 
   const [files, setFiles] = useState([]);
   const [nickname, setNickname] = useState(profileData.nickname);
-  const [address, setAddress] = useState("Ликино-Дулево, Юбилейная");
-  const [house, setHouse] = useState("3");
-  const [apartment, setApartment] = useState("15");
+  const [objectId, setObjectId] = useState("");
+  const [address, setAddress] = useState("");
+  const [house, setHouse] = useState("");
+  const [apartment, setApartment] = useState("");
   const [account, setAccount] = useState("");
+  // const [email, setEmail] = useState("");
+  // const [object, setObject] = useState(null);
   const [isOwner, setIsOwner] = useState(true);
-  const [mapWidth, setMapWidth] = useState("calc(100vw - 263px)");
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  const [secure, setSecure] = useState(true);
 
   const router = useRouter();
   const dispatch = useDispatch();
 
   const email = useSelector((state) => state.user.email);
+
+  useEffect(() => {
+    async function getObjectById() {
+      try {
+        // setHasLoaded(false);
+        dispatch(loading({ visible: true }));
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects/${id}`, {
+          headers: { Authorization: getCookie("jkh-token") },
+        });
+        console.log(res.data);
+        // dispatch(updateProfile({ pseudonym: nicknameLocal }));
+        // dispatch(toggle({ text: "Объект успешно удален", type: "success" }));
+        // const newObjects = objects.filter((item) => item.id !== id);
+        // setObject(res.data);
+        // const fullAddress = res.data.estateObject.address;
+        setObjectId(res.data.estateObjectId);
+        setAddress(
+          res.data.estateObject.address
+            .split(", ")
+            .slice(0, res.data.estateObject.address.split(", ").length - 1)
+            .join(", ")
+        );
+        setHouse(res.data.estateObject.address.split(", ").at(-1));
+        setApartment(res.data.estateObject.apartment);
+        setAccount(res.data.account);
+        setIsOwner(res.data.isOwnerRatherThanTenant);
+      } catch (e) {
+        console.log(e);
+      }
+      dispatch(loading({ visible: false }));
+      setHasLoaded(true);
+    }
+    getObjectById();
+  }, []);
+
+  const deleteObject = async () => {
+    try {
+      const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects/${id}`, {
+        headers: { Authorization: getCookie("jkh-token") },
+      });
+      console.log(res.data);
+      // dispatch(updateProfile({ pseudonym: nicknameLocal }));
+      dispatch(toggle({ text: "Объект успешно удален", type: "success" }));
+      // const newObjects = objects.filter((item) => item.id !== id);
+      // setObjects(newObjects);
+      router.push("/personal");
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   async function getGeocode() {
     const res = await axios.get(
@@ -93,16 +101,16 @@ export default function Profile({}) {
     return { address: fullAddress, latitude, longitude, precision };
   }
 
-  const createEstateObject = async () => {
+  const updateEstateObject = async () => {
     try {
       const { address, latitude, longitude, precision } = await getGeocode();
       console.log(address, precision);
       if (precision !== "exact") {
         throw new Error("Введенный адрес не найден. Проверьте правильность введенного адреса");
       }
-      const res = await axios.post(
+      const res = await axios.patch(
         `${process.env.NEXT_PUBLIC_API_URL}/estate-objects`,
-        { email, address, latitude, longitude, apartment: apartment, account: account, isOwner: isOwner },
+        { email, id: objectId, address, latitude, longitude, apartment: apartment, account: account, isOwner: isOwner },
         {
           headers: { Authorization: getCookie("jkh-token") },
         }
@@ -119,10 +127,18 @@ export default function Profile({}) {
     }
   };
 
+  // useEffect(() => {
+  //   profileData.photo && setFiles(profileData.photo);
+  // }, []);
+
   return (
     <LayoutPersonal>
-      <h1 className={styles.pageHeading + " " + styles.profile}>Добавление нового адреса</h1>
+      <h1 className={styles.pageHeading + " " + styles.profile}>Редактирование адреса</h1>
+
       <div className={styles.personalSection}>
+        <span className={styles.deleteObject} onClick={deleteObject}>
+          Удалить объект
+        </span>
         <div className={styles.fieldWrap}>
           <label htmlFor='address' className={styles.fieldName}>
             Адрес объекта
@@ -173,16 +189,16 @@ export default function Profile({}) {
         </div>
 
         {/* <label htmlFor='nickname' className={styles.fieldName}>
-          Повторите пароль
-        </label>
-        <div className={styles.fieldWrap + " " + styles.relative}>
-          <input name='password' type={secure ? "password" : "text"} placeholder='' className={styles.field} />
-          <span
-            className={secure ? styles.withEyeSecure : styles.withEyeInsecure}
-            onClick={() => {
-              setSecure(!secure);
-            }}></span>
-        </div> */}
+            Повторите пароль
+          </label>
+          <div className={styles.fieldWrap + " " + styles.relative}>
+            <input name='password' type={secure ? "password" : "text"} placeholder='' className={styles.field} />
+            <span
+              className={secure ? styles.withEyeSecure : styles.withEyeInsecure}
+              onClick={() => {
+                setSecure(!secure);
+              }}></span>
+          </div> */}
 
         <div className={styles.fieldWrap}>
           <label htmlFor='account' className={styles.fieldName}>
@@ -195,63 +211,33 @@ export default function Profile({}) {
             className={styles.field}
             value={account}
             onChange={(e) => {
-              const re = /^[0-9\b]+$/;
-
-              // if value is not blank, then test the regex
-
-              if (e.target.value === "" || re.test(e.target.value)) {
-                setAccount(e.target.value);
-              }
+              setAccount(e.target.value);
+              console.log(e.target.value);
             }}
-            // setAccount(e.target.value);
           />
         </div>
         <div className={styles.fieldWrap}>
           <div className={styles.form_radio} onClick={() => setIsOwner(true)}>
-            <input
-              id='isOwner-1'
-              className={styles.radio}
-              type='radio'
-              name='isOwner'
-              value='Я собственник'
-              checked={isOwner}
-              onChange={() => setIsOwner(true)}
-            />
+            <input id='isOwner-1' className={styles.radio} type='radio' name='isOwner' value='Личные вещи' checked={isOwner} />
             <label htmlFor='category-1'>Я собственник</label>
           </div>
 
           <div className={styles.form_radio} onClick={() => setIsOwner(false)}>
-            <input
-              id='isOwner-2'
-              className={styles.radio}
-              type='radio'
-              name='isOwner'
-              value='В аренде'
-              checked={!isOwner}
-              onChange={() => setIsOwner(false)}
-            />
+            <input id='isOwner-2' className={styles.radio} type='radio' name='isOwner' value='Транспорт' checked={!isOwner} />
             <label htmlFor='category-2'>В аренде</label>
           </div>
         </div>
 
         <div className={styles.editObjectBtnsWrap}>
-          <span className={styles.text}>Добавить аккаунт арендатора</span>
-          {/* <span className={styles.text + " " + styles.border}>Написать администратору</span> */}
-          <span></span>
+          <span className={styles.text}>Удалить аккаунт арендатора</span>
+          <span className={styles.text + " " + styles.border}>Написать администратору</span>
 
           <button
             type='button'
             className={styles.text + " " + styles.solid}
             onClick={() => {
-              // router.push("/personal");
-              // console.log(JSON.stringify({ address: address, house: house, apartment: apartment, account: account, isOwner: isOwner }));
-              // mapRef.current.ymaps.geocode(address + " " + house);
-              // mapRef.current.ymaps.geocode(address + " " + house);
-              // console.log(mapRef);
               if (!!address && !!house && !!apartment && !!account) {
-                createEstateObject();
-              } else {
-                dispatch(toggle({ text: "Заполните все поля", type: "error" }));
+                updateEstateObject();
               }
             }}>
             Сохранить
@@ -259,7 +245,7 @@ export default function Profile({}) {
           <span
             className={styles.text + " " + styles.border}
             onClick={() => {
-              confirm("Отменить создание объекта? Данные не будут сохранены") && router.push("/personal");
+              confirm("Отменить изменение объекта? Данные не будут сохранены.") && router.push("/personal");
             }}>
             Отменить
           </span>
@@ -267,4 +253,12 @@ export default function Profile({}) {
       </div>
     </LayoutPersonal>
   );
+}
+
+export async function getServerSideProps(context) {
+  // console.log(context.params);
+
+  return {
+    props: { id: context.params.id },
+  };
 }

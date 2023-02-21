@@ -367,6 +367,35 @@
   }
 }
 
+.checkboxWrap {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.checkbox {
+  display: inline-block;
+  // pointer-events: none;
+  flex-shrink: 0;
+  flex-grow: 0;
+  margin-right: 0.5em;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 50% 50%;
+  height: 22px;
+  width: 22px;
+  border: 2px solid #254a63;
+  border-radius: 5px;
+  transition: all 0.2s;
+  cursor: pointer;
+  &:hover {
+    background-color: #254a6345;
+  }
+  &.checked {
+    background-image: url("/img/check.png") !important;
+  }
+}
+
 .field {
   border-radius: 5px;
   border: 1px solid #c4c6d6;

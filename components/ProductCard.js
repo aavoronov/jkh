@@ -3,36 +3,95 @@ import styles from "./productcard.module.scss";
 import Image from "next/image";
 import Link from "next/link";
 import { Carousel } from "react-responsive-carousel";
+import useWindowDimensions from "./useWindowDimensionsSSR";
+import axios from "axios";
+import { useDispatch } from "react-redux";
+import { loading } from "../store/loaderSlice";
+import { getCookie } from "cookies-next";
+import { toggle } from "../store/notificationSlice";
+import { useRouter } from "next/router";
 
-const ProductCard = ({ isPaidAd = false, isVip = false, isOnMyAdsPage = false, isOnMyFavesPage = false }) => {
+const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isPaidAd = false, refreshFunction }) => {
   const [favorite, setFavorite] = useState(false);
   const [shown, setShown] = useState(true);
+  const { height, width } = useWindowDimensions();
+
+  const { id, images, isVip, ispaid, name, price, location, createdAt } = item;
+
+  const dispatch = useDispatch();
+  const router = useRouter();
+
+  // useEffect(() => {
+  //   if (isOnMyFavesPage) {
+  //     setFavorite(true);
+  //   }
+  // }, []);
 
   useEffect(() => {
-    if (isOnMyFavesPage) {
+    if (!isOnMyAdsPage && item.favorites.length) {
       setFavorite(true);
     }
   }, []);
 
+  const toggleFavorite = async () => {
+    try {
+      dispatch(loading({ visible: true }));
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trading-platform/favorites/${id}`, {
+        headers: {
+          Authorization: getCookie("jkh-token"),
+        },
+      });
+      console.log(res.data);
+      setFavorite((prev) => !prev);
+      isOnMyFavesPage && refreshFunction();
+    } catch (e) {
+      console.log(e);
+    }
+    dispatch(loading({ visible: false }));
+  };
+
+  const deleteProduct = async () => {
+    try {
+      dispatch(loading({ visible: true }));
+      const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/trading-platform/${id}`, {
+        headers: {
+          Authorization: getCookie("jkh-token"),
+        },
+      });
+      console.log(res.data);
+      setFavorite((prev) => !prev);
+      dispatch(toggle({ text: "Объявление успешно удалено", type: "success" }));
+      refreshFunction();
+      // setShown(false);
+    } catch (e) {
+      console.log(e);
+    }
+    dispatch(loading({ visible: false }));
+  };
+
+  const datetime = new Date(createdAt);
+
   return (
     <>
-      {shown ? (
-        <>
-          {isOnMyFavesPage && !favorite ? null : (
-            <div className={styles.productItem}>
-              <div className={styles.border} style={{ borderColor: isVip ? "#F54019" : "#c4c6d6" }}>
-                <div className={styles.imageWrap}>
-                  {/* <Image src='/img/temp/broshurator.png' layout='fill' /> */}
-                  <Carousel
-                    className={styles.slider}
-                    dynamicHeight={true}
-                    infiniteLoop={true}
-                    showArrows={false}
-                    showStatus={false}
-                    swipeable={true}
-                    emulateTouch={true}
-                    showThumbs={false}
-                    renderIndicator={(onClickHandler, isSelected, index, label) => {
+      <>
+        {isOnMyFavesPage && !favorite ? null : (
+          <div className={styles.productItem}>
+            <div
+              className={styles.border}
+              style={{ borderColor: ispaid ? "#ff8c00" : isVip ? "#F54019" : "#c4c6d6", borderWidth: ispaid ? 2 : 1 }}>
+              <div className={styles.imageWrap}>
+                {/* <Image src='/img/temp/broshurator.png' layout='fill' /> */}
+                <Carousel
+                  className={styles.slider}
+                  dynamicHeight={true}
+                  infiniteLoop={true}
+                  showArrows={false}
+                  showStatus={false}
+                  swipeable={true}
+                  emulateTouch={true}
+                  showThumbs={false}
+                  renderIndicator={(onClickHandler, isSelected, index, label) => {
+                    if (!!images?.length) {
                       if (isSelected) {
                         return (
                           <li
@@ -58,47 +117,85 @@ const ProductCard = ({ isPaidAd = false, isVip = false, isOnMyAdsPage = false, i
                           // aria-label={`${label} ${index + 1}`}
                         />
                       );
-                    }}>
-                    <img src='/img/temp/broshurator.png' layout='fill' className={styles.slide} />
+                    }
+                    return null;
+                  }}>
+                  {!!images?.length ? (
+                    images.map((item, index) => (
+                      <div style={{ maxHeight: "100%" }} key={index}>
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/trading-platform/${item}`}
+                          style={{ objectFit: "cover", width: "100%" }}
+                          className={styles.slide}
+                          height={width > 1050 || width < 421 ? 177 : 120}
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <img
+                      src='/img/no-image.jpg'
+                      style={{ objectFit: "cover", width: "100%" }}
+                      className={styles.slide}
+                      height={width > 1050 || width < 421 ? 177 : 120}
+                    />
+                  )}
+                  {/* <img src='/img/temp/broshurator.png' layout='fill' className={styles.slide} />
                     <img src='/img/temp/image 1854.png' layout='fill' className={styles.slide} />
                     <img src='/img/temp/image 18545.png' layout='fill' className={styles.slide} />
-                    <img src='/img/temp/image 18546.png' layout='fill' className={styles.slide} />
-                  </Carousel>
+                    <img src='/img/temp/image 18546.png' layout='fill' className={styles.slide} /> */}
+                </Carousel>
 
-                  {isPaidAd ? <span className={styles.isPaidAd}>Реклама</span> : null}
+                {isPaidAd ? <span className={styles.isPaidAd}>Реклама</span> : null}
+                <div className={styles.statusContainer}>
+                  {ispaid ? <span className={styles.ispaid}>TOP</span> : null}
                   {isVip ? <span className={styles.isVip}>VIP</span> : null}
                 </div>
-                <div className={styles.nameWrap}>
-                  <Link href='/trading-platform/product' passHref>
-                    <div className={styles.productName}>Брошюратор PrintOfice-2 раритет</div>
-                  </Link>
-                  {!isOnMyAdsPage ? (
-                    <button className={styles.faveBtn} onClick={() => setFavorite(!favorite)}>
-                      {favorite ? <img src='/img/Heart_filled.svg' /> : <img src='/img/Heart.svg' />}
-                    </button>
-                  ) : null}
-                </div>
-                <span className={styles.price}>18 000 ₽</span>
-                <span className={styles.locationTime}>Королев</span>
-                <span className={styles.locationTime}>Сегодня 12:45</span>
               </div>
-              {isOnMyAdsPage ? (
-                <div className={styles.myAdsBtnsWrap}>
-                  <button className={styles.bumpBtn}>Поднять просмотры</button>
-                  <div className={styles.myServicesBtnsWrap}>
-                    <button className={styles.myServicesBtn + " " + styles.pencil}></button>
-                    <button
-                      className={styles.myServicesBtn + " " + styles.trash}
-                      onClick={() => {
-                        confirm("Вы уверены, что хотите навсегда удалить это объявление?") && setShown(false);
-                      }}></button>
-                  </div>
-                </div>
-              ) : null}
+              <div className={styles.nameWrap}>
+                <Link href={{ pathname: "/trading-platform/product/[id]", query: { id: id } }} passHref>
+                  <div className={styles.productName}>{name}</div>
+                </Link>
+                {!isOnMyAdsPage ? (
+                  <button className={styles.faveBtn} onClick={() => toggleFavorite()}>
+                    {favorite ? <img src='/img/Heart_filled.svg' /> : <img src='/img/Heart.svg' />}
+                  </button>
+                ) : null}
+              </div>
+              <span className={styles.price}>{price} ₽</span>
+              <span className={styles.locationTime}>{location}</span>
+              <span className={styles.locationTime}>
+                {datetime.getDate() +
+                  "." +
+                  (datetime.getMonth() + 1).toString().padStart(2, "0") +
+                  "." +
+                  datetime.getFullYear().toString().slice(2) +
+                  " " +
+                  datetime.getHours().toString().padStart(2, "0") +
+                  ":" +
+                  datetime.getMinutes().toString().padStart(2, "0")}
+              </span>
             </div>
-          )}
-        </>
-      ) : null}
+            {isOnMyAdsPage ? (
+              <div className={styles.myAdsBtnsWrap}>
+                <button className={styles.bumpBtn}>Поднять просмотры</button>
+                <div className={styles.myServicesBtnsWrap}>
+                  <button
+                    className={styles.myServicesBtn + " " + styles.pencil}
+                    onClick={
+                      () => router.push({ pathname: "/trading-platform/new", query: { id: id } })
+                      // , "/trading-platform/edit"
+                    }></button>
+                  <button
+                    className={styles.myServicesBtn + " " + styles.trash}
+                    onClick={() => {
+                      confirm("Вы уверены, что хотите навсегда удалить это объявление?") && deleteProduct();
+                    }}></button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
+      </>
     </>
   );
 };

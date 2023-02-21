@@ -54,10 +54,14 @@ export default function AddChat() {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat-rooms`, {
         headers: { Authorization: getCookie("jkh-token") },
       });
-      setChatList(res.data);
-      setActiveObject(res.data[0].address);
-      setActiveObjectId(res.data[0].id);
-      console.log(res.data);
+      if (!!res.data.length) {
+        setChatList(res.data);
+        setActiveObject(res.data[0].address);
+        setActiveObjectId(res.data[0].id);
+        console.log(res.data);
+      } else {
+        setChatList("empty");
+      }
     }
     getChats();
   }, []);
@@ -246,13 +250,15 @@ export default function AddChat() {
               router.push("/chat");
             }}>
             <Form className={styles.formWrap}>
-              <div className={styles.fieldWrap}>
-                <label htmlFor='category' className={styles.fieldName}>
-                  Выберите адрес объекта
-                </label>
-                <DropdownList objects={chatList} value={activeObject} setValue={setActiveObject} />
-              </div>
-              {/* <div className={styles.fieldWrap}>
+              {chatList !== "empty" ? (
+                <>
+                  <div className={styles.fieldWrap}>
+                    <label htmlFor='category' className={styles.fieldName}>
+                      Выберите адрес объекта
+                    </label>
+                    <DropdownList objects={chatList} value={activeObject} setValue={setActiveObject} />
+                  </div>
+                  {/* <div className={styles.fieldWrap}>
                 <label htmlFor='nickname' className={styles.fieldName}>
                   Укажите как вас отображать в чате
                 </label>
@@ -262,31 +268,39 @@ export default function AddChat() {
                 </span>
               </div> */}
 
-              {/* <div className={styles.fieldWrap}>
+                  {/* <div className={styles.fieldWrap}>
                 <label htmlFor='photos' className={styles.fieldName + " " + styles.center}>
                   Добавьте аватарку
                 </label>
                 <Dropzone />
               </div> */}
-              <div className={styles.fieldWrap}>
-                {/* <input type='checkbox' name='sendToModerator' id='sendToModerator' className={styles.checkbox} /> */}
-                <label htmlFor='notify' className={styles.fieldName + " " + styles.checkboxWrap}>
-                  <div
-                    name='notify'
-                    id='notify'
-                    type='checkbox'
-                    onClick={() => {
-                      setNotify(!notify);
-                    }}
-                    className={notify ? styles.checkbox + " " + styles.checked : styles.checkbox}></div>
-                  <span>Показывать уведомления</span>
-                </label>
-              </div>
+                  <div className={styles.fieldWrap}>
+                    {/* <input type='checkbox' name='sendToModerator' id='sendToModerator' className={styles.checkbox} /> */}
+                    <label htmlFor='notify' className={styles.fieldName + " " + styles.checkboxWrap}>
+                      <div
+                        name='notify'
+                        id='notify'
+                        type='checkbox'
+                        onClick={() => {
+                          setNotify(!notify);
+                        }}
+                        className={notify ? styles.checkbox + " " + styles.checked : styles.checkbox}></div>
+                      <span>Показывать уведомления</span>
+                    </label>
+                  </div>
+                </>
+              ) : (
+                <div style={{ marginTop: 20, marginBottom: 20, textAlign: "center" }}>
+                  Нет доступных чатов. Зарегистрируйте объект недвижимости в Личном кабинете.
+                </div>
+              )}
 
               <div className={styles.fieldWrap}>
-                <button type='submit' className={styles.submitBtn} onClick={() => chatRoomSignUp()}>
-                  Зарегистрироваться
-                </button>
+                {chatList !== "empty" && (
+                  <button type='submit' className={styles.submitBtn} onClick={() => chatRoomSignUp()}>
+                    Зарегистрироваться
+                  </button>
+                )}
                 <span
                   className={styles.cancelBtn}
                   onClick={() => {

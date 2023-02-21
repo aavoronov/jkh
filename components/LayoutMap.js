@@ -23,12 +23,16 @@ import personGrey from "/public/img/personGrey.png";
 import logoutGrey from "/public/img/logoutGrey.png";
 
 import useWindowDimensions from "./useWindowDimensionsSSR";
+import { useDispatch } from "react-redux";
+import { setCookie } from "cookies-next";
+import { updateRole } from "../store/userSlice";
 
 export default function LayoutLoggedIn({ children, menuIsCollapsible = false, menuIsOpen, setMenuIsOpen }) {
   // const [menuIsOpen, setMenuIsOpen] = useState(true);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
   const { height, width } = useWindowDimensions();
+  const dispatch = useDispatch();
 
   const setMenuState = (value) => {
     setMenuIsOpen(value);
@@ -119,12 +123,17 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
                     </Link>
                   </li>
                   <li>
-                    <Link href='/'>
+                    <span
+                      onClick={() => {
+                        dispatch(updateRole(""));
+                        router.replace("/");
+                        setCookie("jkh-token", "");
+                      }}>
                       <div className={styles.dropdownMenuItem}>
                         <Image src={logout} alt='' />
                         <span>Выйти</span>
                       </div>
-                    </Link>
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -214,12 +223,17 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
                 </Link>
               </li>
               <li>
-                <Link href='/'>
+                <span
+                  onClick={() => {
+                    dispatch(updateRole(""));
+                    router.replace("/");
+                    setCookie("jkh-token", "");
+                  }}>
                   <div className={styles.menuItem}>
                     <Image src={logoutGrey} alt='' />
                     <span className={styles.menuItemText}>Выйти</span>
                   </div>
-                </Link>
+                </span>
               </li>
             </>
           ) : null}

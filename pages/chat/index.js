@@ -200,6 +200,7 @@ export default function Chat() {
 
   const pseudonym = useSelector((state) => state.user.pseudonym);
   const email = useSelector((state) => state.user.email);
+  const profilePic = useSelector((state) => state.user.profilePic);
 
   const dispatch = useDispatch();
 
@@ -221,6 +222,7 @@ export default function Chat() {
             time: localDate.getHours().toString().padStart(2, "0") + ":" + localDate.getMinutes().toString().padStart(2, "0"),
             name: item.user.profile.pseudonym,
             color: item.user.profile.color,
+            profilePic: item.user.profile.profilePic,
             file: item.file,
             roomId: item.roomId,
           };
@@ -299,7 +301,15 @@ export default function Chat() {
       } else {
         event.preventDefault();
         !!chatTextValue.length &&
-          sendMessage({ email: email, pseudonym: pseudonym, text: chatTextValue, color: personalColor, filename, roomId: currentChatId });
+          sendMessage({
+            email: email,
+            pseudonym: pseudonym,
+            text: chatTextValue,
+            color: personalColor,
+            profilePic: profilePic,
+            filename,
+            roomId: currentChatId,
+          });
       }
     }
   };
@@ -520,8 +530,7 @@ export default function Chat() {
 
   const ChatMessage = ({ isMine = false, isPaid = false, name, text, profilePic, time, file, color }) => {
     if (!!file && !file.includes("blob")) {
-      // file = `${process.env.NEXT_PUBLIC_API_URL}/chat/uploads/${file}`;
-      file = file.slice(0, 4) === "data" ? file : `${process.env.NEXT_PUBLIC_API_URL}/chat/uploads/${file}`;
+      file = file.slice(0, 4) === "data" ? file : `${process.env.NEXT_PUBLIC_API_URL}/uploads/chat/${file}`;
       // console.log(img);
       // console.log(file.includes("blob"));
     }
@@ -546,7 +555,10 @@ export default function Chat() {
             </span>
           ) : (
             <div className={styles.participantPic}>
-              <Image src={profilePic} width={35} height={35} />
+              <img
+                src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/profiles/${profilePic}`}
+                style={{ width: 35, height: 35, borderRadius: 35, objectFit: "cover" }}
+              />
             </div>
           )
         ) : null}
@@ -704,11 +716,22 @@ export default function Chat() {
                     (item) =>
                       item.user.profile.pseudonym.toLowerCase().includes(chatUsersSearchField.toLowerCase()) && (
                         <div className={styles.participant}>
-                          <span className={styles.objectLetters} style={{ backgroundColor: item.user.profile.color }}>
-                            {item.user.profile.pseudonym.split(" ").length > 1
-                              ? item.user.profile.pseudonym.split(" ")[0][0] + item.user.profile.pseudonym.split(" ")[1][0]
-                              : item.user.profile.pseudonym.slice(0, 2)}
-                          </span>
+                          {/* const profilePic = useSelector((state) => state.user.profilePic); */}
+                          {item.user.profile.profilePic ? (
+                            // <img src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${item.user.profile.profilePic}`} />
+                            <div className={styles.participantPic}>
+                              <img
+                                src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/profiles/${item.user.profile.profilePic}`}
+                                style={{ width: 35, height: 35, borderRadius: 35, objectFit: "cover" }}
+                              />
+                            </div>
+                          ) : (
+                            <span className={styles.objectLetters} style={{ backgroundColor: item.user.profile.color }}>
+                              {item.user.profile.pseudonym.split(" ").length > 1
+                                ? item.user.profile.pseudonym.split(" ")[0][0] + item.user.profile.pseudonym.split(" ")[1][0]
+                                : item.user.profile.pseudonym.slice(0, 2)}
+                            </span>
+                          )}
                           <span className={styles.participantName}>{item.user.profile.pseudonym}</span>
                         </div>
                       )
@@ -843,9 +866,9 @@ export default function Chat() {
                             "." +
                             datetime.getFullYear().toString().slice(2) +
                             " " +
-                            datetime.getHours().toString().slice(2) +
+                            datetime.getHours().toString().padStart(2, "0") +
                             ":" +
-                            datetime.getMinutes().toString().slice(2)}
+                            datetime.getMinutes().toString().padStart(2, "0")}
                         </span>
 
                         {/* date.getDate() + " " + monthNames[date.getMonth()]; */}
@@ -855,7 +878,7 @@ export default function Chat() {
                 </div>
               </div>
             ) : null}
-            {!calendarMessages.length && startReached && <div className={styles.chatDate}>{"Начало истории чата"}</div>}
+            {!calendarMessages.length && startReached && !!myChats.length && <div className={styles.chatDate}>{"Начало истории чата"}</div>}
             {/* {messages.map((item, index) => { */}
             {!calendarMessages.length
               ? messages
@@ -888,6 +911,7 @@ export default function Chat() {
                           isMine={item.name === pseudonym}
                           time={item.time}
                           color={item.color}
+                          profilePic={item.profilePic}
                           file={item.file}
                         />
                       </>
@@ -924,6 +948,7 @@ export default function Chat() {
                           isMine={item.name === pseudonym}
                           time={item.time}
                           color={item.color}
+                          profilePic={item.profilePic}
                           file={item.file}
                         />
                       </>
@@ -991,6 +1016,7 @@ export default function Chat() {
                           pseudonym: pseudonym,
                           text: chatTextValue,
                           color: personalColor,
+                          profilePic: profilePic,
                           filename,
                           roomId: currentChatId,
                         });

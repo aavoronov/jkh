@@ -23,14 +23,14 @@
   display: flex;
   flex-direction: row;
   margin-bottom: 5px;
-  width: fit-content;
+  width: 100%;
 }
 
 .productName {
   font-size: 16px;
   line-height: 130%;
   color: #1c1c1c;
-  max-width: 90%;
+  width: 90%;
   cursor: pointer;
 }
 
@@ -76,7 +76,7 @@
   }
   .productName {
     font-size: 12px;
-    max-width: 130px;
+    width: 130px;
   }
   .myServicesBtn {
     margin: 3px !important;
@@ -100,7 +100,8 @@
     font-size: 16px;
     line-height: 130%;
     color: #1c1c1c;
-    max-width: 90%;
+    width: 90%;
+    // display: block;
   }
 }
 
@@ -114,18 +115,37 @@
   left: 15px;
 }
 
-.isVip {
-  padding: 5px 16px;
-  background: #f54019;
-  opacity: 0.9;
-  border-radius: 15px;
+.statusContainer {
   position: absolute;
   top: 12px;
   left: 15px;
 }
 
+.ispaid {
+  padding: 5px 16px;
+  background: #ff8c00;
+  opacity: 0.9;
+  border-radius: 15px;
+  margin-right: 10px;
+}
+
+.isVip {
+  padding: 5px 16px;
+  background: #f54019;
+  opacity: 0.9;
+  border-radius: 15px;
+}
+
+.slider {
+  max-width: 100%;
+  margin-bottom: 19px;
+  height: 100%;
+  // background-color: salmon;
+}
+
 .slide {
   user-select: none;
+  max-height: 100%;
 }
 
 .indicator {
