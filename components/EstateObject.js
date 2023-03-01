@@ -11,18 +11,54 @@ import objectIcon from "../public/img/objectIcon.png";
 import estateInfoIcon from "../public/img/estateInfoIcon.png";
 import servicesBlockIcon from "../public/img/servicesBlockIcon.png";
 
-export default function EstateObject(props) {
-  // console.log(props.data);
+export default function EstateObject({ data }) {
+  console.log(data);
 
-  const data = props.data;
+  // const data = props.data;
 
-  let rawValue = data.debtValue;
-  let result = rawValue.toLocaleString(); // large number kerning
+  const info = {
+    debtValue: 10000,
+    payments: [
+      {
+        purpose: "ТСЖ № 63545-86-99",
+        plan: 100,
+        fact: 100,
+        receipt: "pretend this is an url",
+        payLink: "pretend this is an URL too maybe?",
+      },
+      {
+        purpose: "Электроэнергия № 4578952-22",
+        plan: 10,
+        fact: 10,
+        receipt: "pretend this is an url",
+        payLink: "pretend this is an URL too maybe?",
+      },
+      {
+        purpose: "МТС № 4578952-22",
+        plan: 5,
+        fact: 5,
+        receipt: "pretend this is an url",
+        payLink: "pretend this is an URL too maybe?",
+      },
+    ],
+    notifications: {
+      chat: 3,
+      map: 11,
+      general: 7,
+    },
+    buildingYear: 1347,
+    overhaulYear: 1980,
+    floorsNumber: 400,
+    apartmentsNumber: 8000,
+  };
+
+  // let rawValue = data.debtValue;
+  const result = info.debtValue.toLocaleString(); // large number kerning
 
   let planOverall = 0;
-  data.payments.forEach((item) => (planOverall += item.plan));
+  info.payments.forEach((item) => (planOverall += item.plan));
   let factOverall = 0;
-  data.payments.forEach((item) => (factOverall += item.fact));
+  info.payments.forEach((item) => (factOverall += item.fact));
 
   const [objectIsExpanded, setObjectIsExpanded] = useState(false);
   const [objectIsRefreshing, setObjectIsRefreshing] = useState(false);
@@ -35,6 +71,12 @@ export default function EstateObject(props) {
   };
   const [activeTab, setActiveTab] = useState(1);
   const [activeTimelapseTab, setActiveTimelapseTab] = useState("month");
+
+  const addressSplit = data.address.split(",");
+  const name = addressSplit.slice(-2).join().trim();
+  const address = addressSplit.slice(0, addressSplit.length - 2).join();
+  console.log(name);
+  console.log(address);
 
   const TabBlock = () => {
     return (
@@ -84,13 +126,13 @@ export default function EstateObject(props) {
             </div>
             <div className={styles.objectInfo}>
               <div className={styles.objName}>
-                <span className={styles.objectTitle}>{data.name}</span>
-                <span className={styles.objectAddress}>{data.address}</span>
+                <span className={styles.objectTitle}>{name}</span>
+                <span className={styles.objectAddress}>{address}</span>
                 <div className={styles.objectMonetaryStuff}>
-                  <span className={styles.objectDebtBtn}>{rawValue === 0 ? "Долга нет" : "Долг"}</span>
+                  <span className={styles.objectDebtBtn}>{info.debtValue === 0 ? "Долга нет" : "Долг"}</span>
                   <button className={styles.debtBtnIcon}></button>
-                  <span className={rawValue === 0 ? styles.objectValue + " " + styles.isZero : styles.objectValue}>
-                    {rawValue === 0 ? 0 : result} &#x20bd;
+                  <span className={info.debtValue === 0 ? styles.objectValue + " " + styles.isZero : styles.objectValue}>
+                    {info.debtValue === 0 ? 0 : result} &#x20bd;
                   </span>
                   <button
                     className={objectIsRefreshing ? styles.refreshBtn + " " + styles.rotating : styles.refreshBtn}
@@ -99,14 +141,14 @@ export default function EstateObject(props) {
               </div>
             </div>
           </div>
-          <span className={rawValue === 0 ? styles.objPayBtn + " " + styles.inactive : styles.objPayBtn}>Оплатить</span>
+          <span className={info.debtValue === 0 ? styles.objPayBtn + " " + styles.inactive : styles.objPayBtn}>Оплатить</span>
         </div>
         <div className={styles.firstHalfBtnsWrap}>
           <Link href='/chat'>
             <div className={styles.objectBtn}>
               <div className={styles.BtnIconRegular}>
                 <Image src={chatBtnIcon} alt='' height={55} width={55} />
-                <span className={styles.notificationsNumber}>{data.notifications.chat > 99 ? "99+" : data.notifications.chat}</span>
+                <span className={styles.notificationsNumber}>{info.notifications.chat > 99 ? "99+" : info.notifications.chat}</span>
               </div>
               <span>
                 Внутридомовой
@@ -133,7 +175,7 @@ export default function EstateObject(props) {
               <div className={styles.btnWrap}>
                 <div className={styles.iconLarge}>
                   <Image src={bellBtnIcon} alt='' height={55} width={55} />
-                  <span className={styles.notificationsNumber}>{data.notifications.general}</span>
+                  <span className={styles.notificationsNumber}>{info.notifications.general}</span>
                 </div>
                 <span>Уведомления</span>
               </div>
@@ -217,19 +259,19 @@ export default function EstateObject(props) {
                 <tbody>
                   <tr>
                     <td>Год постройки</td>
-                    <td>{data.buildingYear}</td>
+                    <td>{info.buildingYear}</td>
                   </tr>
                   <tr>
                     <td>Год кап. ремонта</td>
-                    <td>{data.overhaulYear}</td>
+                    <td>{info.overhaulYear}</td>
                   </tr>
                   <tr>
                     <td>Количество этажей</td>
-                    <td>{data.floorsNumber}</td>
+                    <td>{info.floorsNumber}</td>
                   </tr>
                   <tr>
                     <td>Количество квартир</td>
-                    <td>{data.apartmentsNumber}</td>
+                    <td>{info.apartmentsNumber}</td>
                   </tr>
                 </tbody>
               </table>
@@ -283,7 +325,7 @@ export default function EstateObject(props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.payments.map((item) => (
+                    {info.payments.map((item) => (
                       <tr>
                         <td>{item.purpose}</td>
                         <td>{item.plan}</td>

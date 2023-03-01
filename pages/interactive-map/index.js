@@ -301,7 +301,6 @@ export default function InteractiveMap(props) {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
-        console.log(res);
         const prepareData = () => {
           let data = [];
           res.data.forEach((item) => {
