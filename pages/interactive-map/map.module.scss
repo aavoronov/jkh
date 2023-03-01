@@ -676,13 +676,16 @@
 }
 
 .phoneBtn {
-  background-image: url("/img/phone.png");
+  background-image: url("/img/stationary.png");
   background-size: 18px;
   background-repeat: no-repeat;
   background-position: 50%;
   width: 40px;
   height: 40px;
   cursor: pointer;
+  &.mobile {
+    background-image: url("/img/mobile.png");
+  }
 }
 
 .threeDotsBtn {
@@ -977,6 +980,25 @@
   height: 35px;
   border-radius: 50%;
   overflow: hidden;
+  object-fit: cover;
+}
+
+.objectLetters {
+  // background-color: #ff8c00;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 35px;
+  text-align: center;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  text-transform: uppercase;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 11px;
+  flex-shrink: 0;
 }
 
 .reviewName {

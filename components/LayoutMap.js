@@ -23,9 +23,14 @@ import personGrey from "/public/img/personGrey.png";
 import logoutGrey from "/public/img/logoutGrey.png";
 
 import useWindowDimensions from "./useWindowDimensionsSSR";
-import { useDispatch } from "react-redux";
-import { setCookie } from "cookies-next";
-import { updateRole } from "../store/userSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { getCookie, setCookie } from "cookies-next";
+import { updateProfile, updateRole } from "../store/userSlice";
+import { RotatingLines } from "react-loader-spinner";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import { toggle } from "../store/notificationSlice";
+import { useRouter } from "next/router";
 
 export default function LayoutLoggedIn({ children, menuIsCollapsible = false, menuIsOpen, setMenuIsOpen }) {
   // const [menuIsOpen, setMenuIsOpen] = useState(true);
@@ -33,6 +38,63 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
 
   const { height, width } = useWindowDimensions();
   const dispatch = useDispatch();
+  const router = useRouter();
+  const isLoading = useSelector((state) => state.loader.visible);
+
+  useEffect(() => {
+    async function getProfile() {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
+          headers: { Authorization: getCookie("jkh-token") },
+        });
+        console.log(res);
+
+        const updatePseudonym = res.data.pseudonym === null ? "" : res.data.pseudonym;
+        const updateProfilePic = res.data.profilePic === null ? "" : res.data.profilePic;
+        console.log(updatePseudonym);
+        dispatch(updateProfile({ pseudonym: updatePseudonym, color: res.data.color, profilePic: updateProfilePic }));
+        // console.log(nicknameLocal);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    getProfile();
+  }, []);
+
+  const pseudonym = useSelector((state) => state.user.pseudonym);
+
+  const notification = useSelector((state) => state.notification);
+
+  useEffect(() => {
+    if (notification.text) {
+      switch (notification.type) {
+        case "info":
+          toast.info(notification.text);
+          break;
+        case "success":
+          toast.success(notification.text);
+          break;
+        case "warning":
+          toast.warning(notification.text);
+          break;
+        case "error":
+          toast.error(notification.text);
+          break;
+        case "default":
+          toast(notification.text);
+          break;
+        default:
+          notification.text && toast(notification.text);
+      }
+    }
+  }, [notification]);
+
+  // useEffect(() => {
+  //   toast.warning("test");
+  // }, []);
+  useEffect(() => {
+    if (notification.text !== "") setTimeout(() => dispatch(toggle({ text: "", type: null })), 5000);
+  }, [notification]);
 
   const setMenuState = (value) => {
     setMenuIsOpen(value);
@@ -73,6 +135,31 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
 
   return (
     <div className={styles.pageWrap}>
+      <ToastContainer
+        position='top-left'
+        // autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+      {isLoading ? (
+        <div id={styles.overlay} className={styles.loader}>
+          <div className={styles.loaderWrap}>
+            <RotatingLines
+              strokeColor='#FF8C00'
+              strokeWidth='5'
+              animationDuration='0.75'
+              width='40'
+              visible={true}
+              className={styles.loader}
+            />
+          </div>
+        </div>
+      ) : null}
       <Head>
         <title>Create Next App</title>
         <link rel='icon' href='/favicon.ico' />
@@ -103,7 +190,7 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
             <div className={styles.userNameWrap}>
               <Image src={user} alt='' />
             </div>
-            <span className={styles.name}>Анна-Мария-Генриетта К.</span>
+            <span className={styles.name}>{pseudonym}</span>
           </div>
           <div
             className={styles.dropdownBtn}

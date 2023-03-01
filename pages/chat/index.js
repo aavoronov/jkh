@@ -860,7 +860,7 @@ export default function Chat() {
                           </span>
                         </div>
                         <span className={styles.SearchMsgTime}>
-                          {datetime.getDate() +
+                          {datetime.getDate().toString().padStart(2, "0") +
                             "." +
                             (datetime.getMonth() + 1).toString().padStart(2, "0") +
                             "." +

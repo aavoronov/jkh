@@ -87,21 +87,21 @@ function Home() {
               </a>
               <div className={[styles["banner-section__column"] + " " + styles["banner-section__menu"] + " " + styles.gradient]}>
                 <ul className={styles.banner__menu}>
-                  <Link href='/personal'>
+                  <span onClick={() => setModalToDisplay("authByLogin")}>
                     <li className={styles.menu__item}>Личный кабинет</li>
-                  </Link>
+                  </span>
 
-                  <Link href='/workers'>
+                  <span onClick={() => setModalToDisplay("authByLogin")}>
                     <li className={styles.menu__item}>Кабинет мастеров </li>
-                  </Link>
+                  </span>
 
-                  <Link href='/interactive-map'>
+                  <span onClick={() => setModalToDisplay("authByLogin")}>
                     <li className={styles.menu__item}>Интерактивная карта</li>
-                  </Link>
+                  </span>
 
-                  <Link href='/trading-platform'>
+                  <span onClick={() => setModalToDisplay("authByLogin")}>
                     <li className={styles.menu__item}>Торговая площадка </li>
-                  </Link>
+                  </span>
                 </ul>
                 <AdItem appButtons={true} image={"/img/appAd.png"} width={180} height={180} />
               </div>
@@ -173,21 +173,21 @@ function Home() {
                 </a>
                 <div className={[styles["banner-section__column"] + " " + styles["banner-section__menu"] + " " + styles.gradient]}>
                   <ul className={styles.banner__menu}>
-                    <Link href='/personal'>
+                    <span onClick={() => setModalToDisplay("authByLogin")}>
                       <li className={styles.menu__item}>Личный кабинет</li>
-                    </Link>
+                    </span>
 
-                    <Link href='/workers'>
+                    <span onClick={() => setModalToDisplay("authByLogin")}>
                       <li className={styles.menu__item}>Кабинет мастеров </li>
-                    </Link>
+                    </span>
 
-                    <Link href='/interactive-map'>
+                    <span onClick={() => setModalToDisplay("authByLogin")}>
                       <li className={styles.menu__item}>Интерактивная карта</li>
-                    </Link>
+                    </span>
 
-                    <Link href='/trading-platform'>
+                    <span onClick={() => setModalToDisplay("authByLogin")}>
                       <li className={styles.menu__item}>Торговая площадка </li>
-                    </Link>
+                    </span>
                   </ul>
                   <AdItem appButtons={true} image={"/img/menuAppAd.png"} width={240} height={204} />
                 </div>

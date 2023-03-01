@@ -64,9 +64,9 @@ export default function Layout({ children }) {
     }
   }, [notification]);
 
-  useEffect(() => {
-    toast.warning("test");
-  }, []);
+  // useEffect(() => {
+  //   toast.warning("test");
+  // }, []);
 
   useEffect(() => {
     if (notification.text !== "") setTimeout(() => dispatch(toggle({ text: "", type: null })), 5000);

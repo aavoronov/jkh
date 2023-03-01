@@ -1,59 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 import { useRouter } from "next/router";
-import Link from "next/link";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import React, { useState } from "react";
 import styles from "./personal-sections.module.scss";
-import { useDropzone } from "react-dropzone";
 
-import LayoutPersonal from "../../components/LayoutPersonal";
-import { Map, withYMaps, YMaps } from "@pbe/react-yandex-maps";
-import { render } from "react-dom";
 import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
-import { toggle } from "../../store/notificationSlice";
 import { getCookie } from "cookies-next";
-
-//   const LengthPrinter = React.useMemo(() => {
-//     return ({ ymaps, route }) => {
-//       const [routeLength, setRouteLength] = React.useState(null);
-
-//       React.useEffect(() => {
-//         let canceled = false;
-
-//         if (ymaps && ymaps.route) {
-//           ymaps.route(route).then((route) => {
-//             if (!canceled) {
-//               setRouteLength(route.getHumanLength().replace("&#160;", " "));
-//             }
-//           });
-//         }
-
-//         return () => (canceled = true);
-//       }, [ymaps, ...route]);
-
-//       return routeLength ? (
-//         <p>
-//           The route from <strong>{route[0]}</strong> to <strong>{route[1]}</strong> is <strong>{routeLength}</strong> long
-//         </p>
-//       ) : (
-//         <p>Loading route...</p>
-//       );
-//     };
-//   }, []);
-
-//   const ConnectedLengthPrinter = React.useMemo(() => {
-//     return withYMaps(LengthPrinter, true, ["route"]);
-//   }, [LengthPrinter]);
-
-//   return (
-//     <YMaps query={{ lang: "en_RU", apikey: "2a5c7497-20d8-493c-87a4-21c88a87d455" }}>
-//       <ConnectedLengthPrinter route={["Moscow, Russia", "Berlin, Germany"]} />
-//       <span onClick={(ymaps) => ymaps.geocode("Орехово-Зуево, Ленина 99")}>test</span>
-//     </YMaps>
-//   );
-// };
+import { useDispatch, useSelector } from "react-redux";
+import LayoutPersonal from "../../components/LayoutPersonal";
+import { toggle } from "../../store/notificationSlice";
 
 export default function Profile({}) {
   const [address, setAddress] = useState("");

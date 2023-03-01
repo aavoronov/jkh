@@ -15,13 +15,27 @@ import AdItem from "../../components/AdItem";
 import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 
 import styles from "./map.module.scss";
-import { YMaps, Map, Placemark, Button, ZoomControl, Clusterer, GeolocationControl } from "@pbe/react-yandex-maps";
+import {
+  YMaps,
+  Map,
+  Placemark,
+  Button,
+  ZoomControl,
+  Clusterer,
+  GeolocationControl,
+  ObjectManager,
+  withYMaps,
+} from "@pbe/react-yandex-maps";
 
 import arrowLeft from "/public/img/arrowLeft.png";
 import allPlaces from "/public/img/allPlaces.png";
 import objectPhoto from "/public/img/churchObjectCard.png";
 import objectPhoto2 from "/public/img/churchObjectCard2.png";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
+import { getCookie } from "cookies-next";
+import { loading } from "../../store/loaderSlice";
+import { toggle } from "../../store/notificationSlice";
 
 const myLoader = ({ src }) => {
   return `/_next/static/media/${src}`;
@@ -43,75 +57,88 @@ const objectList = ["Москва, ул. Маяковского, д. 5, кв. 12
 // ];
 
 const filterList = [
-  { name: "Кафе, рестораны", color: "#35BB4B", pic: "/img/cafe.png", key: "cafe", placemark: "img/cafeMark.png" },
+  { name: "Кафе, рестораны", color: "#35BB4B", pic: "/img/food.png", key: "cafe", placemark: "img/cafeMark.png" },
   { name: "Салоны красоты", color: "#BB49CD", pic: "/img/beauty.png", key: "beauty" },
   { name: "Учебные заведения", color: "#A55114", pic: "/img/education.png", key: "education" },
   { name: "Музеи, выставки", color: "#1B6BB5", pic: "/img/museum.png", key: "museum" },
   { name: "Туалеты", color: "#09478F", pic: "/img/bathroom.png", key: "bathroom" },
-  { name: "Выгул собак", color: "#047510", pic: "/img/dog.png", key: "dog" },
-  { name: "Детские площадки", color: "#E01313", pic: "/img/horse.png", key: "horse" },
+  // { name: "Выгул собак", color: "#047510", pic: "/img/dog.png", key: "dog" },
+  // { name: "Детские площадки", color: "#E01313", pic: "/img/horse.png", key: "horse" },
   { name: "Банки, банкоматы", color: "#254A63", pic: "/img/bank.png", key: "bank" },
   { name: "Магазины", color: "#1DAEEC", pic: "/img/shops.png", key: "shops" },
   { name: "Заправки", color: "#0E2E4B", pic: "/img/gas.png", key: "gas" },
   { name: "Храмы, церкви", color: "#1AA199", pic: "/img/church.png", key: "church" },
-  { name: "Еда", color: "#ECB21D", pic: "/img/food.png", key: "food" },
+  // { name: "Еда", color: "#ECB21D", pic: "/img/food.png", key: "food" },
 ];
 
+const getHumanFriendlyCategory = (category) => {
+  return filterList.filter((item) => item.key === category)[0].name;
+};
+
+const getUglyCategory = (category) => {
+  return filterList.filter((item) => item.name === category)[0].key;
+};
+
 const getObjectProperties = (item) => {
+  const { object, reviews, rating, count } = item;
   return {
-    photos: [
-      "/img/churchObjectCard.png",
-      "/img/churchObjectCard2.png",
-      "/img/churchObjectCard.png",
-      "/img/churchObjectCard2.png",
-      "/img/churchObjectCard.png",
-      "/img/churchObjectCard2.png",
-    ],
-    id: item.id,
-    name: item.name,
-    category: item.category,
-    humanFriendlyCategory: item.humanFriendlyCategory,
-    rating: `${item.id / 20}`,
-    votes: `${2 * item.id}`,
-    address: item.address,
-    site: `${item.id} site`,
-    phone: `${item.id} phone`,
-    description: `${item.id} Собор Рождества Пресвятой Богородицы - храм изумительной красоты и благодати. В нём большое количество замечательных икон, множество ковчегов с частицами мощей святых. Есть Частица Пояса Богородицы. Хор мужской и женский, песнопения великолепны. Батюшки приветливы. Очень много посетителей, особенно в праздники. Видно, что людей тянет в этот храм.`,
+    // photos: [
+    //   "/img/churchObjectCard.png",
+    //   "/img/churchObjectCard2.png",
+    //   "/img/churchObjectCard.png",
+    //   "/img/churchObjectCard2.png",
+    //   "/img/churchObjectCard.png",
+    //   "/img/churchObjectCard2.png",
+    // ],
+    coordinates: object.object.point.coordinates,
+    photos: object.images || ["/img/no-image.jpg"],
+    id: object.objectId,
+    name: object.name,
+    category: object.object.category || "Категория",
+    humanFriendlyCategory: getHumanFriendlyCategory(object.object.category) || "Человекочитаемая категория",
+    rating: rating,
+    votes: count,
+    address: object.address,
+    site: `http://${object.website}`,
+    phoneStationary: object.phoneStationary,
+    phoneMobile: object.phoneMobile,
+    description: object.description || "Нет описания",
+    reviews: reviews,
   };
 };
 
 const categories = filterList.map((item) => item.key);
 const categoriesHumanFriendly = filterList.map((item) => item.name);
 
-let points = [];
+// let points = [];
 
 // <Placemark geometry={[56.3, 38.67]} />
 //           <Placemark geometry={[55.15, 36.47]} />
-const getRandomBetween = (min, max) => {
-  return Math.random() * (max - min) + min;
-};
-const getRandomInt = (max) => {
-  return Math.floor(Math.random() * max);
-};
+// const getRandomBetween = (min, max) => {
+//   return Math.random() * (max - min) + min;
+// };
+// const getRandomInt = (max) => {
+//   return Math.floor(Math.random() * max);
+// };
 
-const seedPoints = (points) => {
-  for (let i = 0; i < 100; i++) {
-    let randomInt = getRandomInt(filterList.length);
-    let randomCategory = categories[randomInt];
-    let randomHumanFriendlyCategory = categoriesHumanFriendly[randomInt];
-    points[i] = {
-      id: i,
-      name: `Объект ${i}, ${randomCategory}`,
-      coordinates: [getRandomBetween(55.15, 56.3), getRandomBetween(36.47, 38.67)],
-      category: randomCategory,
-      humanFriendlyCategory: randomHumanFriendlyCategory,
-      address: `address ${i}`,
-    };
-    // console.log(points[i]);
-  }
-};
+// const seedPoints = (points) => {
+//   for (let i = 0; i < 100; i++) {
+//     let randomInt = getRandomInt(filterList.length);
+//     let randomCategory = categories[randomInt];
+//     let randomHumanFriendlyCategory = categoriesHumanFriendly[randomInt];
+//     points[i] = {
+//       id: i,
+//       name: `Объект ${i}, ${randomCategory}`,
+//       coordinates: [getRandomBetween(55.15, 56.3), getRandomBetween(36.47, 38.67)],
+//       category: randomCategory,
+//       humanFriendlyCategory: randomHumanFriendlyCategory,
+//       address: `address ${i}`,
+//     };
+//     // console.log(points[i]);
+//   }
+// };
 
-seedPoints(points);
+// seedPoints(points);
 
 const sliderPhotos = ["/img/churchObjectCard.png", "/img/churchObjectCard2.png", "/img/churchObjectCard.png", "/img/churchObjectCard2.png"];
 
@@ -135,6 +162,22 @@ const getPointOptions = (item, index) => {
     hasBalloon: false,
     balloonContentBody: "test",
   };
+};
+
+const dataConvert = (points) => {
+  let features = [];
+  points &&
+    points.map((item, index) => {
+      let tmpObj = {
+        type: "Feature",
+        id: item.id,
+        category: item.category,
+        geometry: item.point,
+        options: { iconLayout: "default#image", iconImageHref: `img/${item.category}Mark.png`, iconImageSize: [38, 50] },
+      };
+      return features.push(tmpObj);
+    });
+  return features;
 };
 
 const DropdownList = ({ objects, value, setValue, className = "" }) => {
@@ -178,15 +221,266 @@ export default function InteractiveMap(props) {
   const [rating, setRating] = useState(0);
   const [complaintActive, setComplaintActive] = useState(false);
   const [complaintError, setComplaintError] = useState(false);
+  const [estateObjects, setEstateObjects] = useState([]);
+  const [mapState, setMapState] = useState(null);
+  const [routeDisplayed, setRouteDisplayed] = useState(false);
 
-  const [phone, setPhone] = useState("");
+  const [points, setPoints] = useState([]);
+
+  const [phoneStationary, setPhoneStationary] = useState("");
+  const [phoneMobile, setPhoneMobile] = useState("");
   const [phoneError, setPhoneError] = useState(false);
 
+  const mapRef = useRef(null);
+
+  const ThatMapThing = () => {
+    const RouteBuilder = React.useMemo(() => {
+      return ({ ymaps, route }) => {
+        // var loadingObjectManager = new ymaps.LoadingObjectManager("//server.com/tile?bbox=%b", {
+        //   // Включаем кластеризацию.
+        //   clusterize: true,
+        //   // Зададим опции кластерам.
+        //   // Опции кластеров задаются с префиксом cluster.
+        //   clusterHasBalloon: false,
+        //   // Опции объектов задаются с префиксом geoObject.
+        //   geoObjectOpenBalloonOnClick: false,
+        // });
+
+        React.useEffect(() => {
+          let canceled = false;
+          let multiRoute = null;
+
+          if (ymaps && !!objectInfoActive) {
+            // ymaps.route(route).then((route) => {
+            //   if (!canceled) {
+            //     setRouteLength(route.getHumanLength().replace("&#160;", " "));
+            //   }
+            // });
+            const pointA = estateObjects.filter((item) => item.address.trim() === dropdownValue)[0].coordinates;
+            const pointB = [objectInfoActive.coordinates];
+
+            multiRoute = new ymaps.multiRouter.MultiRoute(
+              {
+                referencePoints: [pointA, pointB],
+                params: {
+                  routingMode: "pedestrian",
+                },
+              },
+              {
+                boundsAutoApply: true,
+              }
+            );
+
+            mapRef.current.geoObjects.add(multiRoute);
+          }
+
+          return () => mapRef.current.geoObjects.remove(multiRoute);
+        }, [ymaps, objectInfoActive]);
+
+        return null;
+      };
+    }, []);
+
+    const ConnectedRouteBuilder = React.useMemo(() => {
+      return withYMaps(RouteBuilder, true, ["route"]);
+    }, [RouteBuilder]);
+
+    return (
+      // <YMaps query={{ lang: "en_RU", apikey: process.env.NEXT_PUBLIC_YMAPS_KEY }}>
+      <ConnectedRouteBuilder />
+      // {/* </YMaps> */}
+    );
+  };
+
   const { height, width } = useWindowDimensions();
-  const token = useSelector((state) => state.user.token);
+  const dispatch = useDispatch();
+
   useEffect(() => {
-    console.log(token || "net tokena");
-  }, [token]);
+    async function getEstateObjects() {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects`, {
+          headers: { Authorization: getCookie("jkh-token") },
+        });
+        console.log(res);
+        const prepareData = () => {
+          let data = [];
+          res.data.forEach((item) => {
+            return data.push({
+              address: item.estateObject.address.split(",").slice(-2).join().trim() + ", " + item.estateObject.apartment,
+              coordinates: [+item.estateObject.latitude, +item.estateObject.longitude],
+            });
+          });
+          return data;
+        };
+        setEstateObjects(prepareData());
+        console.log(res.data);
+        setDropdownValue(res.data[0].estateObject.address.split(",").slice(-2).join().trim() + ", " + res.data[0].estateObject.apartment);
+        setMapState({
+          center: [res.data[0].estateObject.latitude, res.data[0].estateObject.longitude],
+          zoom: 15,
+          behaviors: ["default", "scrollZoom"],
+          style: { height: "calc(100vh - 59px)", width: { mapWidth }, position: "relative" },
+          options: { autoFitToViewport: "always" },
+        });
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    getEstateObjects();
+  }, []);
+
+  // const mapState = {
+  //   center: estateObjects[0].coordinates,
+  //   zoom: 15,
+  //   behaviors: ["default", "scrollZoom"],
+  //   style: { height: "calc(100vh - 59px)", width: { mapWidth }, position: "relative" },
+  //   options: { autoFitToViewport: "always" },
+  // };
+
+  useEffect(() => {
+    // console.log(estateObjects.filter((item) => item.address === dropdownValue)[0].coordinates);
+    !!mapRef.current && mapRef.current.setCenter(estateObjects.filter((item) => item.address === dropdownValue)[0].coordinates);
+  }, [dropdownValue]);
+
+  const getObjectById = async (id) => {
+    try {
+      dispatch(loading({ visible: true }));
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/map-objects/${id}`, {
+        headers: {
+          Authorization: getCookie("jkh-token"),
+        },
+      });
+      // setPoints(res.data);
+      console.log(res.data);
+      setObjectInfoActive(getObjectProperties(res.data));
+
+      // dispatch(updateRole({ role: res.data.role }));
+    } catch (e) {
+      console.log(e);
+    }
+    dispatch(loading({ visible: false }));
+  };
+
+  useEffect(() => {
+    const getObjects = async () => {
+      try {
+        dispatch(loading({ visible: true }));
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/map-objects`, {
+          headers: {
+            Authorization: getCookie("jkh-token"),
+          },
+        });
+
+        setPoints(res.data);
+
+        // dispatch(updateRole({ role: res.data.role }));
+      } catch (e) {
+        console.log(e);
+      }
+      dispatch(loading({ visible: false }));
+    };
+    getObjects();
+  }, []);
+
+  const createReview = async (values) => {
+    try {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/map-objects/reviews`, values, {
+        headers: {
+          Authorization: getCookie("jkh-token"),
+        },
+      });
+      console.log(res.data);
+      setRating(0);
+      dispatch(toggle({ text: "Спасибо! Отзыв отправлен на модерацию", type: "success" }));
+    } catch (e) {
+      console.log(e);
+      dispatch(toggle({ text: e.response.data.message, type: "error" }));
+    }
+  };
+
+  const createReply = async (values) => {
+    try {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/map-objects/replies`, values, {
+        headers: {
+          Authorization: getCookie("jkh-token"),
+        },
+      });
+      console.log(res.data);
+      dispatch(toggle({ text: "Спасибо! Комментарий отправлен на модерацию", type: "success" }));
+      return true;
+    } catch (e) {
+      console.log(e);
+      dispatch(toggle({ text: e.response.data.message, type: "error" }));
+    }
+  };
+
+  async function getGeocode(coordinates) {
+    const res = await axios.get(
+      `https://geocode-maps.yandex.ru/1.x/?format=json&apikey=${process.env.NEXT_PUBLIC_YMAPS_KEY}&geocode=${coordinates}`
+    );
+    console.log(res.data);
+    //  const {data.response.GeoObjectCollection} = res
+    // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text);
+    const fullAddress = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
+    const coords = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos;
+    const precision = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.precision;
+    // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.Address.formatted);
+    // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point);
+    const longitude = coords.split(" ")[0];
+    const latitude = coords.split(" ")[1];
+
+    return { address: fullAddress.split(",").slice(1).join().trim(), latitude, longitude, precision };
+  }
+
+  const postObject = async (values) => {
+    try {
+      const {
+        name,
+        description,
+        webPage,
+        phoneMobile,
+        phoneStationary,
+        coordinates,
+        category,
+        address,
+        files,
+        sendToModerator,
+        modComment,
+      } = values;
+      const object = new FormData();
+      object.append("name", name);
+      object.append("description", description);
+      object.append("category", category);
+      if (phoneStationary) object.append("phoneStationary", phoneStationary);
+      if (phoneMobile) object.append("phoneMobile", phoneMobile);
+      if (webPage) object.append("website", webPage);
+      object.append("latitude", coordinates[0]);
+      object.append("longitude", coordinates[1]);
+      object.append("address", address);
+      if (!!files.length) files.map((item) => object.append("files", item));
+      sendToModerator ? object.append("sendToModerator", true) : object.append("sendToModerator", false);
+      modComment && object.append("modComment", modComment);
+
+      alert(JSON.stringify(object, null, 2));
+      console.log(object);
+      // object.append
+
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/map-objects`, object, {
+        headers: {
+          Authorization: getCookie("jkh-token"),
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log(res.data);
+      dispatch(toggle({ text: "Спасибо! Объект отправлен на модерацию", type: "success" }));
+      return true;
+    } catch (e) {
+      console.log(e);
+      dispatch(toggle({ text: e.response.data.message, type: "error" }));
+    }
+  };
+
+  // useEffect(() => points.length && console.log(points), [points]);
 
   const FilterBlock = ({ filterList }) => {
     return (
@@ -218,7 +512,9 @@ export default function InteractiveMap(props) {
           onClick={() => {
             setActiveFilter("all");
           }}>
-          <div className={styles.filterPicWrap} style={{ borderWidth: 0 }}>
+          <div
+            className={styles.filterPicWrap}
+            style={activeFilter === "all" ? { borderWidth: 2, borderColor: "#aaa" } : { borderWidth: 0 }}>
             <Image
               src={allPlaces}
               width={28}
@@ -237,14 +533,6 @@ export default function InteractiveMap(props) {
   // const handleChange = (event: SelectChangeEvent) => {
   //   setAge(event.target.value);
   // };
-
-  const mapState = {
-    center: [55.751574, 37.573856],
-    zoom: 9,
-    behaviors: ["default", "scrollZoom"],
-    style: { height: "calc(100vh - 59px)", width: { mapWidth }, position: "relative" },
-    options: { autoFitToViewport: "always" },
-  };
 
   const [files, setFiles] = useState([]);
   const Dropzone = () => {
@@ -338,7 +626,7 @@ export default function InteractiveMap(props) {
           <p className={styles.dragndropWarn}>(максимум 10 файлов по 3 Мб)</p>
         </div>
         <aside className={styles.thumbsContainer}>{thumbs}</aside>
-        {files.length > 0 && <button onClick={removeAll}>Remove All</button>}
+        {/* {files.length > 0 && <button onClick={removeAll}>Удалить все</button>} */}
       </section>
     );
   };
@@ -353,26 +641,48 @@ export default function InteractiveMap(props) {
       return;
     }
     setObjectInfoActive(null);
+    setRouteDisplayed(false);
     setRating(0);
   };
 
-  const ReviewThread = () => {
+  useEffect(() => {
+    setRouteDisplayed(false);
+  }, [objectInfoActive]);
+
+  const ReviewThread = ({ item }) => {
     const [isReplyActive, setIsReplyActive] = useState(false);
+    const date = new Date(item.createdAt);
     return (
       <div className={styles.reviewThread}>
         <div className={styles.review}>
           <div className={styles.reviewNameWrap}>
-            <Image className={styles.reviewProfilePic} src='/img/profilePic.png' height={35} width={35} />
-            <span className={styles.reviewName}>Иван Андреевич Л.</span>
+            {item.user.profile.profilePic ? (
+              <img
+                className={styles.reviewProfilePic}
+                src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/profiles/${item.user.profile.profilePic}`}
+                // height={35}
+                // width={35}
+              />
+            ) : (
+              <span className={styles.objectLetters} style={{ backgroundColor: item.user.profile.color }}>
+                {item.user.profile.pseudonym.split(" ").length > 1
+                  ? item.user.profile.pseudonym.split(" ")[0][0] + item.user.profile.pseudonym.split(" ")[1][0]
+                  : item.user.profile.pseudonym.slice(0, 2)}
+              </span>
+            )}
+            <span className={styles.reviewName}>{item.user.profile.pseudonym}</span>
           </div>
           <div className={styles.reviewMeta}>
-            <Rating initialValue={3} readonly={true} size={11} fillColor='#FF8C00' emptyColor='#D1D3DF'></Rating>
-            <span className={styles.reviewDate}>05.09.2022</span>
+            <Rating initialValue={item.rating} readonly={true} size={11} fillColor='#FF8C00' emptyColor='#D1D3DF'></Rating>
+            <span className={styles.reviewDate}>
+              {date.getDate().toString().padStart(2, "0") +
+                "." +
+                (date.getMonth() + 1).toString().padStart(2, "0") +
+                "." +
+                date.getFullYear().toString()}
+            </span>
           </div>
-          <p className={styles.reviewText}>
-            Очень приятное место. Великолепный пейзаж. Хорошее меторасположение. Очень часто посещаю это мето. В нем крестила своего
-            ребенка. Ощень все доброжелательные.
-          </p>
+          <p className={styles.reviewText}>{item.text}</p>
           <button
             className={styles.reviewReplyBtn}
             onClick={() => {
@@ -391,10 +701,11 @@ export default function InteractiveMap(props) {
                   // .max(20, "Must be 20 characters or less")
                   .required("Обязательное поле"),
               })}
-              onSubmit={(values) => {
-                values.reviewId = "some arbitrary id";
-                alert(JSON.stringify(values, null, 2));
-                setIsReplyActive(!isReplyActive);
+              onSubmit={async (values) => {
+                values.reviewId = item.id;
+                // alert(JSON.stringify(values, null, 2));
+                const success = await createReply(values);
+                if (success) setIsReplyActive(!isReplyActive);
               }}>
               <Form>
                 <Field
@@ -404,14 +715,19 @@ export default function InteractiveMap(props) {
                   rows={10}
                   resize='none'
                   type='text'
-                  placeholder='Напишите ваш ответы'
+                  placeholder='Напишите ваш ответ'
                   className={styles.field + " " + styles.textarea + " " + styles.replyField}
                 />
                 <div className={styles.warningWrap}>
                   <span className={styles.errorText}>
                     <ErrorMessage name='reply' />
                   </span>
-                  <span className={styles.warning}>Не более 1000 символов</span>
+                  <div>
+                    <span className={styles.warning}>Не более 1000 символов</span>
+                    <span className={styles.warning}>
+                      Внимание: ответ можно оставить только один раз и впоследствии нельзя будет изменить.
+                    </span>
+                  </div>
                 </div>
 
                 <button type='submit' className={styles.reviewSubmitBtn}>
@@ -421,28 +737,41 @@ export default function InteractiveMap(props) {
             </Formik>
           ) : null}
         </div>
-        <div className={styles.reviewReply}>
-          <div className={styles.reviewNameWrap}>
-            <Image className={styles.reviewProfilePic} src='/img/profilePic.png' height={35} width={35} />
-            <span className={styles.reviewName}>Иван Андреевич Л.</span>
-          </div>
-          <div className={styles.reviewMeta}>
-            {/* <Rating initialValue={3} readonly={true} size={11} fillColor='#FF8C00' emptyColor='#D1D3DF'></Rating> */}
-            <span className={styles.reviewDate}>05.09.2022</span>
-          </div>
-          <p className={styles.reviewText}>Нет, вы не правы</p>
-        </div>
-        <div className={styles.reviewReply}>
-          <div className={styles.reviewNameWrap}>
-            <Image className={styles.reviewProfilePic} src='/img/profilePic.png' height={35} width={35} />
-            <span className={styles.reviewName}>Иван Андреевич Л.</span>
-          </div>
-          <div className={styles.reviewMeta}>
-            {/* <Rating initialValue={3} readonly={true} size={11} fillColor='#FF8C00' emptyColor='#D1D3DF'></Rating> */}
-            <span className={styles.reviewDate}>06.09.2022</span>
-          </div>
-          <p className={styles.reviewText}>Да, вы не правы</p>
-        </div>
+        {item.replies.map((reply) => {
+          const date = new Date(reply.createdAt);
+          return (
+            <div className={styles.reviewReply} key={reply.id}>
+              <div className={styles.reviewNameWrap}>
+                {reply.user.profile.profilePic ? (
+                  <img
+                    className={styles.reviewProfilePic}
+                    src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/profiles/${reply.user.profile.profilePic}`}
+                    height={35}
+                    width={35}
+                  />
+                ) : (
+                  <span className={styles.objectLetters} style={{ backgroundColor: reply.user.profile.color }}>
+                    {reply.user.profile.pseudonym.split(" ").length > 1
+                      ? reply.user.profile.pseudonym.split(" ")[0][0] + reply.user.profile.pseudonym.split(" ")[1][0]
+                      : reply.user.profile.pseudonym.slice(0, 2)}
+                  </span>
+                )}
+                <span className={styles.reviewName}>{reply.user.profile.pseudonym}</span>
+              </div>
+              <div className={styles.reviewMeta}>
+                {/* <Rating initialValue={3} readonly={true} size={11} fillColor='#FF8C00' emptyColor='#D1D3DF'></Rating> */}
+                <span className={styles.reviewDate}>
+                  {date.getDate().toString().padStart(2, "0") +
+                    "." +
+                    (date.getMonth() + 1).toString().padStart(2, "0") +
+                    "." +
+                    date.getFullYear().toString()}
+                </span>
+              </div>
+              <p className={styles.reviewText}>{reply.text}</p>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -464,6 +793,13 @@ export default function InteractiveMap(props) {
 
   const setMenuState = (value) => {
     setMenuIsOpen(value);
+  };
+
+  const getCenter = () => {
+    if (mapRef.current) {
+      console.log(mapRef.current.getCenter());
+      return mapRef.current.getCenter();
+    }
   };
 
   return (
@@ -577,8 +913,7 @@ export default function InteractiveMap(props) {
       <button
         className={menuIsOpen ? styles.addObjectBtn : styles.addObjectBtn + " " + styles.toTheRight}
         onClick={() => {
-          setCreateObject(!createObject);
-          console.log(createObject);
+          setCreateObject((prev) => !prev);
         }}>
         <span className={styles.addObjectHint}>Добавить объект на карту</span>
       </button>
@@ -599,23 +934,56 @@ export default function InteractiveMap(props) {
           </button>
         ) : null}
         <Map
+          modules={["multiRouter.MultiRoute"]}
+          instanceRef={(ref) => {
+            if (ref) mapRef.current = ref;
+          }}
+          // onLoad={addRoute}
           defaultState={mapState}
-          style={mapState.style}
+          style={{ height: "calc(100vh - 59px)", width: { mapWidth }, position: "relative" }}
           className={styles.mapInstance}
           options={{ autoFitToViewport: "always" }}
           onClick={() => closeCurrentBalloon()}>
           {/* https://codesandbox.io/s/xvmy7qyy5q?file=/src/index.js */}
-          <Clusterer
-            options={{
-              preset: "islands#orangeClusterIcons",
-              // color: "#FF8C00",
-              hasBalloon: false,
-              groupByCoordinates: false,
-              clusterDisableClickZoom: false,
-              clusterHideIconOnBalloonOpen: false,
-              geoObjectHideIconOnBalloonOpen: false,
-            }}>
-            {!createObject
+          {!createObject && (
+            <ObjectManager
+              options={{
+                clusterize: true,
+                gridSize: 100,
+              }}
+              clusters={{
+                preset: "islands#orangeClusterIcons",
+              }}
+              features={dataConvert(points)}
+              // instanceRef={(ref) =>
+              //   // console.log(myMap)
+              //   ref?.objects.events.add("click", (e) => {
+              //     // Используем айдишник для того, чтобы далее получить инфу по метке
+              //     const objectId = e.get("objectId");
+              //     // console.log(ref.objects.getById(objectId));
+              //     getObjectById(ref.objects.getById(objectId).id);
+              //     ref?.objects.events.remove("click");
+              //     // console.log(ref.objects.getById(objectId).id);
+
+              //     // console.log(e);
+              //   })
+              // }
+              onClick={(e) => {
+                console.log(e._sourceEvent._sourceEvent.originalEvent.objectId);
+                if (typeof e._sourceEvent._sourceEvent.originalEvent.objectId === "number")
+                  getObjectById(e._sourceEvent._sourceEvent.originalEvent.objectId);
+              }}
+              // options={{
+              //   preset: "islands#orangeClusterIcons",
+              //   // color: "#FF8C00",
+              //   hasBalloon: false,
+              //   groupByCoordinates: false,
+              //   clusterDisableClickZoom: false,
+              //   clusterHideIconOnBalloonOpen: false,
+              //   geoObjectHideIconOnBalloonOpen: false,
+              // }}
+              filter={(object) => object.category === activeFilter || activeFilter === "all"}>
+              {/* {!createObject
               ? points.map((item, index) =>
                   item.category == activeFilter || activeFilter == "all" ? (
                     <Placemark
@@ -637,17 +1005,17 @@ export default function InteractiveMap(props) {
                       //   console.log(objectInfoActive);
                       // }}
                       modules={["geoObject.addon.balloon"]}
-                      geometry={item.coordinates}
+                      geometry={[item.latitude, item.longitude]}
                       key={item.id}
                       defaultProperties={getPointData(item, index)}
                       defaultOptions={getPointOptions(item, index)}>
                       <div className='test'></div>
-                      {/* {objectInfoActive == item.id ? <div className='test'></div> : null} */}
                     </Placemark>
                   ) : null
                 )
-              : null}
-          </Clusterer>
+              : null} */}
+            </ObjectManager>
+          )}
           {createObject ? (
             <Placemark
               modules={["geoObject.addon.balloon"]}
@@ -660,7 +1028,7 @@ export default function InteractiveMap(props) {
                 iconImageOffset: [-28, -70],
                 draggable: true,
               }}
-              defaultGeometry={[55.684758, 37.738521]}
+              defaultGeometry={getCenter()}
               defaultOptions={{ draggable: true }}
               onDragEnd={(event) => {
                 const coordinates = event.originalEvent.target.geometry.getCoordinates();
@@ -679,6 +1047,7 @@ export default function InteractiveMap(props) {
               console.log(createObject);
             }}></Button> */}
           <ZoomControl options={zoomOptions} />
+          {routeDisplayed && <ThatMapThing />}
         </Map>
       </YMaps>
       <aside className={leftMenuIsOpen ? styles.leftMenu : styles.leftMenu + " " + styles.collapsed}>
@@ -686,7 +1055,7 @@ export default function InteractiveMap(props) {
           <>
             {!objectInfoActive ? (
               <>
-                <DropdownList objects={objectList} value={dropdownValue} setValue={setDropdownValue} />
+                <DropdownList objects={estateObjects.map((item) => item.address)} value={dropdownValue} setValue={setDropdownValue} />
                 <FilterBlock filterList={filterList} />
               </>
             ) : (
@@ -696,10 +1065,12 @@ export default function InteractiveMap(props) {
                     className={styles.backBtn}
                     onClick={() => {
                       setObjectInfoActive(null);
+                      setRouteDisplayed(false);
                     }}></span>
                   <span className={styles.createObjectHeader}>Назад к фильтрам</span>
                 </div>
                 <Carousel
+                  key={objectInfoActive.id}
                   className={styles.slider}
                   dynamicHeight={true}
                   infiniteLoop={true}
@@ -738,7 +1109,10 @@ export default function InteractiveMap(props) {
                   {objectInfoActive &&
                     objectInfoActive.photos.map((image, index) => (
                       <div key={index}>
-                        <img src={image} />
+                        <img
+                          src={image === "/img/no-image.jpg" ? image : `${process.env.NEXT_PUBLIC_API_URL}/uploads/map-objects/${image}`}
+                          style={{ userSelect: "none" }}
+                        />
                       </div>
                     ))}
                 </Carousel>
@@ -748,12 +1122,24 @@ export default function InteractiveMap(props) {
                   <div className={styles.ratingWrap}>
                     <Rating initialValue={objectInfoActive.rating} readonly={true} size={11} fillColor='#FF8C00' emptyColor='#D1D3DF' />
                     <span className={styles.objectRating}>{objectInfoActive.rating}</span>
-                    <span className={styles.objectVotes}>{objectInfoActive.votes} оценок</span>
+                    <span className={styles.objectVotes} onClick={() => console.log(dropdownValue)}>
+                      {objectInfoActive.votes} оценок
+                    </span>
                   </div>
                   <div className={styles.objectBtnsWrap}>
-                    <div className={styles.pathBtn}>Маршрут</div>
-                    <a href={`${objectInfoActive.site}`} className={styles.webBtn} target='_blank'></a>
-                    <a href={`tel:${objectInfoActive.phone}`} className={styles.phoneBtn}></a>
+                    <div
+                      className={styles.pathBtn}
+                      onClick={() => setRouteDisplayed((prev) => !prev)}
+                      style={routeDisplayed ? { fontSize: 10 } : { fontSize: 16 }}>
+                      {routeDisplayed ? "Скрыть маршрут" : "Маршрут"}
+                    </div>
+                    {objectInfoActive.website && <a href={`${objectInfoActive.site}`} className={styles.webBtn} target='_blank'></a>}
+                    {objectInfoActive.phoneStationary && (
+                      <a href={`tel:${objectInfoActive.phoneStationary}`} className={styles.phoneBtn}></a>
+                    )}
+                    {objectInfoActive.phoneMobile && (
+                      <a href={`tel:${objectInfoActive.phoneMobile}`} className={styles.phoneBtn + " " + styles.mobile}></a>
+                    )}
                     <div className={styles.threeDotsBtn}>
                       <div className={styles.threeDotsBtnMenu}>
                         <span className={styles.objectOptionsItem}>Поделиться</span>
@@ -791,8 +1177,10 @@ export default function InteractiveMap(props) {
                       }}
                       onSubmit={(values) => {
                         values.objectId = objectInfoActive.id;
+                        // console.log(objectInfoActive.id);
                         values.rating = rating / 20;
-                        alert(JSON.stringify(values, null, 2));
+                        // alert(JSON.stringify(values, null, 2));
+                        createReview(values);
                       }}>
                       <Form>
                         <label htmlFor='review' className={styles.fieldName}>
@@ -810,6 +1198,9 @@ export default function InteractiveMap(props) {
                         />
 
                         <span className={styles.warning}>Не более 1500 символов</span>
+                        <span className={styles.warning} style={{ marginBottom: 10 }}>
+                          Внимание: отзыв можно оставить только один раз и впоследствии нельзя будет изменить.
+                        </span>
                         <button type='submit' className={styles.reviewSubmitBtn}>
                           Отправить
                         </button>
@@ -817,7 +1208,11 @@ export default function InteractiveMap(props) {
                     </Formik>
                   ) : null}
                   <div className={styles.objectBlockHeading}>Отзывы</div>
-                  <ReviewThread />
+                  {objectInfoActive.reviews.length ? (
+                    objectInfoActive.reviews.map((item, index) => <ReviewThread key={item.id} item={item} />)
+                  ) : (
+                    <p className={styles.objectDescText}>Нет отзывов. Оставьте первый отзыв!</p>
+                  )}
                 </div>
               </>
             )}
@@ -837,7 +1232,7 @@ export default function InteractiveMap(props) {
               initialValues={{
                 name: "",
                 description: "",
-                phoneNumber: "",
+                // phoneNumber: "",
                 webPage: "",
                 modComment: "",
               }}
@@ -847,26 +1242,32 @@ export default function InteractiveMap(props) {
                   // .max(20, "Must be 20 characters or less")
                   .required("Обязательное поле"),
                 description: Yup.string().required("Обязательное поле"),
-                phoneNumber: Yup.string()
-                  .matches(/\d{10}/, "10 цифр")
-                  .required("Обязательное поле"),
-                webPage: Yup.string().required("Обязательное поле"),
+
+                // webPage: Yup.string().required("Обязательное поле"),
               })}
-              onSubmit={(values) => {
-                if (phone.includes("_")) setPhoneError(true);
+              onSubmit={async (values) => {
+                if (phoneStationary.includes("_") || phoneMobile.includes("_"))
+                  dispatch(toggle({ text: "Поле телефона заполнено не полностью", type: "error" }));
+                if (chosenCategory === "Выберите категорию") dispatch(toggle({ text: "Выберите категорию объекта", type: "error" }));
+                if (!draggableCoords) dispatch(toggle({ text: "Укажите объект на карте", type: "error" }));
                 else {
+                  console.log("test");
+                  values.phoneStationary = phoneStationary;
+                  values.phoneMobile = phoneMobile;
                   values.coordinates = draggableCoords;
-                  values.category = chosenCategory;
+                  values.category = getUglyCategory(chosenCategory);
                   values.files = files;
                   values.sendToModerator = sendToModerator;
-                  alert(JSON.stringify(values, null, 2));
-                  setCreateObject(false);
+                  values.address = await (await getGeocode([draggableCoords[1], draggableCoords[0]])).address;
+
+                  await postObject(values);
+                  // setCreateObject(false);
                 }
               }}>
               <Form>
                 <div className={styles.fieldWrap}>
                   <label htmlFor='category' className={styles.fieldName}>
-                    Категория объекта
+                    Категория объекта*
                   </label>
                   <DropdownList
                     className={styles.createObjectDropdown}
@@ -878,7 +1279,7 @@ export default function InteractiveMap(props) {
                 </div>
                 <div className={styles.fieldWrap}>
                   <label htmlFor='name' className={styles.fieldName}>
-                    Название объекта
+                    Название объекта*
                   </label>
                   <Field name='name' type='text' placeholder='Введите название' className={styles.field} />
                   <span className={styles.errorText}>
@@ -887,7 +1288,7 @@ export default function InteractiveMap(props) {
                 </div>
                 <div className={styles.fieldWrap}>
                   <label htmlFor='description' className={styles.fieldName}>
-                    Описание объекта
+                    Описание объекта*
                   </label>
                   <Field
                     as='textarea'
@@ -908,32 +1309,45 @@ export default function InteractiveMap(props) {
                 </div>
                 <div className={styles.fieldWrap}>
                   <label htmlFor='phoneNumber' className={styles.fieldName}>
-                    Номер телефона
+                    Стационарный телефон
                   </label>
                   <div className={styles.phoneFieldWrap}>
                     <InputMask
                       className={styles.field}
                       mask='+7 (999) 999-99-99'
-                      value={phone}
+                      value={phoneStationary}
                       onChange={(event) => {
                         // setPhone(val);
-                        setPhone(event.target.value);
+                        setPhoneStationary(event.target.value);
                       }}
                       onClick={() => {
                         // console.log(phone.includes("_"));
                         console.log(phoneError);
                       }}
                     />
-                    {/* <Field
-                        // ref={phoneInputRef}
-                        name='phoneNumber'
-                        type='tel'
-                        placeholder='Введите телефон объекта'
-                        maxLength={10}
-                        className={styles.field + " " + styles.phoneField}
-                      /> */}
-                    {/* </InputMask> */}
-                    {/* <span>+7 </span> */}
+                  </div>
+
+                  {phoneError ? <span className={styles.errorText}>Введите телефон</span> : null}
+                </div>
+
+                <div className={styles.fieldWrap}>
+                  <label htmlFor='phoneNumber' className={styles.fieldName}>
+                    Мобильный телефон
+                  </label>
+                  <div className={styles.phoneFieldWrap}>
+                    <InputMask
+                      className={styles.field}
+                      mask='+7 (999) 999-99-99'
+                      value={phoneMobile}
+                      onChange={(event) => {
+                        // setPhone(val);
+                        setPhoneMobile(event.target.value);
+                      }}
+                      onClick={() => {
+                        // console.log(phone.includes("_"));
+                        console.log(phoneError);
+                      }}
+                    />
                   </div>
                   {phoneError ? <span className={styles.errorText}>Введите телефон</span> : null}
                 </div>
@@ -962,7 +1376,6 @@ export default function InteractiveMap(props) {
                       className={sendToModerator ? styles.checkbox + " " + styles.checked : styles.checkbox}
                       onClick={() => {
                         setSendToModerator(!sendToModerator);
-                        console.log(sendToModerator);
                       }}></div>
                     <span>Отправить модератору</span>
                     <span className={styles.infoBtn}>
@@ -995,12 +1408,7 @@ export default function InteractiveMap(props) {
                   </div>
                 ) : null}
                 <div className={styles.fieldWrap}>
-                  <button
-                    type='submit'
-                    className={styles.submitBtn}
-                    onClick={() => {
-                      // phone.includes("_") && setPhoneError(true);
-                    }}>
+                  <button type='submit' className={styles.submitBtn}>
                     Отправить
                   </button>
                   <span

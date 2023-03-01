@@ -141,11 +141,11 @@ export default function Product(props) {
         headers: {
           Authorization: getCookie("jkh-token"),
           // "Content-Type": "application/json",
-          "Content-Type": "multipart/formdata",
+          "Content-Type": "multipart/form-data",
         },
       });
       console.log(res.data);
-      // router.push("/trading-platform");
+      router.push("/trading-platform");
       dispatch(toggle({ text: "Объявление успешно создано", type: "success" }));
     } catch (e) {
       console.log(e);

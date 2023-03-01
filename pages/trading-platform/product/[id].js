@@ -315,8 +315,8 @@ export default function Product({ id }) {
                 rewind={true}
                 slidesPerView={1}
                 watchSlidesProgress
-                onSlideChange={() => console.log("slide change")}
-                onSwiper={() => setThumbsSwiper}
+                // onSlideChange={() => console.log("slide change")}
+                onSwiper={setThumbsSwiper}
                 // navigation={swiperNavigation}
               >
                 {/* {data.sliderPhotos &&
