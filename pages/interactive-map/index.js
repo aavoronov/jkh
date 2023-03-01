@@ -211,7 +211,7 @@ export default function InteractiveMap(props) {
   const [mapWidth, setMapWidth] = useState("calc(100vw - 263px)");
   const [menuIsOpen, setMenuIsOpen] = useState(true);
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(true);
-  const [dropdownValue, setDropdownValue] = useState(objectList[0]);
+  const [dropdownValue, setDropdownValue] = useState(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [createObject, setCreateObject] = useState(false);
   const [chosenCategory, setChosenCategory] = useState("Выберите категорию");
@@ -311,11 +311,17 @@ export default function InteractiveMap(props) {
           });
           return data;
         };
-        setEstateObjects(prepareData());
+        res.data.length && setEstateObjects(prepareData());
         console.log(res.data);
-        setDropdownValue(res.data[0].estateObject.address.split(",").slice(-2).join().trim() + ", " + res.data[0].estateObject.apartment);
+        setDropdownValue(
+          res.data.length
+            ? res.data[0].estateObject.address.split(",").slice(-2).join().trim() + ", " + res.data[0].estateObject.apartment
+            : null
+        );
         setMapState({
-          center: [res.data[0].estateObject.latitude, res.data[0].estateObject.longitude],
+          center: res.data.length
+            ? [res.data[0].estateObject.latitude, res.data[0].estateObject.longitude]
+            : [55.74977233765063, 37.629171261904766],
           zoom: 15,
           behaviors: ["default", "scrollZoom"],
           style: { height: "calc(100vh - 59px)", width: { mapWidth }, position: "relative" },
@@ -1054,7 +1060,11 @@ export default function InteractiveMap(props) {
           <>
             {!objectInfoActive ? (
               <>
-                <DropdownList objects={estateObjects.map((item) => item.address)} value={dropdownValue} setValue={setDropdownValue} />
+                {!!estateObjects.length ? (
+                  <DropdownList objects={estateObjects.map((item) => item.address)} value={dropdownValue} setValue={setDropdownValue} />
+                ) : (
+                  <div style={{ height: 20 }}></div>
+                )}
                 <FilterBlock filterList={filterList} />
               </>
             ) : (
