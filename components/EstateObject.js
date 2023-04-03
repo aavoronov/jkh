@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./estateobject.module.scss";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,11 +10,58 @@ import workerBtnIcon from "../public/img/workerBtnIcon.png";
 import objectIcon from "../public/img/objectIcon.png";
 import estateInfoIcon from "../public/img/estateInfoIcon.png";
 import servicesBlockIcon from "../public/img/servicesBlockIcon.png";
+import axios from "axios";
+import { getCookie } from "cookies-next";
 
-export default function EstateObject({ data }) {
+export default function EstateObject({ data, account }) {
   console.log(data);
+  console.log(account);
 
+  const [objectData, setObjectData] = useState(null);
+  const [debtValue, setDebtValue] = useState(0);
+  const [error, setError] = useState(null);
   // const data = props.data;
+
+  useEffect(() => {
+    async function getData() {
+      try {
+        // const acct = await axios.get(
+        //   `${process.env.NEXT_PUBLIC_RIAS_URL}accounts?number=${account}&fields=id,number&access-token=d53edeb9a638915b534e`,
+        //   {
+        //     headers: {
+        //       "Content-Type": "application/json",
+        //       // Accept: "application/json",
+        //       // "Access-Control-Allow-Origin": `${process.env.NEXT_PUBLIC_CLIENT_URL}`,
+        //     },
+        //   }
+        // );
+        // console.log(acct.data);
+        // const res = await axios.get(
+        //   `${process.env.NEXT_PUBLIC_RIAS_URL}payment-documents?access-token=${process.env.NEXT_PUBLIC_RIAS_TOKEN}&account_id=${acct.data.id}&fields=total_payable_by_pd_with_debt_and_advance,account_id,sync_date,period_year,period_month`,
+        //   // "http://api.sit2.rucode.org/v2.0/payment-documents?access-token=d53edeb9a638915b534e&fields=total_payable_by_pd_with_debt_and_advance,account_id,sync_date,period_year,period_month",
+        // {
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //     // Accept: "application/json",
+        //     // "Access-Control-Allow-Origin": `${process.env.NEXT_PUBLIC_CLIENT_URL}`,
+        //   },
+        // }
+        // );
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/utilities/${account}`, {
+          headers: {
+            Authorization: getCookie("jkh-token"),
+          },
+        });
+        console.log(res.data);
+        setObjectData(res.data);
+        // setDebtValue(res.debt);
+      } catch (e) {
+        console.log(e);
+        setError({ type: e.response.data.type, text: "Данные не получены: " + e.response.data.text });
+      }
+    }
+    getData();
+  }, []);
 
   const info = {
     debtValue: 10000,
@@ -53,7 +100,7 @@ export default function EstateObject({ data }) {
   };
 
   // let rawValue = data.debtValue;
-  const result = info.debtValue.toLocaleString(); // large number kerning
+  const result = debtValue.toLocaleString(); // large number kerning
 
   let planOverall = 0;
   info.payments.forEach((item) => (planOverall += item.plan));
@@ -126,22 +173,29 @@ export default function EstateObject({ data }) {
             </div>
             <div className={styles.objectInfo}>
               <div className={styles.objName}>
-                <span className={styles.objectTitle}>{name}</span>
+                <span className={styles.objectTitle}>{name + ", " + data.apartment}</span>
                 <span className={styles.objectAddress}>{address}</span>
-                <div className={styles.objectMonetaryStuff}>
-                  <span className={styles.objectDebtBtn}>{info.debtValue === 0 ? "Долга нет" : "Долг"}</span>
-                  <button className={styles.debtBtnIcon}></button>
-                  <span className={info.debtValue === 0 ? styles.objectValue + " " + styles.isZero : styles.objectValue}>
-                    {info.debtValue === 0 ? 0 : result} &#x20bd;
-                  </span>
-                  <button
-                    className={objectIsRefreshing ? styles.refreshBtn + " " + styles.rotating : styles.refreshBtn}
-                    onClick={imitateObjectRefresh}></button>
-                </div>
+                {error && <span style={{ marginTop: 10 }}>{error.text}</span>}
+                {!error && !!objectData?.sum && (
+                  <div className={styles.objectMonetaryStuff}>
+                    <span className={styles.objectDebtBtn} onClick={() => console.log(objectData)}>
+                      {objectData?.sum < 0 ? "Переплата" : objectData?.sum > 0 ? "К оплате" : "Задолженности нет"}
+                    </span>
+                    <button className={styles.debtBtnIcon}></button>
+                    <span className={objectData.sum <= 0 ? styles.objectValue + " " + styles.isZero : styles.objectValue}>
+                      {objectData.sum} &#x20bd;
+                    </span>
+                    <button
+                      className={objectIsRefreshing ? styles.refreshBtn + " " + styles.rotating : styles.refreshBtn}
+                      onClick={imitateObjectRefresh}></button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-          <span className={info.debtValue === 0 ? styles.objPayBtn + " " + styles.inactive : styles.objPayBtn}>Оплатить</span>
+          {error === null && !!objectData?.sum && (
+            <span className={objectData.sum <= 0 ? styles.objPayBtn + " " + styles.inactive : styles.objPayBtn}>Оплатить</span>
+          )}
         </div>
         <div className={styles.firstHalfBtnsWrap}>
           <Link href='/chat'>
@@ -230,19 +284,22 @@ export default function EstateObject({ data }) {
             </div>
           </div>
         </div>
-        <div className={styles.objectOptionsWrap}>
-          {/* <div className={styles.objectOptionsBtn + " " + styles.threeDotsBtn}></div> */}
-          <div
-            className={
-              objectIsExpanded
-                ? styles.upsideDown + " " + styles.objectOptionsBtn + " " + styles.expandBtn
-                : styles.objectOptionsBtn + " " + styles.expandBtn
-            }
-            onClick={() => {
-              setObjectIsExpanded(!objectIsExpanded);
-            }}></div>
-        </div>
+        {(!error?.type || error.type === "warn") && (
+          <div className={styles.objectOptionsWrap}>
+            {/* <div className={styles.objectOptionsBtn + " " + styles.threeDotsBtn}></div> */}
+            <div
+              className={
+                objectIsExpanded
+                  ? styles.upsideDown + " " + styles.objectOptionsBtn + " " + styles.expandBtn
+                  : styles.objectOptionsBtn + " " + styles.expandBtn
+              }
+              onClick={() => {
+                setObjectIsExpanded(!objectIsExpanded);
+              }}></div>
+          </div>
+        )}
       </div>
+
       <div className={objectIsExpanded ? styles.objectSecondHalf : styles.objectSecondHalf + " " + styles.hidden}>
         <div className={styles.leftColumn}>
           <div className={styles.secondHalfBlock + " " + styles.estateInfo}>

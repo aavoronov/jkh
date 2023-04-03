@@ -138,6 +138,36 @@
   }
 }
 
+.submitBtn {
+  width: 100%;
+  font-size: 14px;
+  border-width: 0;
+  background-color: #ff8c00;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  &:hover {
+    filter: brightness(120%);
+  }
+}
+
+.cancelBtn {
+  display: block;
+  font-size: 14px;
+  width: 100%;
+  border: 1px solid #ff8c00;
+  border-radius: 5px;
+  text-align: center;
+  padding: 10px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  &:hover {
+    filter: brightness(120%);
+  }
+}
+
 .filterName {
   font-weight: 500;
   font-size: 14px;

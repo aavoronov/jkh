@@ -1,36 +1,25 @@
-import React, { useEffect, useState, useRef } from "react";
-import Image from "next/image";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import { Field, Form, Formik } from "formik";
+import React, { useEffect, useRef, useState } from "react";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
-import { Carousel } from "react-responsive-carousel";
-import { Rating } from "react-simple-star-rating";
-import { RotatingLines } from "react-loader-spinner";
 
 import LayoutLoggedIn from "../../../components/LayoutLoggedIn";
-import LayoutMap from "../../../components/LayoutMap";
-import AdItem from "../../../components/AdItem";
-import ServiceAd from "../../../components/ServiceAd";
 // import DropdownList from "../components/DropdownList";
-import arrowLeft from "/public/img/arrowLeft.png";
-import ProductCard from "../../../components/ProductCard";
 
-import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Thumbs } from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/thumbs";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 import styles from "./product.module.scss";
-import { objectList, servicesList, portfolio, mastersData } from "../../../components/data";
 
-import useWindowDimensions from "../../../components/useWindowDimensionsSSR";
-import { loading } from "../../../store/loaderSlice";
-import { useDispatch } from "react-redux";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useDispatch } from "react-redux";
+import useWindowDimensions from "../../../components/useWindowDimensionsSSR";
+import { loading } from "../../../store/loaderSlice";
 
 export default function Product({ id }) {
   const [product, setProduct] = useState(null);
@@ -38,6 +27,7 @@ export default function Product({ id }) {
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(false);
 
   const [favorite, setFavorite] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [priceSuggestion, setPriceSuggestion] = useState(false);
   const [popupError, setPopupError] = useState(false);
@@ -71,6 +61,23 @@ export default function Product({ id }) {
     }
   }, [width]);
 
+  const toggleFavorite = async () => {
+    try {
+      dispatch(loading({ visible: true }));
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trading-platform/favorites/${id}`, {
+        headers: {
+          Authorization: getCookie("jkh-token"),
+        },
+      });
+      console.log(res.data);
+      favorite ? setLikesCount((prev) => prev - 1) : setLikesCount((prev) => prev + 1);
+      setFavorite((prev) => !prev);
+    } catch (e) {
+      console.log(e);
+    }
+    dispatch(loading({ visible: false }));
+  };
+
   useEffect(() => {
     async function getProductById() {
       try {
@@ -82,6 +89,7 @@ export default function Product({ id }) {
         setProduct(res.data);
         setDatetime(new Date(res.data.createdAt));
         setFavorite(!!res.data.favorites.length);
+        setLikesCount(res.data.likes);
         // dispatch(updateProfile({ pseudonym: nicknameLocal }));
         // dispatch(toggle({ text: "Объект успешно удален", type: "success" }));
         // const newObjects = objects.filter((item) => item.id !== id);
@@ -178,10 +186,9 @@ export default function Product({ id }) {
                 onSubmit={(values) => {
                   if (!values.comment) {
                     setPopupError(true);
-                    console.log("error");
                     return;
                   }
-                  alert(JSON.stringify(values, null, 2));
+                  // alert(JSON.stringify(values, null, 2));
                   setPriceSuggestion(false);
                   setPopupError(false);
                 }}>
@@ -268,7 +275,10 @@ export default function Product({ id }) {
                   </span>
                 </span>
                 {/* <span className={styles.faveBtn}>Добавить в избранное</span> */}
-                <button className={favorite ? styles.faveBtn + " " + styles.faved : styles.faveBtn} onClick={() => setFavorite(!favorite)}>
+                <button
+                  className={favorite ? styles.faveBtn + " " + styles.faved : styles.faveBtn}
+                  // onClick={() => setFavorite((prev) => !prev)}
+                  onClick={() => toggleFavorite(id)}>
                   {/* {favorite ? <img src='/img/Heart_filled.svg' /> : <img src='/img/Heart.svg' />} */}
                   <span>{favorite ? "В избранном" : "Добавить в избранное"}</span>
                 </button>
@@ -400,9 +410,7 @@ export default function Product({ id }) {
                       </span>
                     </span>
                     {/* <span className={styles.faveBtn}>Добавить в избранное</span> */}
-                    <button
-                      className={favorite ? styles.faveBtn + " " + styles.faved : styles.faveBtn}
-                      onClick={() => setFavorite(!favorite)}>
+                    <button className={favorite ? styles.faveBtn + " " + styles.faved : styles.faveBtn} onClick={() => toggleFavorite(id)}>
                       {/* {favorite ? <img src='/img/Heart_filled.svg' /> : <img src='/img/Heart.svg' />} */}
                       <span>{favorite ? "В избранном" : "Добавить в избранное"}</span>
                     </button>
@@ -412,7 +420,7 @@ export default function Product({ id }) {
                   <span className={styles.profileChecked}>Проверенный</span>
                 </div> */}
                   <div className={styles.stats}>
-                    <span className={styles.statsItem + " " + styles.faves}>{product.likes}</span>
+                    <span className={styles.statsItem + " " + styles.faves}>{likesCount}</span>
                     <span className={styles.statsItem + " " + styles.views}>
                       {product.views}
                       {/* <span className={styles.plusViews}>(+15)</span> */}
@@ -451,7 +459,7 @@ export default function Product({ id }) {
               {width > 1134 ? (
                 <>
                   <div className={styles.stats}>
-                    <span className={styles.statsItem + " " + styles.faves}>{product.likes}</span>
+                    <span className={styles.statsItem + " " + styles.faves}>{likesCount}</span>
                     <span className={styles.statsItem + " " + styles.views}>
                       {product.views}
                       {/* <span className={styles.plusViews}>(+15)</span> */}
@@ -482,8 +490,6 @@ export default function Product({ id }) {
 }
 
 export async function getServerSideProps(context) {
-  console.log(context.params);
-
   return {
     props: { id: context.params.id },
   };

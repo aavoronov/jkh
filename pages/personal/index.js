@@ -96,6 +96,7 @@ export default function Profile({}) {
   const profilePic = useSelector((state) => state.user.profilePic);
   const [nicknameLocal, setNicknameLocal] = useState(pseudonym);
   const [emailLocal, setEmailLocal] = useState(pseudonym);
+
   useEffect(() => {
     setNicknameLocal(pseudonym);
     setEmailLocal(email);
@@ -220,7 +221,11 @@ export default function Profile({}) {
         profileFormData.append("oldPassword", oldPassword);
         profileFormData.append("newPassword", newPassword);
       }
-      !!files.length && typeof files[0] !== "string" && profileFormData.append("file", files[0], filename);
+      !!files.length
+        ? typeof files[0] !== "string"
+          ? profileFormData.append("file", files[0], filename)
+          : profileFormData.append("filename", files[0])
+        : null;
       console.log(profileFormData);
       const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/update`, profileFormData, {
         headers: { Authorization: getCookie("jkh-token"), "Content-Type": !files.length ? "application/json" : "multipart/form-data" },
@@ -263,13 +268,9 @@ export default function Profile({}) {
 
   const deleteProfile = async () => {
     try {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/delete/${email}`,
-        { email: email },
-        {
-          headers: { Authorization: getCookie("jkh-token") },
-        }
-      );
+      const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/users/delete`, {
+        headers: { Authorization: getCookie("jkh-token") },
+      });
       console.log(res.data);
       // dispatch(updateProfile({ pseudonym: nicknameLocal }));
       dispatch(toggle({ text: "Ваш аккаунт успешно удален", type: "success" }));
@@ -308,7 +309,9 @@ export default function Profile({}) {
               // console.log(e.target.value);
             }}
           />
-          <span className={styles.headsUp}>Вы можете ввести ФИО или сохранить анонимность, используя псевдоним</span>
+          <span className={styles.headsUp} onClick={() => console.log(files)}>
+            Вы можете ввести ФИО или сохранить анонимность, используя псевдоним
+          </span>
         </div>
 
         <div className={styles.fieldWrap}>
@@ -460,7 +463,7 @@ export default function Profile({}) {
 
             console.log(item.estateObject);
             return (
-              <div className={styles.object}>
+              <div className={styles.object} key={index}>
                 <div className={styles.iconWrap}>
                   <Image src='/img/objectIcon.png' alt='' width={42} height={42} />
                 </div>

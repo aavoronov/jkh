@@ -1,36 +1,23 @@
-import React, { useEffect, useState, useRef } from "react";
-import Image from "next/image";
+import { Form, Formik } from "formik";
 import { useRouter } from "next/router";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import ToggleSwitch from "../../components/ToggleSwitch";
+import React, { useEffect, useState } from "react";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
-import { Carousel } from "react-responsive-carousel";
-import { Rating } from "react-simple-star-rating";
-import { RotatingLines } from "react-loader-spinner";
+import * as Yup from "yup";
 
 import { useDropzone } from "react-dropzone";
 import LayoutLoggedIn from "../../components/LayoutLoggedIn";
-import LayoutMap from "../../components/LayoutMap";
-import AdItem from "../../components/AdItem";
-import ServiceAd from "../../components/ServiceAd";
 // import DropdownList from "../components/DropdownList";
-import arrowLeft from "/public/img/arrowLeft.png";
-import ProductCard from "../../components/ProductCard";
 
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Thumbs } from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/thumbs";
 
 import styles from "./add-chat.module.scss";
-import { objectList, servicesList, portfolio, mastersData } from "../../components/data";
 
-import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 import { useDispatch, useSelector } from "react-redux";
+import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 import { toggle } from "../../store/notificationSlice";
 
 export default function AddChat() {
@@ -58,7 +45,6 @@ export default function AddChat() {
         setChatList(res.data);
         setActiveObject(res.data[0].address);
         setActiveObjectId(res.data[0].id);
-        console.log(res.data);
       } else {
         setChatList("empty");
       }
@@ -150,7 +136,6 @@ export default function AddChat() {
       const newFiles = [...files];
       newFiles.splice(newFiles.indexOf(file), 1);
       setFiles(newFiles);
-      console.log(files);
     };
 
     const removeAll = () => {
@@ -186,16 +171,6 @@ export default function AddChat() {
       return () => files.forEach((file) => URL.revokeObjectURL(file.preview));
     }, []);
 
-    // return (
-    //   <div {...getRootProps()} className={styles.dragndropWrap}>
-    //     <div className={styles.dragndropField}>
-    //       <input {...getInputProps()} />
-    //       <p className={styles.dragndropText}>Перетащите сюда файлы или нажмите</p>
-    //       <p className={styles.dragndropWarn}>(максимум 10 файлов по 3 Мб)</p>
-    //     </div>
-    //   </div>
-    // );
-
     return (
       <section className={styles.dragndropWrap}>
         {!files.length ? (
@@ -219,7 +194,6 @@ export default function AddChat() {
         { email: email, chat: activeObjectId },
         { headers: { Authorization: getCookie("jkh-token") } }
       );
-      console.log(res.data);
       dispatch(toggle({ text: "Регистрация прошла успешно", type: "success" }));
     } catch (e) {
       console.log(e.response.data.message);
@@ -246,7 +220,7 @@ export default function AddChat() {
               values.notify = notify;
               // values.files = files;
               // values.sendToModerator = sendToModerator;
-              alert(JSON.stringify(values, null, 2));
+              // alert(JSON.stringify(values, null, 2));
               router.push("/chat");
             }}>
             <Form className={styles.formWrap}>
@@ -258,22 +232,7 @@ export default function AddChat() {
                     </label>
                     <DropdownList objects={chatList} value={activeObject} setValue={setActiveObject} />
                   </div>
-                  {/* <div className={styles.fieldWrap}>
-                <label htmlFor='nickname' className={styles.fieldName}>
-                  Укажите как вас отображать в чате
-                </label>
-                <Field name='nickname' type='text' placeholder='Введите имя / никнейм' className={styles.field} />
-                <span className={styles.errorText}>
-                  <ErrorMessage name='nickname' />
-                </span>
-              </div> */}
 
-                  {/* <div className={styles.fieldWrap}>
-                <label htmlFor='photos' className={styles.fieldName + " " + styles.center}>
-                  Добавьте аватарку
-                </label>
-                <Dropzone />
-              </div> */}
                   <div className={styles.fieldWrap}>
                     {/* <input type='checkbox' name='sendToModerator' id='sendToModerator' className={styles.checkbox} /> */}
                     <label htmlFor='notify' className={styles.fieldName + " " + styles.checkboxWrap}>

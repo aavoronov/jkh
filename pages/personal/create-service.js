@@ -8,16 +8,86 @@ import styles from "./personal-sections.module.scss";
 import { useDropzone } from "react-dropzone";
 
 import LayoutPersonal from "../../components/LayoutPersonal";
+import axios from "axios";
+import { getCookie } from "cookies-next";
 
-export default function Profile({}) {
+export default function createService({}) {
   const profileData = {
     photo: "/img/temp/adProfilePic.png",
     nickname: "Александр Константинович",
   };
 
+  const [categories, setCategories] = useState([]);
   const [block1, setBlock1] = useState(true);
   const [chosenCategory, setChosenCategory] = useState(null);
   const [subcategories, setSubcategories] = useState([]);
+  const [personalPhoto, setPersonalPhoto] = useState([]);
+  const [passportPhoto1, setPassportPhoto1] = useState([]);
+  const [passportPhoto2, setPassportPhoto2] = useState([]);
+  const [portfolioFiles, setPortfolioFiles] = useState([]);
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState(null);
+
+  const [address, setAddress] = useState("");
+  const [brigade, setBrigade] = useState(false);
+  const [contract, setContract] = useState(false);
+  const [accommodation, setAccommodation] = useState(false);
+  const [warranty, setWarranty] = useState(false);
+  const [workDays, setWorkDays] = useState("");
+  const [workLocation, setWorkLocation] = useState("");
+  const [workTime, setWorkTime] = useState("");
+  const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
+
+  useEffect(() => {
+    async function getCategories() {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/services/categories`, {
+          headers: {
+            Authorization: getCookie("jkh-token"),
+          },
+        });
+        setCategories(res.data);
+        console.log(res.data);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    getCategories();
+  }, []);
+
+  const createService = async () => {
+    try {
+      const data = new FormData();
+      // data.append('name', name)
+      data.append("subcategory", subcategories[0]);
+      data.append("mainImage", personalPhoto[0]);
+      data.append("passport", passportPhoto1[0]);
+      data.append("passport", passportPhoto2[0]);
+      portfolioFiles.forEach((item) => data.append("portfolio", item));
+      data.append("address", address);
+      data.append("brigade", brigade);
+      data.append("contract", contract);
+      data.append("accommodation", accommodation);
+      data.append("warranty", warranty);
+      data.append("workDays", workDays);
+      data.append("workLocation", workLocation);
+      data.append("workTime", workTime);
+      data.append("price", price);
+      data.append("description", description);
+      console.log(data);
+
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/services`, data, {
+        // "Content-Type": "multipart/form-data",
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: getCookie("jkh-token"),
+        },
+      });
+      console.log(res.data);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   const router = useRouter();
 
@@ -25,19 +95,11 @@ export default function Profile({}) {
   //   profileData.photo && setFiles(profileData.photo);
   // }, []);
 
-  const SubcategoryItem = ({ name }) => {
-    const subcategoryList = [
-      "Сантехнические работы",
-      "Электромонтажные работы",
-      "потолки",
-      "изготовление окон",
-      "водоотведение",
-      "Отделка деревянных домов, бань, саун",
-      "Мастер на час",
-      "Строительство домов и коттеджей",
-      "Ремонт квартир и домов",
-      "Заборы и ограждения",
-    ];
+  const SubcategoryItem = ({ item }) => {
+    const name = item.category;
+    const subcategoryList = item.subcategory.map((item) => {
+      return { id: item.id, subcategory: item.subcategory };
+    });
 
     const [listIsShown, setListIsShown] = useState(false);
 
@@ -46,18 +108,21 @@ export default function Profile({}) {
         <ul className={styles.subcategoryList}>
           {subcategoryList.map((item, idx) => (
             <li
-              className={subcategories.includes(item) ? styles.subsubcat + " " + styles.checked : styles.subsubcat}
+              className={subcategories.includes(item.id) ? styles.subsubcat + " " + styles.checked : styles.subsubcat}
               key={idx}
-              onClick={() => {
-                subcategories.indexOf(item) > -1
-                  ? setSubcategories(
-                      subcategories
-                        .slice(0, subcategories.indexOf(item))
-                        .concat(subcategories.slice(subcategories.indexOf(item) + 1, subcategories.length))
-                    )
-                  : setSubcategories(subcategories.concat(item));
-              }}>
-              {item}
+              // onClick={() => {
+              //   subcategories.indexOf(item) > -1
+              //     ? setSubcategories(
+              //         subcategories
+              //           .slice(0, subcategories.indexOf(item))
+              //           .concat(subcategories.slice(subcategories.indexOf(item) + 1, subcategories.length))
+              //       )
+              //     : setSubcategories(subcategories.concat(item));
+              // }}
+              onClick={() => setSubcategories(subcategories.concat(item.id))}
+              // onClick={() => console.log(item.id)}
+            >
+              {item.subcategory}
             </li>
           ))}
         </ul>
@@ -85,11 +150,6 @@ export default function Profile({}) {
       );
     }
   };
-
-  const [personalPhoto, setPersonalPhoto] = useState([]);
-  const [passportPhoto1, setPassportPhoto1] = useState([]);
-  const [passportPhoto2, setPassportPhoto2] = useState([]);
-  const [portfolioFiles, setPortfolioFiles] = useState([]);
 
   const Dropzone = ({ files, setFiles, portfolio = false }) => {
     const [isDraggedOver, setIsDraggedOver] = useState(false);
@@ -206,16 +266,9 @@ export default function Profile({}) {
         <div className={styles.createServiceWrap}>
           <span className={styles.categoriesHeader}>Выберите категорию</span>
           <ul className={styles.subcategories}>
-            <SubcategoryItem name='Ремонт и строительство' />
-            <SubcategoryItem name='Ремонт и установка техники' />
-            <SubcategoryItem name='Ремонт авто' />
-            <SubcategoryItem name='Красота' />
-            <SubcategoryItem name='Перевозки и курьеры' />
-            <SubcategoryItem name='Аренда' />
-            <SubcategoryItem name='Организация мероприятий' />
-            <SubcategoryItem name='Артисты' />
-            <SubcategoryItem name='Услуги для животных' />
-            <SubcategoryItem name='Разное' />
+            {categories.map((item, index) => (
+              <SubcategoryItem key={index} item={item} />
+            ))}
           </ul>
           <div className={styles.fieldWrap}>
             <button
@@ -257,61 +310,135 @@ export default function Profile({}) {
               <label htmlFor='address' className={styles.fieldName}>
                 Адрес объекта
               </label>
-              <input name='address' type='text' placeholder='' className={styles.field} />
+              <input
+                name='address'
+                type='text'
+                placeholder=''
+                className={styles.field}
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
             </div>
             <div className={styles.createAdFieldWrap}>
-              <label htmlFor='address' className={styles.fieldName}>
+              <label htmlFor='brigade' className={styles.fieldName}>
                 Бригада
               </label>
-              <input name='address' type='text' placeholder='' className={styles.field} />
+              {/* <input
+                name='brigade'
+                type='text'
+                placeholder=''
+                className={styles.field}
+                value={brigade}
+                onChange={(e) => setBrigade(e.target.value)}
+              /> */}
+              <div
+                name='brigade'
+                className={brigade ? styles.checkbox + " " + styles.checked : styles.checkbox}
+                onClick={() => {
+                  setBrigade(!brigade);
+                }}></div>
             </div>
             <div className={styles.createAdFieldWrap}>
-              <label htmlFor='address' className={styles.fieldName}>
+              <label htmlFor='contract' className={styles.fieldName}>
                 Работа по договору
               </label>
-              <input name='address' type='text' placeholder='' className={styles.field} />
+
+              <div
+                name='contract'
+                className={contract ? styles.checkbox + " " + styles.checked : styles.checkbox}
+                onClick={() => {
+                  setContract(!contract);
+                }}></div>
             </div>
             <div className={styles.createAdFieldWrap}>
-              <label htmlFor='address' className={styles.fieldName}>
+              <label htmlFor='accommodation' className={styles.fieldName}>
                 Проживание на объекте
               </label>
-              <input name='address' type='text' placeholder='' className={styles.field} />
+
+              <div
+                name='accommodation'
+                className={accommodation ? styles.checkbox + " " + styles.checked : styles.checkbox}
+                onClick={() => {
+                  setAccommodation(!accommodation);
+                }}></div>
             </div>
             <div className={styles.createAdFieldWrap}>
-              <label htmlFor='address' className={styles.fieldName}>
+              <label htmlFor='warranty' className={styles.fieldName}>
                 Гарантия на работу
               </label>
-              <input name='address' type='text' placeholder='' className={styles.field} />
+
+              <div
+                name='warranty'
+                className={warranty ? styles.checkbox + " " + styles.checked : styles.checkbox}
+                onClick={() => {
+                  setWarranty(!warranty);
+                }}></div>
             </div>
             <div className={styles.createAdFieldWrap}>
-              <label htmlFor='address' className={styles.fieldName}>
+              <label htmlFor='workDays' className={styles.fieldName}>
                 Дни работы
               </label>
-              <input name='address' type='text' placeholder='' className={styles.field} />
+              <input
+                name='workDays'
+                type='text'
+                placeholder=''
+                className={styles.field}
+                value={workDays}
+                onChange={(e) => setWorkDays(e.target.value)}
+              />
             </div>
             <div className={styles.createAdFieldWrap}>
-              <label htmlFor='address' className={styles.fieldName}>
+              <label htmlFor='workLocation' className={styles.fieldName}>
                 Место работы
               </label>
-              <input name='address' type='text' placeholder='' className={styles.field} />
+              <input
+                name='workLocation'
+                type='text'
+                placeholder=''
+                className={styles.field}
+                value={workLocation}
+                onChange={(e) => setWorkLocation(e.target.value)}
+              />
             </div>
             <div className={styles.createAdFieldWrap}>
-              <label htmlFor='address' className={styles.fieldName}>
+              <label htmlFor='workTime' className={styles.fieldName}>
                 Время работы
               </label>
-              <input name='address' type='text' placeholder='' className={styles.field} />
+              <input
+                name='workTime'
+                type='text'
+                placeholder=''
+                className={styles.field}
+                value={workTime}
+                onChange={(e) => setWorkTime(e.target.value)}
+              />
             </div>
             <div className={styles.createAdFieldWrap}>
-              <label htmlFor='address' className={styles.fieldName}>
+              <label htmlFor='price' className={styles.fieldName}>
                 Стоимость услуги, ₽
               </label>
-              <input name='address' type='text' placeholder='' className={styles.field} />
+              <input
+                name='price'
+                type='text'
+                placeholder=''
+                className={styles.field}
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+              />
             </div>
             <div className={styles.createAdFieldWrap}>
-              <label htmlFor='address' className={styles.fieldName}>
+              <label htmlFor='description' className={styles.fieldName}>
                 Описание услуги
               </label>
-              <textarea name='address' type='text' placeholder='' className={styles.field + " " + styles.textarea} />
+              <textarea
+                name='description'
+                type='text'
+                placeholder=''
+                className={styles.field + " " + styles.textarea}
+                value={description}
+                maxLength={1000}
+                onChange={(e) => setDescription(e.target.value)}
+              />
             </div>
             <span className={styles.warningWrap}>
               <span></span>
@@ -328,9 +455,28 @@ export default function Profile({}) {
                     ? styles.submitBtn + " " + styles.saveBtn
                     : styles.submitBtn + " " + styles.saveBtn + " " + styles.disabled
                 }
-                onClick={() => {
-                  alert("Отправлено на модерацию");
-                  router.push("/services");
+                onClick={async () => {
+                  const data = {
+                    category: chosenCategory,
+                    subcategory: subcategories[0],
+                    mainFile: personalPhoto[0],
+                    passport1: passportPhoto1[0],
+                    passport2: passportPhoto2[0],
+                    photos: portfolioFiles,
+                    address,
+                    brigade,
+                    contract,
+                    accommodation,
+                    warranty,
+                    workDays,
+                    workLocation,
+                    workTime,
+                    price,
+                    description,
+                  };
+                  // alert(JSON.stringify(data));
+                  await createService();
+                  // router.push("/services");
                 }}>
                 Опубликовать
               </button>

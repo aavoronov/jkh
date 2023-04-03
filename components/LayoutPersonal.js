@@ -1,54 +1,21 @@
-import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import { Rating } from "react-simple-star-rating";
-import { RotatingLines } from "react-loader-spinner";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper";
+import React, { useEffect, useRef, useState } from "react";
 import "swiper/css";
 import "swiper/css/navigation";
 
-import LayoutLoggedIn from "./LayoutLoggedIn";
 import AdItem from "./AdItem";
-import ServiceAd from "./ServiceAd";
+import LayoutLoggedIn from "./LayoutLoggedIn";
 // import DropdownList from "../components/DropdownList";
 import arrowLeft from "/public/img/arrowLeft.png";
 
 import styles from "./personal.module.scss";
-import { objectList, servicesList, portfolio, mastersData } from "./data";
 import useWindowDimensions from "./useWindowDimensionsSSR";
 
 // SwiperCore.use([Navigation]);
 
 export default function LayoutPersonal({ children, withProducts }) {
-  const [guarantee, setGuarantee] = useState(false);
-  const [withAccommodation, setWithAccommodation] = useState(false);
-  const [withoutAccommodation, setWithoutAccommodation] = useState(false);
-  const [radius, setRadius] = useState(null);
-  const [contract, setContract] = useState(false);
-  const [examples, setExamples] = useState(false);
-  const [privatePerson, setPrivatePerson] = useState(false);
-  const [organization, setOrganization] = useState(false);
-  const [passport, setPassport] = useState(false);
-  const [jobNow, setJobNow] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [activeObject, setActiveObject] = useState(objectList[0]);
-  const [activeService, setActiveService] = useState("Показать все");
-
-  const [block1open, setBlock1open] = useState(true);
-  const [block2open, setBlock2open] = useState(false);
-  const [block3open, setBlock3open] = useState(true);
-  const [rating, setRating] = useState(0);
-  const [complaintActive, setComplaintActive] = useState(false);
-  const [complaintError, setComplaintError] = useState(false);
-
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(null);
-
-  const navigationPrevRef = useRef(null);
-  const navigationNextRef = useRef(null);
 
   const { height, width } = useWindowDimensions();
 
@@ -59,8 +26,6 @@ export default function LayoutPersonal({ children, withProducts }) {
       setLeftMenuIsOpen(false);
     }
   }, [width]);
-
-  const data = mastersData[0];
 
   return (
     <LayoutLoggedIn>

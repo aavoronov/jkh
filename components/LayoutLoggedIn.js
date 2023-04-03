@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Head from "next/head";
-import Layout from "./Layout";
 import styles from "./layout.module.scss";
 import Image from "next/image";
 
@@ -25,7 +24,7 @@ import logoutGrey from "/public/img/logoutGrey.png";
 import useWindowDimensions from "./useWindowDimensionsSSR";
 import { getCookie, setCookie } from "cookies-next";
 import { useDispatch, useSelector } from "react-redux";
-import { updateEmail, updateNotifications, updateProfile, updateRole } from "../store/userSlice";
+import { updateEmail, updateNotifications, updateProfile, updateRole, updatePhone, updateBalance, updateAddress } from "../store/userSlice";
 import { useRouter } from "next/router";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
@@ -40,7 +39,7 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
 
   const isLoading = useSelector((state) => state.loader.visible);
 
-  // const role = useSelector((state) => state.user.role);
+  const role = useSelector((state) => state.user.role);
   // useEffect(() => {
   //   console.log(getCookie("jkh-token"));
   //   console.log(role);
@@ -50,6 +49,19 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
   //     // router.push("/");
   //   }
   // }, [role]);
+
+  useEffect(() => {
+    // console.log(getCookie("jkh-token"));
+    // console.log(role);
+    if (role !== "" && role !== "user") {
+      router.replace("/workers");
+      // setCookie("jkh-token", "");
+      // router.push("/");
+    }
+    if (role === "") {
+      // router.replace("/");
+    }
+  }, [role]);
 
   const { height, width } = useWindowDimensions();
 
@@ -91,9 +103,6 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
     }
   }, [notification]);
 
-  // useEffect(() => {
-  //   toast.warning("test");
-  // }, []);
   useEffect(() => {
     if (notification.text !== "") setTimeout(() => dispatch(toggle({ text: "", type: null })), 5000);
   }, [notification]);
@@ -141,7 +150,6 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
           dispatch(updateRole({ role: res.data.role }));
           dispatch(updateEmail({ email: res.data.email }));
         } catch (e) {
-          // console.log(e.response.data);
           console.log(e);
           setCookie("jkh-token", "");
         }
@@ -167,7 +175,6 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
           dispatch(updateNotifications({ notifications: amount }));
         } catch (e) {
           console.log(e);
-          // setCookie("jkh-token", "");
         }
       }
     };
@@ -181,11 +188,21 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
           headers: { Authorization: getCookie("jkh-token") },
         });
         console.log(res);
+        const entityName = res.data.pseudonym ?? res.data.workerProfile?.name;
 
-        const updatePseudonym = res.data.pseudonym === null ? "" : res.data.pseudonym;
-        const updateProfilePic = res.data.profilePic === null ? "" : res.data.profilePic;
+        const phone = res.data.phone ?? "";
+        const updatePseudonym = entityName === null ? "" : entityName;
+
+        const entityPic = res.data.profilePic ?? res.data.workerProfile?.profilePic;
+        const updateProfilePic = entityPic === null ? "" : entityPic;
         console.log(updatePseudonym);
-        dispatch(updateProfile({ pseudonym: updatePseudonym, color: res.data.color, profilePic: updateProfilePic }));
+        console.log(res.data);
+        phone && dispatch(updatePhone({ phone: phone }));
+        res.data.workerProfile?.balance && dispatch(updateBalance({ balance: res.data.workerProfile.balance }));
+        res.data.workerProfile?.address && dispatch(updateAddress({ address: res.data.workerProfile.address }));
+        dispatch(
+          updateProfile({ pseudonym: updatePseudonym, color: res.data.color ?? res.data.workerProfile.color, profilePic: updateProfilePic })
+        );
         // console.log(nicknameLocal);
       } catch (e) {
         console.log(e);
@@ -193,6 +210,10 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
     }
     getProfile();
   }, []);
+
+  // useEffect(() => {
+  //   toast.warning("test");
+  // }, []);
 
   const pseudonym = useSelector((state) => state.user.pseudonym);
 
@@ -238,21 +259,21 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
       <header className={styles.header + " " + styles.gradient}>
         <div className={styles.headerLogoWrap}>
           <Link href='/'>
-            {/* <> */}
             <Image src={logo} alt='' />
-            {/* </> */}
           </Link>
         </div>
         <div className={styles.headerButtonsWrap}>
-          <div
-            className={styles.bellWrap}
-            onClick={() => {
-              console.log(height, width);
-              console.log(width < 768);
-            }}>
-            <Image src={bell} alt='' />
-            {!!notifications && <span className={styles.notificationsNumber}>{notifications}</span>}
-          </div>
+          {!noRightMenu && (
+            <div
+              className={styles.bellWrap}
+              onClick={() => {
+                console.log(height, width);
+                console.log(width < 768);
+              }}>
+              <Image src={bell} alt='' />
+              {!!notifications && <span className={styles.notificationsNumber}>{notifications}</span>}
+            </div>
+          )}
           <div className={styles.userWrap}>
             <div className={styles.userNameWrap}>
               <Image src={user} alt='' />
@@ -268,21 +289,17 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
             {dropdownVisible && (width > 768 || noRightMenu) ? (
               <div className={styles.dropdownMenu}>
                 <ul>
+                  {!noRightMenu && (
+                    <li>
+                      <Link href='/personal'>
+                        <div className={styles.dropdownMenuItem}>
+                          <Image src={person} alt='' />
+                          <span>Личный кабинет</span>
+                        </div>
+                      </Link>
+                    </li>
+                  )}
                   <li>
-                    <Link href='/personal'>
-                      <div className={styles.dropdownMenuItem}>
-                        <Image src={person} alt='' />
-                        <span>Личный кабинет</span>
-                      </div>
-                    </Link>
-                  </li>
-                  <li>
-                    {/* <Link href='/'>
-                      <div className={styles.dropdownMenuItem}>
-                        <Image src={logout} alt='' />
-                        <span>Выйти</span>
-                      </div>
-                    </Link> */}
                     <span
                       onClick={() => {
                         dispatch(updateRole(""));
@@ -305,11 +322,7 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
       {noRightMenu ? (
         <div className={styles.container + " " + styles.full}>{children}</div>
       ) : (
-        <div className={menuIsOpen ? styles.container : styles.container + " " + styles.expanded}>
-          {/* {isLoading && <div style={{ width: 1000, height: 1000, backgroundColor: "tomato", position: "absolute" }}>TEST</div>} */}
-
-          {children}
-        </div>
+        <div className={menuIsOpen ? styles.container : styles.container + " " + styles.expanded}>{children}</div>
       )}
       {!noRightMenu && (
         <aside className={menuIsOpen ? styles.rightMenu : styles.rightMenu + " " + styles.collapsed}>
@@ -324,7 +337,6 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
           ) : null}
           <ul className={styles.asideMenu}>
             <li>
-              {/* <div className={styles.menuItem + " " + styles.active}> */}
               <Link href='/about'>
                 <div className={styles.menuItem}>
                   <Image src={gear} alt='' />

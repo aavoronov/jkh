@@ -1,17 +1,44 @@
 import React, { useState } from "react";
 
-import LayoutLoggedIn from "../../components/LayoutLoggedIn";
-import EstateObject from "../../components/EstateObject";
-
-import { objectsData } from "../../components/data";
-
-import LayoutWorker from "../../components/LayoutWorker";
-import styles from "./workers.module.scss";
+import axios from "axios";
+import { getCookie, setCookie } from "cookies-next";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { useDispatch, useSelector } from "react-redux";
+import LayoutWorker from "../../components/LayoutWorker";
+import { toggle } from "../../store/notificationSlice";
+import { updateRole } from "../../store/userSlice";
+import styles from "./workers.module.scss";
 
 const payments = [1500, -1500, 1500];
 
 export default function WorkerProfile(props) {
+  const dispatch = useDispatch();
+  const router = useRouter();
+
+  const deleteProfile = async () => {
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/delete/${email}`,
+        { email: email },
+        {
+          headers: { Authorization: getCookie("jkh-token") },
+        }
+      );
+      console.log(res.data);
+      // dispatch(updateProfile({ pseudonym: nicknameLocal }));
+      dispatch(toggle({ text: "Ваш аккаунт успешно удален", type: "success" }));
+      dispatch(updateRole(""));
+      router.replace("/");
+      setCookie("jkh-token", "");
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const user = useSelector((state) => state.user);
+  const { pseudonym, email, phone, color, profilePic, balance } = user;
+
   const [transactionsShown, setTransactionsShown] = useState(1);
   return (
     <LayoutWorker>
@@ -22,19 +49,36 @@ export default function WorkerProfile(props) {
             <Link href='/workers/edit-profile'>
               <span className={styles.chatOptionsItem}>Редактировать</span>
             </Link>
-            <span className={styles.chatOptionsItem}>Удалить аккаунт</span>
+            <span
+              className={styles.chatOptionsItem}
+              onClick={() => {
+                confirm("Удалить профиль? Это действие необратимо.") && deleteProfile();
+              }}>
+              Удалить аккаунт
+            </span>
           </div>
         </span>
         <div className={styles.profileWrap}>
           <div className={styles.orgData}>
             <div className={styles.orgNameWrap}>
-              <span className={styles.orgLetters}>УК</span>
-              <span className={styles.orgName}>Организация «Компания Бизнес Альянс Компани»</span>
+              {profilePic ? (
+                <img
+                  src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/profiles/${profilePic}`}
+                  className={styles.orgProfilePic}
+
+                  //style={{ backgroundImage: `${process.env.NEXT_PUBLIC_API_URL}/uploads/profiles/${profilePic}` }}
+                />
+              ) : (
+                <span className={styles.orgLetters} style={{ backgroundColor: color }}>
+                  {pseudonym.split(" ").length > 1 ? pseudonym.split(" ")[0][0] + pseudonym.split(" ")[1][0] : pseudonym.slice(0, 2)}
+                </span>
+              )}
+              <span className={styles.orgName}>{pseudonym}</span>
             </div>
             <div className={styles.orgContacts}>
-              <a href='tel:+7 (913) 000-00-00'>+7 (913) 000-00-00</a>
+              <span>{phone}</span>
 
-              <a href='mailto:inf0@mail.ru'>inf0@mail.ru</a>
+              <span>{email}</span>
             </div>
             <button className={styles.payBtn}>Пополнить баланс</button>
           </div>
@@ -42,8 +86,8 @@ export default function WorkerProfile(props) {
             <span className={styles.mask}></span>
             <span className={styles.infoBtn}>i</span>
             <span className={styles.balance}>Ваш баланс</span>
-            <span className={styles.balanceValue}>12 000 баллов</span>
-            <span className={styles.spent}>Потрачено на рекламу: 10 900 баллов</span>
+            <span className={styles.balanceValue}>{balance} баллов</span>
+            <span className={styles.spent}>Потрачено на рекламу: 0 баллов</span>
           </div>
         </div>
         <div className={styles.transactionsWrap}>

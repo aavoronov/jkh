@@ -1,23 +1,22 @@
-import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
-import { Carousel } from "react-responsive-carousel";
-import { Rating } from "react-simple-star-rating";
+import React, { useEffect, useState } from "react";
 import { RotatingLines } from "react-loader-spinner";
+import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
 
 import LayoutLoggedIn from "../../components/LayoutLoggedIn";
-import LayoutMap from "../../components/LayoutMap";
-import AdItem from "../../components/AdItem";
 import ServiceAd from "../../components/ServiceAd";
 // import DropdownList from "../components/DropdownList";
 import arrowLeft from "/public/img/arrowLeft.png";
 
 import styles from "./services.module.scss";
-import { objectList, servicesList, portfolio, mastersData } from "../../components/data";
 
+import axios from "axios";
+import { getCookie } from "cookies-next";
+import { useDispatch } from "react-redux";
+import Pagination from "../../components/Pagination";
 import useWindowDimensions from "../../components/useWindowDimensionsSSR";
+import { loading } from "../../store/loaderSlice";
+import { GetRequestParams } from "../trading-platform";
 
 // SwiperCore.use([Navigation]);
 
@@ -30,24 +29,48 @@ export default function Services(props) {
   const [examples, setExamples] = useState(false);
   const [privatePerson, setPrivatePerson] = useState(false);
   const [organization, setOrganization] = useState(false);
-  const [passport, setPassport] = useState(false);
   const [jobNow, setJobNow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
+  const [categories, setCategories] = useState(null);
 
-  const [activeObject, setActiveObject] = useState(objectList[0]);
-  const [activeService, setActiveService] = useState("Показать все");
+  // const [categoryHorizontal, setCategoryHorizontal] = useState("Любая категория");
+  // const [location, setLocation] = useState("Москва и Московская область");
+  // const [withPhotos, setWithPhotos] = useState(false);
+  // const [buySellMode, setBuySellMode] = useState("Любая категория");
+  // const [condition, setCondition] = useState([]);
+  // const [pmin, setPmin] = useState("");
+  // const [pmax, setPmax] = useState("");
+  // const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(0);
+  const [filterReset, setFilterReset] = useState(true);
+  const [services, setServices] = useState([]);
+
+  const [activeObject, setActiveObject] = useState(null);
+  const [activeService, setActiveService] = useState("Все категории");
 
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(null);
+  const [estateObjects, setEstateObjects] = useState([]);
+
+  useEffect(() => {
+    async function getEstateObjects() {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects`, {
+          headers: { Authorization: getCookie("jkh-token") },
+        });
+        setEstateObjects(res.data);
+        setActiveObject(res.data[0].estateObject.address + ", " + res.data[0].estateObject.apartment);
+        console.log(res.data);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    getEstateObjects();
+  }, []);
 
   const { height, width } = useWindowDimensions();
-
-  const changeStateWithDelay = (setState, newState) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setState(newState);
-    }, 500);
-  };
+  const dispatch = useDispatch();
 
   const DropdownList = ({ objects, value, setValue }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -76,6 +99,83 @@ export default function Services(props) {
     );
   };
 
+  async function getServices(page) {
+    try {
+      dispatch(loading({ visible: true }));
+      const query = new GetRequestParams();
+      query.addParam("page", page);
+      !!guarantee && query.addParam("warranty", true);
+      !!contract && query.addParam("contract", true);
+      !!isChecked && query.addParam("isChecked", true);
+      !!examples && query.addParam("withPortfolio", true);
+      !!privatePerson && !organization && query.addParam("privatePerson", true);
+      !!organization && !privatePerson && query.addParam("organization", true);
+      !!withAccommodation && !withoutAccommodation && query.addParam("withAccommodation", true);
+      !!withoutAccommodation && !withAccommodation && query.addParam("withoutAccommodation", true);
+
+      activeService !== "Все категории" && query.addParam("category", categories.find((item) => item.category === activeService).id);
+      //radius
+      //address
+      //city
+      //estate object
+      //job now?
+
+      console.log(query.serialize());
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/services?${query.serialize()}`, {
+        headers: {
+          Authorization: getCookie("jkh-token"),
+        },
+      });
+      console.log(res.data);
+      setServices(res.data.services);
+      setPageCount(res.data.count);
+    } catch (e) {
+      console.log(e);
+    }
+    dispatch(loading({ visible: false }));
+  }
+
+  const resetFilters = () => {
+    setSelectedCategory(null);
+    setSelectedSubcategory(null);
+    setCategoryHorizontal("Любая категория");
+    setLocation("Москва и Московская область");
+    setWithPhotos(false);
+    setBuySellMode("Любая категория");
+    setCondition([]);
+    setPmin("");
+    setPmax("");
+    setSearchQuery("");
+    setPage(1);
+    setFilterReset((prev) => !prev);
+  };
+
+  useEffect(() => {
+    getServices(page);
+  }, [filterReset]);
+
+  useEffect(() => {
+    async function getCategories() {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/services/categories`, {
+          headers: {
+            Authorization: getCookie("jkh-token"),
+          },
+        });
+        setCategories(res.data);
+        console.log(res.data);
+        // console.log(["Все категории", ...res.data.map((item) => item.category)]);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    getCategories();
+  }, []);
+
+  useEffect(() => {
+    getServices(page);
+  }, []);
+
   useEffect(() => {
     if (width > 768) {
       setLeftMenuIsOpen(true);
@@ -101,10 +201,10 @@ export default function Services(props) {
               name='guarantee'
               className={guarantee ? styles.checkbox + " " + styles.checked : styles.checkbox}
               onClick={() => {
-                // setGuarantee(!guarantee);
-                changeStateWithDelay(setGuarantee, !guarantee);
+                setGuarantee((prev) => !prev);
+                // changeStateWithDelay(setGuarantee, !guarantee);
               }}></div>
-            <span className={styles.filterName}>С гарантией (тут демо загрузки)</span>
+            <span className={styles.filterName}>С гарантией</span>
           </label>
         </div>
 
@@ -181,7 +281,7 @@ export default function Services(props) {
               name='examples'
               className={examples ? styles.checkbox + " " + styles.checked : styles.checkbox}
               onClick={() => {
-                setExamples(!examples);
+                setExamples((prev) => !prev);
               }}></div>
             <span className={styles.filterName}>С примерами работ</span>
           </label>
@@ -213,9 +313,9 @@ export default function Services(props) {
           <label htmlFor='passport' className={styles.fieldName + " " + styles.checkboxWrap}>
             <div
               name='passport'
-              className={passport ? styles.checkbox + " " + styles.checked : styles.checkbox}
+              className={isChecked ? styles.checkbox + " " + styles.checked : styles.checkbox}
               onClick={() => {
-                setPassport(!passport);
+                setIsChecked((prev) => !prev);
               }}></div>
             <span className={styles.filterName}>С проверенным паспортом</span>
           </label>
@@ -231,6 +331,25 @@ export default function Services(props) {
               }}></div>
             <span className={styles.filterName}>Работа сейчас</span>
           </label>
+        </div>
+        <div className={styles.fieldWrap}>
+          <button
+            className={styles.submitBtn}
+            onClick={() => {
+              setPage(1);
+              getServices(page);
+            }}>
+            Показать объявления
+          </button>
+          <span
+            className={styles.cancelBtn}
+            onClick={() => {
+              resetFilters();
+              // console.log(selectedCategory);
+              // console.log(selectedSubcategory);
+            }}>
+            Сбросить фильтр
+          </span>
         </div>
       </aside>
       <div className={styles.container}>
@@ -266,29 +385,48 @@ export default function Services(props) {
         <div className={styles.dropdownsWrap}>
           <div className={styles.dropdownName}>
             <span className={styles.dropdownLabel}>Адрес объекта</span>
-            <DropdownList objects={objectList} value={activeObject} setValue={setActiveObject} className={styles.dropdownServices} />
+            <DropdownList
+              objects={estateObjects.map((item) => item.estateObject.address + ", " + item.estateObject.apartment)}
+              value={activeObject}
+              setValue={setActiveObject}
+              className={styles.dropdownServices}
+            />
           </div>
           <div className={styles.dropdownName}>
             <span className={styles.dropdownLabel}>Виды услуг</span>
-            <DropdownList objects={servicesList} value={activeService} setValue={setActiveService} />
+            {!!categories && (
+              <DropdownList
+                objects={["Все категории", ...categories.map((item) => item.category)]}
+                value={activeService}
+                setValue={setActiveService}
+                className={styles.dropdownServices}
+              />
+            )}
+            {/* <DropdownList objects={servicesList} value={activeService} setValue={setActiveService} /> */}
           </div>
         </div>
         <span className={styles.filterHeader}>{activeService}</span>
-        {mastersData.map((item, index) => (
+        {/* {mastersData.map((item, index) => (
+          <ServiceAd data={item} key={index} />
+        ))} */}
+        {services.map((item, index) => (
           <ServiceAd data={item} key={index} />
         ))}
         {/* <ServiceAd sliderPhotos={portfolio} />
         <ServiceAd sliderPhotos={portfolio} />
         <ServiceAd sliderPhotos={portfolio} />
         <ServiceAd sliderPhotos={portfolio} /> */}
-        <div className={styles.paginationWrap}>
-          <span className={styles.paginationItem + " " + styles.active}>1</span>
-          <span className={styles.paginationItem}>2</span>
-          <span className={styles.paginationItem}>3</span>
-          <span className={styles.paginationItem}>4</span>
-          <span className={styles.paginationItem}>5</span>
-          <span className={styles.paginationArrow}></span>
-        </div>
+        <Pagination
+          // className='pagination-bar'
+          style={{ width: "100%", display: "flex", justifyContent: "center" }}
+          currentPage={page}
+          totalCount={pageCount}
+          pageSize={process.env.NEXT_PUBLIC_SERVICES_PAGE_LIMIT}
+          onPageChange={(page) => {
+            setPage(page);
+            getServices(page);
+          }}
+        />
       </div>
     </LayoutLoggedIn>
   );

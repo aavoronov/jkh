@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styles from "./servicead.module.scss";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,17 +8,34 @@ import "swiper/css";
 import "swiper/css/navigation";
 import { Field, Form, Formik, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { createComplaint, Types } from "../service/functions";
 
 import useWindowDimensions from "./useWindowDimensionsSSR";
+import { toggle } from "../store/notificationSlice";
+import { useDispatch } from "react-redux";
+import { useRouter } from "next/router";
 
 const ServiceAd = ({ data }) => {
   const navigationPrevRef = useRef(null);
   const navigationNextRef = useRef(null);
 
   const { height, width } = useWindowDimensions();
+  const dispatch = useDispatch();
+  const router = useRouter();
 
   const [complaintActive, setComplaintActive] = useState(false);
   const [complaintError, setComplaintError] = useState(false);
+  const [votes, setVotes] = useState(0);
+  const [rating, setRating] = useState(0);
+
+  useEffect(() => {
+    if (!!data.reviews) {
+      setVotes(data.reviews.length);
+      let sumRating = 0;
+      data.reviews.forEach((item) => (sumRating = sumRating + item.rating));
+      setRating(sumRating / votes);
+    }
+  }, [data]);
 
   return (
     <>
@@ -45,44 +62,57 @@ const ServiceAd = ({ data }) => {
                 comment: "",
               }}
               onSubmit={(values) => {
-                if (values.issue == 5 && !values.comment) {
+                if (values.issue == "Другое" && !values.comment) {
                   setComplaintError(true);
-                  console.log("error");
                   return;
                 }
-
-                alert(JSON.stringify(values, null, 2));
+                // values.objectId = objectInfoActive.id;
+                const complaintData = {
+                  type: Types.service,
+                  objectId: data.id,
+                  reason: values.issue,
+                  text: values.issue === "Другое" ? values.comment : undefined,
+                };
+                createComplaint(complaintData);
+                // alert(JSON.stringify(complaintData, null, 2));
+                dispatch(toggle({ type: "success", text: "Жалоба успешно отправлена" }));
                 setComplaintError(false);
                 setComplaintActive(false);
               }}>
               {({ values }) => (
                 <Form>
                   <div className={styles.form_radio}>
-                    <Field id='complaint-1' className={styles.radio} type='radio' name='issue' value='1' />
+                    <Field
+                      id='complaint-1'
+                      className={styles.radio}
+                      type='radio'
+                      name='issue'
+                      value='Цена не соответствует заявленной в объявлении'
+                    />
                     <label htmlFor='complaint-1'>Цена не соответствует заявленной в объявлении</label>
                   </div>
 
                   <div className={styles.form_radio}>
-                    <Field id='complaint-2' className={styles.radio} type='radio' name='issue' value='2' />
+                    <Field id='complaint-2' className={styles.radio} type='radio' name='issue' value='Не соответствует описание' />
                     <label htmlFor='complaint-2'>Не соответствует описание</label>
                   </div>
 
                   <div className={styles.form_radio}>
-                    <Field id='complaint-3' className={styles.radio} type='radio' name='issue' value='3' />
+                    <Field id='complaint-3' className={styles.radio} type='radio' name='issue' value='Нагрубил при общении' />
                     <label htmlFor='complaint-3'>Нагрубил при общении</label>
                   </div>
 
                   <div className={styles.form_radio}>
-                    <Field id='complaint-4' className={styles.radio} type='radio' name='issue' value='4' />
+                    <Field id='complaint-4' className={styles.radio} type='radio' name='issue' value='Мошенник' />
                     <label htmlFor='complaint-4'>Мошенник</label>
                   </div>
 
                   <div className={styles.form_radio}>
-                    <Field id='complaint-5' className={styles.radio} type='radio' name='issue' value='5' />
+                    <Field id='complaint-5' className={styles.radio} type='radio' name='issue' value='Другое' />
                     <label htmlFor='complaint-5'>Другое</label>
                   </div>
 
-                  {values.issue == 5 ? (
+                  {values.issue == "Другое" ? (
                     <div className={styles.complaintFieldWrap}>
                       <Field
                         as='textarea'
@@ -124,18 +154,28 @@ const ServiceAd = ({ data }) => {
         <div className={styles.adWrap}>
           <div className={styles.adProfileWrap}>
             <div className={styles.picWrap}>
-              <Image src={data.profilePic} width={120} height={120} />
+              <img
+                onClick={() => router.push({ pathname: "/services/[id]", query: { id: data.id } })}
+                src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/services/${data.mainImage}`}
+                style={{ width: 120, height: 120, objectFit: "cover" }}
+              />
             </div>
             <div className={styles.rating}>
               <div>
-                <Image src='/img/star6.svg' width={25} height={25} className={data.rating ? "" : styles.starGrey} />
+                <Image
+                  src='/img/star6.svg'
+                  width={25}
+                  height={25}
+                  className={rating ? "" : styles.starGrey}
+                  onClick={() => console.log(rating)}
+                />
               </div>
               <div className={styles.ratingNumbers}>
-                {data.votes ? <span>{data.rating}</span> : <span className={styles.noRating}>Нет рейтинга</span>}
-                {data.votes ? <span>{data.votes} оценок</span> : <span className={styles.noRating}>Нет оценок</span>}
+                {votes ? <span>{Math.round(rating * 100) / 100}</span> : <span className={styles.noRating}>Нет рейтинга</span>}
+                {votes ? <span>{votes} оценок</span> : <span className={styles.noRating}>Нет оценок</span>}
               </div>
             </div>
-            {data.documentChecked ? (
+            {data.isChecked ? (
               <div className={styles.rating}>
                 <div className={styles.masterCheckWrap}>
                   <Image src='/img/master-check.svg' width={25} height={25} />
@@ -171,7 +211,7 @@ const ServiceAd = ({ data }) => {
               </Link>
               {data.isPaidAd ? <span className={styles.isAd}>Реклама</span> : null}
             </div>
-            <span className={styles.adLocation}>{data.location}</span>
+            <span className={styles.adLocation}>{data.address}</span>
             <span className={styles.adPrice}>Цена на работы:</span>
             <span className={styles.adPriceValue}>{data.price}</span>
             <p className={styles.adDescription}>{data.description.substring(0, 250).concat(data.description.length > 250 ? "..." : "")}</p>
@@ -218,10 +258,14 @@ const ServiceAd = ({ data }) => {
                   onSwiper={(swiper) => console.log(swiper)}
                   // navigation={swiperNavigation}
                 >
-                  {data.sliderPhotos &&
-                    data.sliderPhotos.map((image, index) => (
+                  {data.portfolio &&
+                    data.portfolio.map((image, index) => (
                       <SwiperSlide key={index} className={styles.slide}>
-                        <img src={image} style={{ verticalAlign: "top" }} className={styles.slideImage} />
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/services/${image}`}
+                          style={{ verticalAlign: "top", height: 100, objectFit: "cover" }}
+                          className={styles.slideImage}
+                        />
                       </SwiperSlide>
                     ))}
                   <span
@@ -301,7 +345,7 @@ const ServiceAd = ({ data }) => {
               {data.sliderPhotos &&
                 data.sliderPhotos.map((image, index) => (
                   <SwiperSlide key={index} className={styles.slide}>
-                    <img src={image} style={{ verticalAlign: "top" }} className={styles.slideImage} />
+                    <img src={image} style={{ verticalAlign: "top", height: 100, objectFit: "cover" }} className={styles.slideImage} />
                   </SwiperSlide>
                 ))}
               <span

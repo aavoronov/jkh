@@ -78,7 +78,12 @@ const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isP
           <div className={styles.productItem}>
             <div
               className={styles.border}
-              style={{ borderColor: ispaid ? "#ff8c00" : isVip ? "#F54019" : "#c4c6d6", borderWidth: ispaid ? 2 : 1 }}>
+              style={{
+                borderColor: ispaid ? "#ff8c00" : isVip ? "#F54019" : "#c4c6d6",
+                borderWidth: ispaid ? 2 : 1,
+                height: "100%",
+                width: "100%",
+              }}>
               <div className={styles.imageWrap}>
                 {/* <Image src='/img/temp/broshurator.png' layout='fill' /> */}
                 <Carousel

@@ -12,6 +12,7 @@ import { updateRole } from "../store/userSlice";
 import { toggle } from "../store/notificationSlice";
 import { redirect } from "next/dist/server/api-utils";
 import { useRouter } from "next/router";
+import InputMask from "react-input-mask";
 
 const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
   //   const [modalActive, setModalActive] = useState(false);
@@ -704,345 +705,421 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
   };
 
   const Partnership = () => {
-    const [inn, setInn] = useState([]);
-    const [contract, setContract] = useState([]);
-    const [snils, setSnils] = useState([]);
+    const [orgType, setOrgType] = useState("");
+    const [stage, setStage] = useState(1);
 
-    const [agree, setAgree] = useState(false);
+    const [data, setData] = useState(null);
 
-    const Dropzone = ({ files, setFiles, placeholder }) => {
-      const [isDraggedOver, setIsDraggedOver] = useState(false);
+    const signUpAsWorker = async (data, type) => {
+      try {
+        const creds = new FormData();
+        creds.append("name", data.name);
+        creds.append("phone", data.phone);
+        creds.append("email", data.email);
+        creds.append("inn", data.inn);
+        creds.append("contract", data.contract);
+        creds.append("snils", data.snils);
+        creds.append("type", type);
+        creds.append("riasToken", data.riasToken);
+        creds.append("latitude", data.latitude);
+        creds.append("longitude", data.longitude);
+        creds.append("address", data.address);
 
-      const { getRootProps, getInputProps } = useDropzone({
-        accept: {
-          "image/*": [],
-        },
-        onDrop: (acceptedFiles) => {
-          setFiles(
-            files
-              .concat(
-                acceptedFiles.map((file) =>
-                  Object.assign(file, {
-                    preview: URL.createObjectURL(file),
-                  })
-                )
-              )
-              .slice(0, 10)
+        async function getGeocode() {
+          const res = await axios.get(
+            `https://geocode-maps.yandex.ru/1.x/?format=json&apikey=${process.env.NEXT_PUBLIC_YMAPS_KEY}&geocode=${address + " " + house}`
           );
-          setIsDraggedOver(false);
-        },
-        onDragOver: () => {
-          setIsDraggedOver(true);
-        },
-        onDragLeave: () => {
-          setIsDraggedOver(false);
-        },
-        maxFiles: 1,
-        maxSize: 10000000,
-        multiple: false,
-      });
-      // const { getRootProps, getInputProps } = useDropzone({ maxFiles: 10, maxSize: 3000000, multiple: true, onDrop });
+          //  const {data.response.GeoObjectCollection} = res
+          // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text);
+          const fullAddress = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
+          const coords = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos;
+          const precision = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.precision;
+          // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.Address.formatted);
+          // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point);
+          const longitude = coords.split(" ")[0];
+          const latitude = coords.split(" ")[1];
 
-      const removeFile = (file) => {
-        const newFiles = [...files];
-        newFiles.splice(newFiles.indexOf(file), 1);
-        setFiles(newFiles);
-        console.log(files);
-      };
+          return { address: fullAddress, latitude, longitude, precision };
+        }
 
-      const removeAll = () => {
-        setFiles([]);
-      };
+        console.log(creds);
 
-      const thumbs = files.map((file) => (
-        <div
-          className={styles.thumb}
-          // key={file.name}
-          key={Math.random().toString()}>
-          <div className={styles.thumbInner}>
-            <img
-              src={file.preview}
-              className={styles.img}
-              // Revoke data uri after image is loaded
-              onLoad={() => {
-                URL.revokeObjectURL(file.preview);
-              }}
-            />
-            <button
-              className={styles.imageRemove}
-              onClick={() => {
-                removeFile(file);
-              }}></button>
-            <span className={styles.fileName}>{file.name}</span>
-          </div>
-        </div>
-      ));
-
-      useEffect(() => {
-        // Make sure to revoke the data uris to avoid memory leaks, will run on unmount
-        return () => files.forEach((file) => URL.revokeObjectURL(file.preview));
-      }, []);
-
-      // return (
-      //   <div {...getRootProps()} className={styles.dragndropWrap}>
-      //     <div className={styles.dragndropField}>
-      //       <input {...getInputProps()} />
-      //       <p className={styles.dragndropText}>Перетащите сюда файлы или нажмите</p>
-      //       <p className={styles.dragndropWarn}>(максимум 10 файлов по 3 Мб)</p>
-      //     </div>
-      //   </div>
-      // );
-
-      // const fieldClassname = () => {
-      //   if (isDraggedOver && files.length) {
-      //     return styles.dragndropField + " " + styles.hoveredOver + " " + styles.filled;
-      //   } else if (!isDraggedOver) {
-      //     return styles.dragndropField + " " + styles.filled;
-      //   } else if (!files.length) {
-      //     return styles.dragndropField + " " + styles.hoveredOver;
-      //   } else return styles.dragndropField;
-      // };
-
-      return (
-        <>
-          <div className={styles.dragndropWrap}>
-            <div {...getRootProps({ className: isDraggedOver ? styles.dragndropField + " " + styles.hoveredOver : styles.dragndropField })}>
-              <input {...getInputProps()} />
-              <span className={styles.dragndropPlaceholder}>{placeholder}</span>
-              {files.length ? (
-                <span className={styles.dragndropFieldBtn + " " + styles.filled} onClick={removeAll}></span>
-              ) : (
-                <span className={styles.dragndropFieldBtn}></span>
-              )}
-              {/* <p className={styles.dragndropText}>Перетащите сюда файлы или нажмите</p>
-          <p className={styles.dragndropWarn}>(максимум 10 файлов по 3 Мб)</p> */}
-            </div>
-          </div>
-          {/* {files.length ? <aside className={styles.thumbsContainer}>{thumbs}</aside> : null} */}
-        </>
-      );
+        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/worker`, creds, {
+          "Content-Type": "multipart/form-data",
+        });
+        setStage((prev) => prev + 1);
+        console.log(res.data);
+      } catch (e) {
+        dispatch(toggle({ text: e.response.data.message, type: "error" }));
+      }
     };
 
-    return (
-      <div className={styles.popup + " " + styles.partnership}>
-        <CloseBtn />
-        <div className={styles.formWrap}>
-          <span
-            className={styles.popupHeading}
-            onClick={() => {
-              console.log(modalToDisplay);
-            }}>
-            Как вы хотите использовать сервис?
-          </span>
-          <span className={styles.partnershipFormHeader}>Регистрация</span>
-          <span className={styles.partnershipFormText}>Пожалуйста, укажите все данные, что бы продолжить сотрудничество</span>
-          <div className={styles.popupFieldWrap}>
-            <Formik
-              initialValues={{
-                name: "",
-                phone: "",
-                email: "",
-              }}
-              validationSchema={Yup.object({
-                //   login: Yup.string().required("Введите логин"),
-                //   password: Yup.string().required("Введите пароль"),
-                // name: Yup.string()
-                // .max(20, "Must be 20 characters or less")
-                //   .required("Обязательное поле"),
-                // description: Yup.string().required("Обязательное поле"),
-                // phoneNumber: Yup.string()
-                //   .matches(/\d{10}/, "10 цифр")
-                //   .required("Обязательное поле"),
-                // webPage: Yup.string().required("Обязательное поле"),
-              })}
-              onSubmit={(values) => {
-                // alert(JSON.stringify(values, null, 2));
-                setModalToDisplay("partnership2");
-                setCounter(60);
+    const Partnership2 = () => {
+      const [name, setName] = useState("");
+      const [phone, setPhone] = useState("");
+      const [email, setEmail] = useState("");
+      const [inn, setInn] = useState([]);
+      const [contract, setContract] = useState([]);
+      const [snils, setSnils] = useState([]);
+      const [agree, setAgree] = useState(false);
+      const [address, setAddress] = useState("");
+      const [riasToken, setRiasToken] = useState("");
+
+      async function getGeocode() {
+        const res = await axios.get(
+          `https://geocode-maps.yandex.ru/1.x/?format=json&apikey=${process.env.NEXT_PUBLIC_YMAPS_KEY}&geocode=${address}`
+        );
+        //  const {data.response.GeoObjectCollection} = res
+        // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text);
+        const fullAddress = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
+        const coords = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos;
+        const precision = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.precision;
+        // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.Address.formatted);
+        // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point);
+        const longitude = coords.split(" ")[0];
+        const latitude = coords.split(" ")[1];
+
+        return { fullAddress, latitude, longitude, precision };
+      }
+
+      const Dropzone = ({ files, setFiles, placeholder }) => {
+        const [isDraggedOver, setIsDraggedOver] = useState(false);
+
+        const { getRootProps, getInputProps } = useDropzone({
+          accept: {
+            "image/*": [],
+            "application/pdf": [".pdf"],
+          },
+          onDrop: (acceptedFiles) => {
+            setFiles(
+              files
+                .concat(
+                  acceptedFiles.map((file) =>
+                    Object.assign(file, {
+                      preview: URL.createObjectURL(file),
+                    })
+                  )
+                )
+                .slice(0, 10)
+            );
+            setIsDraggedOver(false);
+          },
+          onDragOver: () => {
+            setIsDraggedOver(true);
+          },
+          onDragLeave: () => {
+            setIsDraggedOver(false);
+          },
+          maxFiles: 1,
+          maxSize: 10000000,
+          multiple: false,
+        });
+        // const { getRootProps, getInputProps } = useDropzone({ maxFiles: 10, maxSize: 3000000, multiple: true, onDrop });
+
+        const removeAll = () => {
+          setFiles([]);
+        };
+
+        useEffect(() => {
+          // Make sure to revoke the data uris to avoid memory leaks, will run on unmount
+          return () => files.forEach((file) => URL.revokeObjectURL(file.preview));
+        }, []);
+
+        // return (
+        //   <div {...getRootProps()} className={styles.dragndropWrap}>
+        //     <div className={styles.dragndropField}>
+        //       <input {...getInputProps()} />
+        //       <p className={styles.dragndropText}>Перетащите сюда файлы или нажмите</p>
+        //       <p className={styles.dragndropWarn}>(максимум 10 файлов по 3 Мб)</p>
+        //     </div>
+        //   </div>
+        // );
+
+        // const fieldClassname = () => {
+        //   if (isDraggedOver && files.length) {
+        //     return styles.dragndropField + " " + styles.hoveredOver + " " + styles.filled;
+        //   } else if (!isDraggedOver) {
+        //     return styles.dragndropField + " " + styles.filled;
+        //   } else if (!files.length) {
+        //     return styles.dragndropField + " " + styles.hoveredOver;
+        //   } else return styles.dragndropField;
+        // };
+
+        return (
+          <>
+            <div className={styles.dragndropWrap}>
+              <div
+                {...getRootProps({ className: isDraggedOver ? styles.dragndropField + " " + styles.hoveredOver : styles.dragndropField })}>
+                <input {...getInputProps()} />
+                <span className={styles.dragndropPlaceholder}>{placeholder}</span>
+                {files.length ? (
+                  <span className={styles.dragndropFieldBtn + " " + styles.filled} onClick={removeAll}></span>
+                ) : (
+                  <span className={styles.dragndropFieldBtn}></span>
+                )}
+                {/* <p className={styles.dragndropText}>Перетащите сюда файлы или нажмите</p>
+          <p className={styles.dragndropWarn}>(максимум 10 файлов по 3 Мб)</p> */}
+              </div>
+            </div>
+            {/* {files.length ? <aside className={styles.thumbsContainer}>{thumbs}</aside> : null} */}
+          </>
+        );
+      };
+
+      return (
+        <div className={styles.popup + " " + styles.partnership}>
+          <CloseBtn />
+          <div className={styles.formWrap}>
+            {/* <span
+              className={styles.popupHeading}
+              onClick={() => {
+                console.log(modalToDisplay);
               }}>
-              {({ values }) => (
-                <Form>
-                  <div className={styles.popupFieldWrap + " " + styles.column}>
-                    <Field name='name' type='text' placeholder='Название организации' className={styles.field} />
-                    <span className={styles.errorText}>
-                      <ErrorMessage name='name' />
-                    </span>
-                  </div>
-                  <div className={styles.popupFieldWrap + " " + styles.column}>
-                    <Field name='phone' type='password' placeholder='Укажите телефон' className={styles.field} />
-                    <span className={styles.errorText}>
-                      <ErrorMessage name='phone' />
-                    </span>
-                  </div>
+              Как вы хотите использовать сервис?
+            </span> */}
+            <span className={styles.partnershipFormHeader}>Регистрация</span>
+            <span className={styles.partnershipFormText}>Пожалуйста, укажите все данные, что бы продолжить сотрудничество</span>
+            <div className={styles.popupFieldWrap} style={{ display: "flex", flexDirection: "column" }}>
+              <div className={styles.popupFieldWrap + " " + styles.column}>
+                <input
+                  name='name'
+                  type='text'
+                  placeholder='Название организации'
+                  className={styles.field}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div className={styles.popupFieldWrap + " " + styles.column}>
+                {/* <Field
+                      name='phone'
+                      type='text'
+                      placeholder='Укажите телефон'
+                      className={styles.field}
+                      style={{ position: "absolute", opacity: 0.5 }}
+                    /> */}
+                <InputMask
+                  className={styles.field}
+                  mask='+7 (999) 999-99-99'
+                  placeholder='Телефон'
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
 
-                  <div className={styles.popupFieldWrap + " " + styles.column}>
-                    <Field name='email' type='password' placeholder='Email' className={styles.field} />
-                    <span className={styles.errorText}>
-                      <ErrorMessage name='email' />
-                    </span>
-                  </div>
-                  <span className={styles.fileSize}>Размер файла до 10 Мб</span>
-                  <div className={styles.popupFieldWrap + " " + styles.column}>
-                    <Dropzone files={inn} setFiles={setInn} placeholder='ИНН' />
-                  </div>
-                  <div className={styles.popupFieldWrap + " " + styles.column}>
-                    <Dropzone files={contract} setFiles={setContract} placeholder='Договор' />
-                  </div>
-                  <div className={styles.popupFieldWrap + " " + styles.column}>
-                    <Dropzone files={snils} setFiles={setSnils} placeholder='СНИЛС' />
-                  </div>
+              <div className={styles.popupFieldWrap + " " + styles.column}>
+                <input
+                  name='email'
+                  type='text'
+                  placeholder='Email'
+                  className={styles.field}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
 
-                  <div className={styles.popupFieldWrap}>
-                    <button type='submit' className={styles.submitBtn}>
-                      Продолжить
-                    </button>
-                  </div>
+              <div className={styles.popupFieldWrap + " " + styles.column}>
+                <input
+                  name='address'
+                  type='text'
+                  placeholder='Адрес организации'
+                  className={styles.field}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
+              </div>
+              <div className={styles.popupFieldWrap + " " + styles.column}>
+                <input
+                  name='riasToken'
+                  type='text'
+                  placeholder='Токен РИАС ЖКХ вашей организации'
+                  className={styles.field}
+                  value={riasToken}
+                  onChange={(e) => setRiasToken(e.target.value)}
+                />
+              </div>
 
-                  {/* <div className={styles.popupFieldWrap}>
+              <div className={styles.popupFieldWrap + " " + styles.column}>
+                <Dropzone files={inn} setFiles={setInn} placeholder='ИНН' />
+              </div>
+              <div className={styles.popupFieldWrap + " " + styles.column}>
+                <Dropzone files={contract} setFiles={setContract} placeholder='Договор' />
+              </div>
+              <div className={styles.popupFieldWrap + " " + styles.column}>
+                <Dropzone files={snils} setFiles={setSnils} placeholder='СНИЛС' />
+              </div>
+              <span className={styles.fileSize} onClick={() => console.log(stage)}>
+                Размер файла до 10 Мб, скан или pdf
+              </span>
+
+              <div className={styles.popupFieldWrap}>
+                <button
+                  type='submit'
+                  className={styles.submitBtn}
+                  onClick={async () => {
+                    try {
+                      const re = /^\S+@\S+\.\S+$/;
+                      if (phone.includes("_")) {
+                        throw new Error("Поле телефона заполнено не полностью");
+                      }
+                      if (!re.test(email)) {
+                        throw new Error("Почта введена некорректно");
+                      }
+                      const { latitude, longitude, fullAddress } = await getGeocode(address);
+                      const data = {
+                        name: name,
+                        phone: phone,
+                        email: email,
+                        inn: inn[0],
+                        contract: contract[0],
+                        snils: snils[0],
+                        riasToken: riasToken,
+                        latitude,
+                        longitude,
+                        address: fullAddress,
+                      };
+                      console.log(data);
+                      return signUpAsWorker(data, orgType);
+                    } catch (e) {
+                      dispatch(toggle({ text: e.message, type: "error" }));
+                    }
+                    // setCounter(60);
+                  }}
+                  style={
+                    name && phone && email && inn.length && contract.length && snils.length && agree
+                      ? { pointerEvents: "all" }
+                      : { pointerEvents: "none", opacity: 0.6 }
+                  }>
+                  Продолжить
+                </button>
+              </div>
+
+              {/* <div className={styles.popupFieldWrap}>
                     <span className={styles.delimiter}>или</span>
                   </div> */}
 
-                  <div className={styles.popupFieldWrap}>
-                    {/* <input type='checkbox' name='sendToModerator' id='sendToModerator' className={styles.checkbox} /> */}
-                    <label htmlFor='agree' className={styles.fieldName + " " + styles.checkboxWrap}>
-                      <div
-                        name='agree'
-                        id='agree'
-                        type='agree'
-                        className={agree ? styles.checkbox + " " + styles.checked : styles.checkbox}
-                        onClick={() => {
-                          setAgree(!agree);
-                          console.log(agree);
-                        }}></div>
-                      <span className={styles.partnershipEulaText}>
-                        Я принимаю <a className={styles.partnershipEulaLink}>условия использования</a> и{" "}
-                        <a className={styles.partnershipEulaLink}>пользовательское соглашение</a>
-                      </span>
-                    </label>
-                  </div>
-                </Form>
-              )}
-            </Formik>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const Partnership2 = () => {
-    const [orgType, setOrgType] = useState("");
-
-    const orgTypes = [
-      { name: "Для УК, ТСЖ", id: "uk", pic: "/img/uk.png" },
-      { name: "Для Управляющего по дому", id: "upravdom", pic: "/img/upravdom.png" },
-      { name: "Для рекламодателей", id: "admakers", pic: "/img/admakers.png" },
-      { name: "Для магазинов", id: "stores", pic: "/img/stores.png" },
-      { name: "Для представителей бизнеса", id: "business", pic: "/img/business.png" },
-    ];
-
-    const OrgTypeBtn = ({ name, id }) => (
-      <div className={styles.popupFieldWrap + " " + styles.orgType}>
-        <button
-          type='button'
-          className={orgType == name ? styles.orgTypeOption + " " + styles.selected : styles.orgTypeOption}
-          onClick={() => {
-            // console.log(e.target.innerText);
-            setOrgType(name);
-            // console.log(orgType);
-          }}>
-          <span className={styles.orgTypeText + " " + styles[`${id}`]}>{name}</span>
-        </button>
-      </div>
-    );
-
-    return (
-      <div className={styles.popup + " " + styles.partnership2}>
-        <CloseBtn />
-        <div className={styles.formWrap}>
-          <span
-            className={styles.popupHeading}
-            onClick={() => {
-              console.log(modalToDisplay);
-            }}>
-            Как вы хотите использовать сервис?
-          </span>
-          <div className={styles.popupFieldWrap}>
-            <Formik
-              initialValues={{
-                password: "",
-                passwordConfirmation: "",
-              }}
-              validationSchema={Yup.object({
-                // login: Yup.string().required("Введите логин"),
-                // password: Yup.string().required("Введите пароль"),
-                // name: Yup.string()
-                // .max(20, "Must be 20 characters or less")
-                //   .required("Обязательное поле"),
-                // description: Yup.string().required("Обязательное поле"),
-                // phoneNumber: Yup.string()
-                //   .matches(/\d{10}/, "10 цифр")
-                //   .required("Обязательное поле"),
-                // webPage: Yup.string().required("Обязательное поле"),
-              })}
-              onSubmit={(values) => {
-                alert(JSON.stringify(values, null, 2));
-                setPopupError(false);
-                alert("Авторизовались");
-                setModalToDisplay("");
-              }}>
-              <Form>
-                {orgTypes.map((item) => {
-                  return <OrgTypeBtn name={item.name} id={item.id} key={item.id} />;
-                })}
-
-                <div className={styles.popupFieldWrap}>
-                  <button
-                    type='submit'
-                    className={styles.submitBtn}
+              <div className={styles.popupFieldWrap}>
+                {/* <input type='checkbox' name='sendToModerator' id='sendToModerator' className={styles.checkbox} /> */}
+                <label htmlFor='agree' className={styles.fieldName + " " + styles.checkboxWrap}>
+                  <div
+                    name='agree'
+                    id='agree'
+                    type='agree'
+                    className={agree ? styles.checkbox + " " + styles.checked : styles.checkbox}
                     onClick={() => {
-                      setModalToDisplay("partnershipComplete");
-                    }}>
-                    Подтвердить
-                  </button>
-                </div>
-
-                <div className={styles.popupFieldWrap}>
-                  <span className={styles.writeAdminText}>
-                    Если вы не смогли определиться, к какому разделу относится ваше предложении о сотрудничестве, то напишите администратору
+                      setAgree(!agree);
+                      console.log(agree);
+                    }}></div>
+                  <span className={styles.partnershipEulaText}>
+                    Я принимаю <a className={styles.partnershipEulaLink}>условия использования</a> и{" "}
+                    <a className={styles.partnershipEulaLink}>пользовательское соглашение</a>
                   </span>
-                </div>
-                <div className={styles.popupFieldWrap}>
-                  <span className={styles.writeAdminBtn}>Написать администратору</span>
-                </div>
-              </Form>
-            </Formik>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const PartnershipComplete = () => {
-    return (
-      <div className={styles.popup}>
-        <CloseBtn />
-        <div className={styles.formWrap}>
-          <div className={styles.popupFieldWrap}>
-            <div className={styles.completeInfo}>
-              <span className={styles.completeHeader}>Заявка оформлена</span>
-              <span className={styles.completeText}>Ожидайте письмо на почту с данными для входа</span>
-              <span className={styles.completeCheck}></span>
+                </label>
+              </div>
             </div>
           </div>
-          <div className={styles.popupFieldWrap}>
-            <span className={styles.completeContacts}>По возникшим вопросам обращайтесь</span>
-          </div>
-          <a className={styles.completeEmail} href='mailto:info@mail.ru'>
-            info@mail.ru
-          </a>
         </div>
-      </div>
-    );
+      );
+    };
+
+    const Partnership1 = () => {
+      const orgTypes = [
+        { name: "Для УК, ТСЖ", id: "uk", pic: "/img/uk.png" },
+        { name: "Для Управляющего по дому", id: "upravdom", pic: "/img/upravdom.png" },
+        { name: "Для рекламодателей", id: "admakers", pic: "/img/admakers.png" },
+        { name: "Для магазинов", id: "stores", pic: "/img/stores.png" },
+        { name: "Для представителей бизнеса", id: "business", pic: "/img/business.png" },
+      ];
+
+      const OrgTypeBtn = ({ name, id }) => (
+        <div className={styles.popupFieldWrap + " " + styles.orgType}>
+          <button
+            type='button'
+            className={orgType == name ? styles.orgTypeOption + " " + styles.selected : styles.orgTypeOption}
+            onClick={() => {
+              // console.log(e.target.innerText);
+              setOrgType(name);
+              // console.log(orgType);
+            }}>
+            <span className={styles.orgTypeText + " " + styles[`${id}`]}>{name}</span>
+          </button>
+        </div>
+      );
+
+      return (
+        <div className={styles.popup + " " + styles.partnership2}>
+          <CloseBtn />
+          <div className={styles.formWrap}>
+            <span
+              className={styles.popupHeading}
+              onClick={() => {
+                console.log(modalToDisplay);
+              }}>
+              Как вы хотите использовать сервис?
+            </span>
+            <div className={styles.popupFieldWrap}>
+              <Formik>
+                <Form>
+                  {orgTypes.map((item) => {
+                    return <OrgTypeBtn name={item.name} id={item.id} key={item.id} />;
+                  })}
+
+                  <div className={styles.popupFieldWrap}>
+                    <button
+                      type='submit'
+                      className={styles.submitBtn}
+                      onClick={() => {
+                        // setModalToDisplay("partnershipComplete");
+                        setStage((prev) => prev + 1);
+                      }}
+                      style={orgType ? { pointerEvents: "all" } : { pointerEvents: "none", opacity: 0.6 }}>
+                      Подтвердить
+                    </button>
+                  </div>
+
+                  <div className={styles.popupFieldWrap}>
+                    <span className={styles.writeAdminText} onClick={() => console.log(data)}>
+                      Если вы не смогли определиться, к какому разделу относится ваше предложении о сотрудничестве, то напишите
+                      администратору
+                    </span>
+                  </div>
+                  <div className={styles.popupFieldWrap}>
+                    <span className={styles.writeAdminBtn}>Написать администратору</span>
+                  </div>
+                </Form>
+              </Formik>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const PartnershipComplete = () => {
+      return (
+        <div className={styles.popup}>
+          <CloseBtn />
+          <div className={styles.formWrap}>
+            <div className={styles.popupFieldWrap}>
+              <div className={styles.completeInfo}>
+                <span className={styles.completeHeader}>Заявка оформлена</span>
+                <span className={styles.completeText}>Ожидайте письмо на почту с данными для входа</span>
+                <span className={styles.completeCheck}></span>
+              </div>
+            </div>
+            <div className={styles.popupFieldWrap}>
+              <span className={styles.completeContacts}>По возникшим вопросам обращайтесь</span>
+            </div>
+            <a className={styles.completeEmail} href='mailto:info@mail.ru'>
+              info@mail.ru
+            </a>
+          </div>
+        </div>
+      );
+    };
+
+    if (stage === 1) return <Partnership1 />;
+    if (stage === 2) return <Partnership2 />;
+    if (stage === 3) return <PartnershipComplete />;
   };
 
   return (
@@ -1058,8 +1135,6 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
       {modalToDisplay == "passwordReset2" && <PasswordReset2 />}
       {modalToDisplay == "passwordReset3" && <PasswordReset3 />}
       {modalToDisplay == "partnership" && <Partnership />}
-      {modalToDisplay == "partnership2" && <Partnership2 />}
-      {modalToDisplay == "partnershipComplete" && <PartnershipComplete />}
     </>
   );
 };

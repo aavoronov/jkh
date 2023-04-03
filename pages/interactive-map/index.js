@@ -1,45 +1,29 @@
-import React, { useEffect, useState, useRef } from "react";
+import { ErrorMessage, Field, Form, Formik } from "formik";
 import Image from "next/image";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import React, { useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
-import { Carousel } from "react-responsive-carousel";
-import { Rating } from "react-simple-star-rating";
 import InputMask from "react-input-mask";
+import { Carousel } from "react-responsive-carousel";
+import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
+import { Rating } from "react-simple-star-rating";
+import * as Yup from "yup";
 
-import LayoutLoggedIn from "../../components/LayoutLoggedIn";
-import LayoutMap from "../../components/LayoutMap";
 import AdItem from "../../components/AdItem";
+import LayoutMap from "../../components/LayoutMap";
 // import DropdownList from "../components/DropdownList";
 import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 
+import { GeolocationControl, Map, ObjectManager, Placemark, withYMaps, YMaps, ZoomControl } from "@pbe/react-yandex-maps";
 import styles from "./map.module.scss";
-import {
-  YMaps,
-  Map,
-  Placemark,
-  Button,
-  ZoomControl,
-  Clusterer,
-  GeolocationControl,
-  ObjectManager,
-  withYMaps,
-} from "@pbe/react-yandex-maps";
 
-import arrowLeft from "/public/img/arrowLeft.png";
-import allPlaces from "/public/img/allPlaces.png";
-import objectPhoto from "/public/img/churchObjectCard.png";
-import objectPhoto2 from "/public/img/churchObjectCard2.png";
-import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { getCookie } from "cookies-next";
+import { useDispatch } from "react-redux";
 import { loading } from "../../store/loaderSlice";
 import { toggle } from "../../store/notificationSlice";
-
-const myLoader = ({ src }) => {
-  return `/_next/static/media/${src}`;
-};
+import allPlaces from "/public/img/allPlaces.png";
+import arrowLeft from "/public/img/arrowLeft.png";
+import { createComplaint, Types } from "../../service/functions";
 
 const zoomOptions = {
   position: { right: 30, top: 50 },
@@ -48,13 +32,6 @@ const zoomOptions = {
 const geolocationOptions = {
   position: { right: 30, top: 280 },
 };
-
-const objectList = ["Москва, ул. Маяковского, д. 5, кв. 125", "Москва, ул. Другая, д. 5, кв. 125"];
-
-// !const objectList = [
-//   { address: "Москва, ул. Маяковского, д. 5, кв. 125", coordinates: [55.73, 37.55] },
-//   { address: "Москва, ул. Другая, д. 5, кв. 125", coordinates: [56.296, 44.006] },
-// ];
 
 const filterList = [
   { name: "Кафе, рестораны", color: "#35BB4B", pic: "/img/food.png", key: "cafe", placemark: "img/cafeMark.png" },
@@ -82,14 +59,6 @@ const getUglyCategory = (category) => {
 const getObjectProperties = (item) => {
   const { object, reviews, rating, count } = item;
   return {
-    // photos: [
-    //   "/img/churchObjectCard.png",
-    //   "/img/churchObjectCard2.png",
-    //   "/img/churchObjectCard.png",
-    //   "/img/churchObjectCard2.png",
-    //   "/img/churchObjectCard.png",
-    //   "/img/churchObjectCard2.png",
-    // ],
     coordinates: object.object.point.coordinates,
     photos: object.images || ["/img/no-image.jpg"],
     id: object.objectId,
@@ -107,63 +76,6 @@ const getObjectProperties = (item) => {
   };
 };
 
-const categories = filterList.map((item) => item.key);
-const categoriesHumanFriendly = filterList.map((item) => item.name);
-
-// let points = [];
-
-// <Placemark geometry={[56.3, 38.67]} />
-//           <Placemark geometry={[55.15, 36.47]} />
-// const getRandomBetween = (min, max) => {
-//   return Math.random() * (max - min) + min;
-// };
-// const getRandomInt = (max) => {
-//   return Math.floor(Math.random() * max);
-// };
-
-// const seedPoints = (points) => {
-//   for (let i = 0; i < 100; i++) {
-//     let randomInt = getRandomInt(filterList.length);
-//     let randomCategory = categories[randomInt];
-//     let randomHumanFriendlyCategory = categoriesHumanFriendly[randomInt];
-//     points[i] = {
-//       id: i,
-//       name: `Объект ${i}, ${randomCategory}`,
-//       coordinates: [getRandomBetween(55.15, 56.3), getRandomBetween(36.47, 38.67)],
-//       category: randomCategory,
-//       humanFriendlyCategory: randomHumanFriendlyCategory,
-//       address: `address ${i}`,
-//     };
-//     // console.log(points[i]);
-//   }
-// };
-
-// seedPoints(points);
-
-const sliderPhotos = ["/img/churchObjectCard.png", "/img/churchObjectCard2.png", "/img/churchObjectCard.png", "/img/churchObjectCard2.png"];
-
-const getPointData = (item, index) => {
-  return {
-    // iconLayout: "default#image",
-    // iconImageHref: item.placemark,
-    // iconImageSize: [300, 82],
-    // iconImageOffset: [-5, -38],
-    // balloonContentBody: "placemark <strong>balloon " + index + "</strong>",
-    balloonContent: item.name,
-    clusterCaption: "placemark <strong>" + index + "</strong>",
-  };
-};
-
-const getPointOptions = (item, index) => {
-  return {
-    iconLayout: "default#image",
-    iconImageHref: `img/${item.category}Mark.png`,
-    iconImageSize: [38, 50],
-    hasBalloon: false,
-    balloonContentBody: "test",
-  };
-};
-
 const dataConvert = (points) => {
   let features = [];
   points &&
@@ -172,9 +84,16 @@ const dataConvert = (points) => {
         type: "Feature",
         id: item.id,
         category: item.category,
-        geometry: item.point,
+        // geometry: item.point,
+        geometry: {
+          crs: { type: "name", properties: { name: "EPSG:4326" } },
+          type: "Point",
+          coordinates: [item.point.coordinates[1], item.point.coordinates[0]],
+        },
+        // geometry: [item.point.coordinates[1], item.point.coordinates[0]],
         options: { iconLayout: "default#image", iconImageHref: `img/${item.category}Mark.png`, iconImageSize: [38, 50] },
       };
+      console.log(item.point);
       return features.push(tmpObj);
     });
   return features;
@@ -301,18 +220,19 @@ export default function InteractiveMap(props) {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
+        console.log(res.data);
         const prepareData = () => {
           let data = [];
           res.data.forEach((item) => {
             return data.push({
               address: item.estateObject.address.split(",").slice(-2).join().trim() + ", " + item.estateObject.apartment,
-              coordinates: [+item.estateObject.latitude, +item.estateObject.longitude],
+              // coordinates: [+item.estateObject.latitude, +item.estateObject.longitude],
+              coordinates: [+item.estateObject.point.coordinates[1], +item.estateObject.point.coordinates[0]],
             });
           });
           return data;
         };
         res.data.length && setEstateObjects(prepareData());
-        console.log(res.data);
         setDropdownValue(
           res.data.length
             ? res.data[0].estateObject.address.split(",").slice(-2).join().trim() + ", " + res.data[0].estateObject.apartment
@@ -320,7 +240,8 @@ export default function InteractiveMap(props) {
         );
         setMapState({
           center: res.data.length
-            ? [res.data[0].estateObject.latitude, res.data[0].estateObject.longitude]
+            ? // ? [res.data[0].estateObject.latitude, res.data[0].estateObject.longitude]
+              [res.data[0].estateObject.point.coordinates[1], res.data[0].estateObject.point.coordinates[0]]
             : [55.74977233765063, 37.629171261904766],
           zoom: 15,
           behaviors: ["default", "scrollZoom"],
@@ -356,7 +277,6 @@ export default function InteractiveMap(props) {
         },
       });
       // setPoints(res.data);
-      console.log(res.data);
       setObjectInfoActive(getObjectProperties(res.data));
 
       // dispatch(updateRole({ role: res.data.role }));
@@ -377,7 +297,6 @@ export default function InteractiveMap(props) {
         });
 
         setPoints(res.data);
-
         // dispatch(updateRole({ role: res.data.role }));
       } catch (e) {
         console.log(e);
@@ -394,7 +313,6 @@ export default function InteractiveMap(props) {
           Authorization: getCookie("jkh-token"),
         },
       });
-      console.log(res.data);
       setRating(0);
       dispatch(toggle({ text: "Спасибо! Отзыв отправлен на модерацию", type: "success" }));
     } catch (e) {
@@ -410,7 +328,6 @@ export default function InteractiveMap(props) {
           Authorization: getCookie("jkh-token"),
         },
       });
-      console.log(res.data);
       dispatch(toggle({ text: "Спасибо! Комментарий отправлен на модерацию", type: "success" }));
       return true;
     } catch (e) {
@@ -423,7 +340,6 @@ export default function InteractiveMap(props) {
     const res = await axios.get(
       `https://geocode-maps.yandex.ru/1.x/?format=json&apikey=${process.env.NEXT_PUBLIC_YMAPS_KEY}&geocode=${coordinates}`
     );
-    console.log(res.data);
     //  const {data.response.GeoObjectCollection} = res
     // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text);
     const fullAddress = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
@@ -466,17 +382,12 @@ export default function InteractiveMap(props) {
       sendToModerator ? object.append("sendToModerator", true) : object.append("sendToModerator", false);
       modComment && object.append("modComment", modComment);
 
-      alert(JSON.stringify(object, null, 2));
-      console.log(object);
-      // object.append
-
       const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/map-objects`, object, {
         headers: {
           Authorization: getCookie("jkh-token"),
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log(res.data);
       dispatch(toggle({ text: "Спасибо! Объект отправлен на модерацию", type: "success" }));
       return true;
     } catch (e) {
@@ -484,8 +395,6 @@ export default function InteractiveMap(props) {
       dispatch(toggle({ text: e.response.data.message, type: "error" }));
     }
   };
-
-  // useEffect(() => points.length && console.log(points), [points]);
 
   const FilterBlock = ({ filterList }) => {
     return (
@@ -577,7 +486,6 @@ export default function InteractiveMap(props) {
       const newFiles = [...files];
       newFiles.splice(newFiles.indexOf(file), 1);
       setFiles(newFiles);
-      console.log(files);
     };
 
     const removeAll = () => {
@@ -612,16 +520,6 @@ export default function InteractiveMap(props) {
       // Make sure to revoke the data uris to avoid memory leaks, will run on unmount
       return () => files.forEach((file) => URL.revokeObjectURL(file.preview));
     }, []);
-
-    // return (
-    //   <div {...getRootProps()} className={styles.dragndropWrap}>
-    //     <div className={styles.dragndropField}>
-    //       <input {...getInputProps()} />
-    //       <p className={styles.dragndropText}>Перетащите сюда файлы или нажмите</p>
-    //       <p className={styles.dragndropWarn}>(максимум 10 файлов по 3 Мб)</p>
-    //     </div>
-    //   </div>
-    // );
 
     return (
       <section className={styles.dragndropWrap}>
@@ -701,14 +599,10 @@ export default function InteractiveMap(props) {
                 reply: "",
               }}
               validationSchema={Yup.object({
-                // category: Yup.string().required("Required"),
-                reply: Yup.string()
-                  // .max(20, "Must be 20 characters or less")
-                  .required("Обязательное поле"),
+                reply: Yup.string().required("Обязательное поле"),
               })}
               onSubmit={async (values) => {
                 values.reviewId = item.id;
-                // alert(JSON.stringify(values, null, 2));
                 const success = await createReply(values);
                 if (success) setIsReplyActive(!isReplyActive);
               }}>
@@ -781,28 +675,13 @@ export default function InteractiveMap(props) {
     );
   };
 
-  // const hasWindow = typeof window !== "undefined";
-  // let width = "";
-  // let height = "";
-
-  // const [expanded, setExpanded] = useState(false);
-  // useEffect(() => {
-  //   width = "100px";
-  //   height = "100px";
-  //   console.log("test");
-  // }, [expanded]);
-
-  //   myMap.events.add('click', function() {
-  //     myMap.balloon.close();
-  // });
-
   const setMenuState = (value) => {
     setMenuIsOpen(value);
   };
 
   const getCenter = () => {
     if (mapRef.current) {
-      console.log(mapRef.current.getCenter());
+      // console.log(mapRef.current.getCenter());
       return mapRef.current.getCenter();
     }
   };
@@ -827,7 +706,16 @@ export default function InteractiveMap(props) {
             <span className={styles.complaintHeading}>Пожаловаться на объект</span>
             <div className={styles.objectWrap}>
               <div className={styles.imageWrap}>
-                <Image src={objectInfoActive.photos[0]} width={90} height={72} />
+                <img
+                  onClick={() => console.log(objectInfoActive.photos)}
+                  src={
+                    objectInfoActive.photos[0] === "/img/no-image.jpg"
+                      ? objectInfoActive.photos[0]
+                      : `${process.env.NEXT_PUBLIC_API_URL}/uploads/map-objects/${objectInfoActive.photos[0]}`
+                  }
+                  width={90}
+                  height={72}
+                />
               </div>
               <div className={styles.objectInfoWrap}>
                 <div className={styles.complaintCategory}>{objectInfoActive.humanFriendlyCategory}</div>
@@ -840,44 +728,51 @@ export default function InteractiveMap(props) {
                 comment: "",
               }}
               onSubmit={(values) => {
-                if (values.issue == 5 && !values.comment) {
+                if (values.issue == "Другое" && !values.comment) {
                   setComplaintError(true);
-                  console.log("error");
                   return;
                 }
                 values.objectId = objectInfoActive.id;
-                alert(JSON.stringify(values, null, 2));
+                const data = {
+                  type: Types.mapObject,
+                  objectId: objectInfoActive.id,
+                  reason: values.issue,
+                  text: values.issue === "Другое" ? values.comment : undefined,
+                };
+                createComplaint(data);
+                // alert(JSON.stringify(data, null, 2));
+                dispatch(toggle({ type: "success", text: "Жалоба успешно отправлена" }));
                 setComplaintError(false);
                 setComplaintActive(false);
               }}>
               {({ values }) => (
                 <Form>
                   <div className={styles.form_radio}>
-                    <Field id='radio-1' className={styles.radio} type='radio' name='issue' value='1' />
+                    <Field id='radio-1' className={styles.radio} type='radio' name='issue' value='Объект отсутствует на указанном месте' />
                     <label htmlFor='radio-1'>Объект отсутствует на указанном месте</label>
                   </div>
 
                   <div className={styles.form_radio}>
-                    <Field id='radio-2' className={styles.radio} type='radio' name='issue' value='2' />
+                    <Field id='radio-2' className={styles.radio} type='radio' name='issue' value='Не соответствует описание' />
                     <label htmlFor='radio-2'>Не соответствует описание</label>
                   </div>
 
                   <div className={styles.form_radio}>
-                    <Field id='radio-3' className={styles.radio} type='radio' name='issue' value='3' />
+                    <Field id='radio-3' className={styles.radio} type='radio' name='issue' value='Не соответствуют фото' />
                     <label htmlFor='radio-3'>Не соответствуют фото</label>
                   </div>
 
                   <div className={styles.form_radio}>
-                    <Field id='radio-4' className={styles.radio} type='radio' name='issue' value='4' />
+                    <Field id='radio-4' className={styles.radio} type='radio' name='issue' value='Это реклама' />
                     <label htmlFor='radio-4'>Это реклама</label>
                   </div>
 
                   <div className={styles.form_radio}>
-                    <Field id='radio-5' className={styles.radio} type='radio' name='issue' value='5' />
+                    <Field id='radio-5' className={styles.radio} type='radio' name='issue' value='Другое' />
                     <label htmlFor='radio-5'>Другое</label>
                   </div>
 
-                  {values.issue == 5 ? (
+                  {values.issue == "Другое" ? (
                     <div className={styles.complaintFieldWrap}>
                       <Field
                         as='textarea'
@@ -960,66 +855,11 @@ export default function InteractiveMap(props) {
                 preset: "islands#orangeClusterIcons",
               }}
               features={dataConvert(points)}
-              // instanceRef={(ref) =>
-              //   // console.log(myMap)
-              //   ref?.objects.events.add("click", (e) => {
-              //     // Используем айдишник для того, чтобы далее получить инфу по метке
-              //     const objectId = e.get("objectId");
-              //     // console.log(ref.objects.getById(objectId));
-              //     getObjectById(ref.objects.getById(objectId).id);
-              //     ref?.objects.events.remove("click");
-              //     // console.log(ref.objects.getById(objectId).id);
-
-              //     // console.log(e);
-              //   })
-              // }
               onClick={(e) => {
-                console.log(e._sourceEvent._sourceEvent.originalEvent.objectId);
                 if (typeof e._sourceEvent._sourceEvent.originalEvent.objectId === "number")
                   getObjectById(e._sourceEvent._sourceEvent.originalEvent.objectId);
               }}
-              // options={{
-              //   preset: "islands#orangeClusterIcons",
-              //   // color: "#FF8C00",
-              //   hasBalloon: false,
-              //   groupByCoordinates: false,
-              //   clusterDisableClickZoom: false,
-              //   clusterHideIconOnBalloonOpen: false,
-              //   geoObjectHideIconOnBalloonOpen: false,
-              // }}
-              filter={(object) => object.category === activeFilter || activeFilter === "all"}>
-              {/* {!createObject
-              ? points.map((item, index) =>
-                  item.category == activeFilter || activeFilter == "all" ? (
-                    <Placemark
-                      onClick={() => {
-                        console.log(getObjectProperties(item));
-                        // setObjectInfoActive(objectInfoActive == item.id ? null : item.id);
-                        setObjectInfoActive(getObjectProperties(item));
-                        setLeftMenuIsOpen(true);
-                        // console.log(objectInfoActive.name);
-                      }}
-                      // onMouseEnter={() => {
-                      //   console.log(getObjectProperties(item));
-                      //   setObjectInfoActive(item.id);
-                      //   console.log(item.id);
-                      //   console.log(objectInfoActive);
-                      // }}
-                      // onMouseLeave={() => {
-                      //   setObjectInfoActive(null);
-                      //   console.log(objectInfoActive);
-                      // }}
-                      modules={["geoObject.addon.balloon"]}
-                      geometry={[item.latitude, item.longitude]}
-                      key={item.id}
-                      defaultProperties={getPointData(item, index)}
-                      defaultOptions={getPointOptions(item, index)}>
-                      <div className='test'></div>
-                    </Placemark>
-                  ) : null
-                )
-              : null} */}
-            </ObjectManager>
+              filter={(object) => object.category === activeFilter || activeFilter === "all"}></ObjectManager>
           )}
           {createObject ? (
             <Placemark
@@ -1038,19 +878,11 @@ export default function InteractiveMap(props) {
               onDragEnd={(event) => {
                 const coordinates = event.originalEvent.target.geometry.getCoordinates();
                 setDraggableCoords(coordinates);
-                console.log(coordinates);
               }}
             />
           ) : null}
           <GeolocationControl options={geolocationOptions} />
 
-          {/* <Button
-            options={addObjectBtnOptions}
-            data={addObjectBtnData}
-            onClick={() => {
-              setCreateObject(!createObject);
-              console.log(createObject);
-            }}></Button> */}
           <ZoomControl options={zoomOptions} />
           {routeDisplayed && <ThatMapThing />}
         </Map>
@@ -1129,11 +961,15 @@ export default function InteractiveMap(props) {
                   <div className={styles.objectName}>{objectInfoActive.name}</div>
                   <div className={styles.objectCategory}>{objectInfoActive.humanFriendlyCategory}</div>
                   <div className={styles.ratingWrap}>
-                    <Rating initialValue={objectInfoActive.rating} readonly={true} size={11} fillColor='#FF8C00' emptyColor='#D1D3DF' />
+                    <Rating
+                      initialValue={Math.round(objectInfoActive.rating * 100) / 100}
+                      readonly={true}
+                      size={11}
+                      fillColor='#FF8C00'
+                      emptyColor='#D1D3DF'
+                    />
                     <span className={styles.objectRating}>{objectInfoActive.rating}</span>
-                    <span className={styles.objectVotes} onClick={() => console.log(dropdownValue)}>
-                      {objectInfoActive.votes} оценок
-                    </span>
+                    <span className={styles.objectVotes}>{objectInfoActive.votes} оценок</span>
                   </div>
                   <div className={styles.objectBtnsWrap}>
                     <div
@@ -1173,7 +1009,6 @@ export default function InteractiveMap(props) {
                       ratingValue={rating}
                       onClick={(rate) => {
                         setRating(rate);
-                        // console.log(rating);
                       }}
                       size={25}
                       fillColor='#FF8C00'
@@ -1186,9 +1021,7 @@ export default function InteractiveMap(props) {
                       }}
                       onSubmit={(values) => {
                         values.objectId = objectInfoActive.id;
-                        // console.log(objectInfoActive.id);
                         values.rating = rating / 20;
-                        // alert(JSON.stringify(values, null, 2));
                         createReview(values);
                       }}>
                       <Form>
@@ -1246,13 +1079,8 @@ export default function InteractiveMap(props) {
                 modComment: "",
               }}
               validationSchema={Yup.object({
-                // category: Yup.string().required("Required"),
-                name: Yup.string()
-                  // .max(20, "Must be 20 characters or less")
-                  .required("Обязательное поле"),
+                name: Yup.string().required("Обязательное поле"),
                 description: Yup.string().required("Обязательное поле"),
-
-                // webPage: Yup.string().required("Обязательное поле"),
               })}
               onSubmit={async (values) => {
                 if (phoneStationary.includes("_") || phoneMobile.includes("_"))
@@ -1260,7 +1088,6 @@ export default function InteractiveMap(props) {
                 if (chosenCategory === "Выберите категорию") dispatch(toggle({ text: "Выберите категорию объекта", type: "error" }));
                 if (!draggableCoords) dispatch(toggle({ text: "Укажите объект на карте", type: "error" }));
                 else {
-                  console.log("test");
                   values.phoneStationary = phoneStationary;
                   values.phoneMobile = phoneMobile;
                   values.coordinates = draggableCoords;
@@ -1270,7 +1097,6 @@ export default function InteractiveMap(props) {
                   values.address = await (await getGeocode([draggableCoords[1], draggableCoords[0]])).address;
 
                   await postObject(values);
-                  // setCreateObject(false);
                 }
               }}>
               <Form>
@@ -1329,10 +1155,6 @@ export default function InteractiveMap(props) {
                         // setPhone(val);
                         setPhoneStationary(event.target.value);
                       }}
-                      onClick={() => {
-                        // console.log(phone.includes("_"));
-                        console.log(phoneError);
-                      }}
                     />
                   </div>
 
@@ -1351,10 +1173,6 @@ export default function InteractiveMap(props) {
                       onChange={(event) => {
                         // setPhone(val);
                         setPhoneMobile(event.target.value);
-                      }}
-                      onClick={() => {
-                        // console.log(phone.includes("_"));
-                        console.log(phoneError);
                       }}
                     />
                   </div>

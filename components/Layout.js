@@ -1,14 +1,13 @@
-import Link from "next/link";
-import Head from "next/head";
-import React, { useState, useEffect } from "react";
-import { getCookie, setCookie } from "cookies-next";
-import { useDispatch, useSelector } from "react-redux";
-import { useRouter } from "next/router";
 import axios from "axios";
-import { updateRole } from "../store/userSlice";
-import { toggle } from "../store/notificationSlice";
-import { ToastContainer, toast } from "react-toastify";
+import { getCookie, setCookie } from "cookies-next";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { toggle } from "../store/notificationSlice";
+import { updateRole } from "../store/userSlice";
 
 export default function Layout({ children }) {
   useEffect(() => {
@@ -64,10 +63,6 @@ export default function Layout({ children }) {
     }
   }, [notification]);
 
-  // useEffect(() => {
-  //   toast.warning("test");
-  // }, []);
-
   useEffect(() => {
     if (notification.text !== "") setTimeout(() => dispatch(toggle({ text: "", type: null })), 5000);
   }, [notification]);
@@ -76,13 +71,13 @@ export default function Layout({ children }) {
   const router = useRouter();
   useEffect(() => {
     if (role === "user") router.push("/trading-platform");
+    if (role === "uk" || role === "upravdom" || role === "admakers" || role === "stores" || role === "business") router.push("/workers");
   }, [role]);
 
   return (
     <div className='container'>
       <ToastContainer
         position='top-left'
-        // autoClose={5000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick

@@ -16,25 +16,17 @@ import "swiper/css/thumbs";
 
 import styles from "./chat.module.scss";
 
-import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
+import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 
-import io, { Manager } from "socket.io-client";
 import { getCookie } from "cookies-next";
 import { useDropzone } from "react-dropzone";
-import styled from "@emotion/styled";
-import { current } from "@reduxjs/toolkit";
+import { Manager } from "socket.io-client";
 import { toggle } from "../../store/notificationSlice";
 
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
-// import { socket } from "../../service/socket";
-
-// const socket = io("http://localhost:5000/", {
-//   autoConnect: false,
-//   query: `pseudonym=${pseudonym}`,
-// });
 
 const manager = new Manager(`${process.env.NEXT_PUBLIC_WS_ADDRESS}`, {
   autoConnect: false,
@@ -213,17 +205,25 @@ export default function Chat() {
           },
         });
 
+        console.log(res.data);
+
         const fetchedMessages = res.data.data.map((item) => {
           const serverDate = item.createdAt;
           const localDate = new Date(serverDate);
+          const name = item.user.profile ? item.user.profile.pseudonym : item.user.workerProfile.name;
+          const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
+          const profilePic = item.user.profile ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
+          const link = item.chatAd?.link ?? item.link;
           return {
             message: item.message,
             date: localDate,
             time: localDate.getHours().toString().padStart(2, "0") + ":" + localDate.getMinutes().toString().padStart(2, "0"),
-            name: item.user.profile.pseudonym,
-            color: item.user.profile.color,
-            profilePic: item.user.profile.profilePic,
+            link: link,
+            name: name,
+            color: color,
+            profilePic: profilePic,
             file: item.file,
+            isPaid: !item.user.profile,
             roomId: item.roomId,
           };
         });
@@ -251,22 +251,24 @@ export default function Chat() {
         const fetchedMessages = res.data.data.map((item) => {
           const serverDate = item.createdAt;
           const localDate = new Date(serverDate);
+          const name = item.user.profile ? item.user.profile.pseudonym : item.user.workerProfile.name;
+          const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
+          const profilePic = item.user.profile ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
           return {
             message: item.message,
             date: localDate,
             time: localDate.getHours().toString().padStart(2, "0") + ":" + localDate.getMinutes().toString().padStart(2, "0"),
-            name: item.user.profile.pseudonym,
-            color: item.user.profile.color,
+            name: name,
+            color: color,
+            profilePic: profilePic,
             file: item.file,
+            isPaid: !item.user.profile,
             roomId: item.roomId,
           };
         });
-        // console.log(initialMessages);
         if (!fetchedMessages.length) setStartReached((prev) => !prev);
         setMessages([...fetchedMessages, ...messages]);
-        // console.log(messages);
         setScrollPage((prev) => prev + 1);
-        // setScrollToBottom((prev) => prev + 1);
       } catch (e) {
         console.log(e);
       }
@@ -275,22 +277,20 @@ export default function Chat() {
 
   useEffect(() => {
     getMessages();
+    sendPing();
   }, [email, currentChatId]);
 
   const handleNewMessage = (data) => {
-    // setMessages([...messages, data]);
-    console.log("newmsg");
-    // if (!!data.file) {
-    //   const blob = new Blob([data.file]);
-    //   const url = URL.createObjectURL(blob);
-    //   console.log(url);
-    //   data = { ...data, file: url };
-    // }
-    console.log(data);
-    // messages.push(data);
-    // messages = [...messages, data];
+    if (Array.isArray(data.roomId)) {
+      console.log(data.roomId);
+      console.log(myChats.map((item) => item.id));
+      const filteredArray = data.roomId.filter((value) => myChats.map((item) => item.id).includes(value));
+      console.log(filteredArray);
+      if (!filteredArray.length) return;
+      // if (data.roomId.includes())
+    }
+
     setMessages((prev) => [...prev, data]);
-    console.log(messages);
     setScrollToBottom((prev) => prev + 1);
   };
 
@@ -319,7 +319,6 @@ export default function Chat() {
       const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/chat-rooms/sign-up?email=${email}&chat=${currentChatId}`, {
         headers: { Authorization: getCookie("jkh-token") },
       });
-      console.log(res.data);
       dispatch(toggle({ text: "Чат успешно удален", type: "success" }));
       const newChats = myChats.filter((item) => item.id !== currentChatId);
       setMyChats(newChats);
@@ -375,10 +374,8 @@ export default function Chat() {
       // );
 
       socket.on("message", (data) => {
-        console.log("msg");
         handleNewMessage(data);
-
-        // console.log(data);
+        console.log("new msg");
       });
 
       socket.emit(
@@ -398,10 +395,8 @@ export default function Chat() {
   }, [myChats]);
 
   const sendPing = () => {
-    // socket.emit("ping", email, currentChatId);
     if (!!email && !!currentChatId) {
       socket.emit("ping", [email, currentChatId]);
-      // console.log(email, currentChatId);
     }
   };
 
@@ -438,11 +433,6 @@ export default function Chat() {
     //   console.log(e);
     // }
   };
-
-  useEffect(() => {
-    const regularPing = setInterval(() => sendPing(), 1000);
-    return clearInterval(regularPing);
-  }, []);
 
   // useEffect(() => {
   //   async function chatConnect() {
@@ -490,7 +480,6 @@ export default function Chat() {
     const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/search/${email}?query=${query}&chat=${currentChatId}`, {
       headers: { Authorization: getCookie("jkh-token") },
     });
-    console.log(res);
     setSearchMessages(res.data.data);
   }
 
@@ -499,7 +488,6 @@ export default function Chat() {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/calendar/${email}?date=${date}&chat=${currentChatId}`, {
         headers: { Authorization: getCookie("jkh-token") },
       });
-      console.log(res.data.data);
       const messages = res.data.data.map((item) => {
         const serverDate = item.createdAt;
         const localDate = new Date(serverDate);
@@ -528,7 +516,7 @@ export default function Chat() {
     }
   };
 
-  const ChatMessage = ({ isMine = false, isPaid = false, name, text, profilePic, time, file, color }) => {
+  const ChatMessage = ({ isMine = false, isPaid = false, name, text, link, profilePic, time, file, color }) => {
     if (!!file && !file.includes("blob")) {
       file = file.slice(0, 4) === "data" ? file : `${process.env.NEXT_PUBLIC_API_URL}/uploads/chat/${file}`;
       // console.log(img);
@@ -563,14 +551,14 @@ export default function Chat() {
           )
         ) : null}
         <div className={styles.messageBubble}>
-          {!isMine && !isPaid && !!name && (
+          {!isMine && !!name && (
             <span className={styles.messagePersonName} style={{ color: color }}>
               {name}
             </span>
           )}
           {!!file && (
             <div className={styles.chatPicWrap}>
-              <img src={file} layout='responsive' style={{ maxWidth: "100%" }} />
+              <img src={file} layout='responsive' style={{ maxWidth: "100%", maxHeight: 500 }} />
 
               {/* <Image src='/img/temp/chatPic.png' width='100%' height='100%' layout='responsive' className={styles.chatPic} /> */}
             </div>
@@ -592,7 +580,13 @@ export default function Chat() {
           ) : (
             <div className={styles.partnerTimeWrap}>
               <span className={styles.partnerInfo}>
-                Это <span className={styles.hashtag}>#партнерский</span> пост
+                {/* Это <span className={styles.hashtag}>#партнерский</span> пост.{" "} */}
+                Это партнерский пост.{" "}
+                {!!link && (
+                  <a href={link.includes("http") ? link : `https://${link}`} className={styles.hashtag} target='_blank'>
+                    Перейдите по ссылке, чтобы узнать подробности.
+                  </a>
+                )}
               </span>
               <span className={styles.messageTime}>{actualTime}</span>
             </div>
@@ -613,7 +607,6 @@ export default function Chat() {
           });
 
           const chats = res.data.map((item) => item.chat);
-          console.log(chats);
           setMyChats(chats);
         } catch (e) {
           console.log(e);
@@ -711,7 +704,7 @@ export default function Chat() {
             <div className={styles.participantsBlock}>
               {!!chatUsers.length &&
                 chatUsers
-                  .filter((item) => parseInt(item.roomId) === currentChatId)[0]
+                  .filter((item) => parseInt(item.roomId) === currentChatId || item.roomId.includes(currentChatId.toString()))[0]
                   .users.map(
                     (item) =>
                       item.user.profile.pseudonym.toLowerCase().includes(chatUsersSearchField.toLowerCase()) && (
@@ -770,7 +763,9 @@ export default function Chat() {
                       <span className={styles.chatOptionsItem} onClick={() => leaveChat()}>
                         Покинуть чат
                       </span>
-                      <span className={styles.chatOptionsItem}>Отключить уведомления</span>
+                      <span className={styles.chatOptionsItem} onClick={() => console.log(messages)}>
+                        Отключить уведомления
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -815,7 +810,6 @@ export default function Chat() {
                     disabledKeyboardNavigation
                     onChange={(date) => {
                       setStartDate(date);
-                      console.log(date);
                     }}
                     ref={datepickerRef}
                     customInput={<CalendarBtnInput />}>
@@ -882,7 +876,7 @@ export default function Chat() {
             {/* {messages.map((item, index) => { */}
             {!calendarMessages.length
               ? messages
-                  .filter((item) => item.roomId === currentChatId)
+                  .filter((item) => (Array.isArray(item.roomId) ? item.roomId.includes(currentChatId) : item.roomId === currentChatId))
                   .map((item, index) => {
                     let date = "";
 
@@ -908,7 +902,9 @@ export default function Chat() {
                           key={index}
                           name={item.name}
                           text={item.message.replace(/\n/g, "<br/>")}
+                          link={item.link}
                           isMine={item.name === pseudonym}
+                          isPaid={item.isPaid}
                           time={item.time}
                           color={item.color}
                           profilePic={item.profilePic}
@@ -945,7 +941,9 @@ export default function Chat() {
                           key={index}
                           name={item.name}
                           text={item.message.replace(/\n/g, "<br/>")}
+                          link={item.link}
                           isMine={item.name === pseudonym}
+                          isPaid={item.isPaid}
                           time={item.time}
                           color={item.color}
                           profilePic={item.profilePic}
@@ -982,7 +980,6 @@ export default function Chat() {
                   className={styles.chatScrollToBottomBtn}
                   onClick={() => {
                     setScrollToBottom((prev) => prev + 1);
-                    console.log(scrollToBottom);
                     setCalendarMessages([]);
                   }}></button>
               </div>

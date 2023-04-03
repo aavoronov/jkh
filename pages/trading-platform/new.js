@@ -18,6 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 import { toggle } from "../../store/notificationSlice";
 import { loading } from "../../store/loaderSlice";
+import InputMask from "react-input-mask";
 
 const categories = [
   // "Любая категория",
@@ -65,7 +66,7 @@ export default function Product(props) {
   const email = useSelector((state) => state.user.email);
   const dispatch = useDispatch();
 
-  console.log(router.query.id);
+  // console.log(router.query.id);
   const productId = router.query.id;
 
   useEffect(() => {
@@ -75,7 +76,6 @@ export default function Product(props) {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trading-platform/${productId}`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
-        console.log(res.data);
         const { condition, description, hasTelegram, hasWhatsapp, images, location, name, phone, price, subcategory, wts } = res.data;
 
         setCondition(condition);
@@ -112,7 +112,6 @@ export default function Product(props) {
             Authorization: getCookie("jkh-token"),
           },
         });
-        console.log(res.data);
         setCategories(res.data);
       } catch (e) {}
     }
@@ -144,8 +143,7 @@ export default function Product(props) {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log(res.data);
-      router.push("/trading-platform");
+      // router.push("/trading-platform");
       dispatch(toggle({ text: "Объявление успешно создано", type: "success" }));
     } catch (e) {
       console.log(e);
@@ -164,27 +162,10 @@ export default function Product(props) {
         files.map(async (item) => {
           if (typeof item === "object") {
             product.append("files", item);
-            console.log(item);
           } else {
-            console.log(`${process.env.NEXT_PUBLIC_API_URL}/uploads/trading-platform/${item}`);
-            // console.log(`${item.slice(item.lastIndexOf("."))}`);
-            // fetch(`${process.env.NEXT_PUBLIC_API_URL}/uploads/trading-platform/${item}`)
-            //   .then(function (response) {
-            //     return response.blob();
-            //   })
-            //   .then(function (blob) {
-            //     // here the image is a blob
-            //     console.log(blob);
-            //     product.append("files", blob);
-            //   });
             const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/uploads/trading-platform/${item}`, {
               responseType: "arraybuffer",
             });
-
-            console.log(response.data);
-
-            // const base64 = response.data.toString("base64");
-            // console.log(base64);
             function _arrayBufferToBase64(buffer) {
               var binary = "";
               var bytes = new Uint8Array(buffer);
@@ -272,8 +253,6 @@ export default function Product(props) {
       // product.append("isVip", promoSecondary.type === "Выделить лейблом VIP" ? true : false);
       product.append("email", email);
 
-      console.log(product);
-
       const res = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/trading-platform/${productId}`, product, {
         headers: {
           Authorization: getCookie("jkh-token"),
@@ -281,7 +260,6 @@ export default function Product(props) {
           "Content-Type": "multipart/formdata",
         },
       });
-      console.log(res.data);
       // router.push("/trading-platform");
       dispatch(toggle({ text: "Объявление успешно обновлено", type: "success" }));
     } catch (e) {
@@ -354,7 +332,6 @@ export default function Product(props) {
       const newFiles = [...files];
       newFiles.splice(newFiles.indexOf(file), 1);
       setFiles(newFiles);
-      console.log(files);
     };
 
     const removeAll = () => {
@@ -557,7 +534,7 @@ export default function Product(props) {
         {sectionToDisplay == "3" ? (
           <div className={styles.section + " " + styles.section3}>
             <span className={styles.category}>Категория</span>
-            <span className={styles.categoryValue} onClick={() => console.log(selectedSubcategoryId)}>
+            <span className={styles.categoryValue}>
               {selectedCategory} / {selectedSubcategory}
             </span>
             <span className={styles.categoriesHeader}>Параметры</span>
@@ -667,9 +644,16 @@ export default function Product(props) {
             <span className={styles.categoriesHeader}>Условия сделки</span>
 
             <div className={styles.fieldWrap}>
-              <label htmlFor='price' className={styles.fieldName}>
+              <label
+                htmlFor='price'
+                className={styles.fieldName}
+                onClick={() => {
+                  const re = /^[0-9\b]+$/;
+                  console.log(re.test(price));
+                }}>
                 Цена, ₽*
               </label>
+
               <input
                 name='price'
                 type='text'
@@ -677,7 +661,10 @@ export default function Product(props) {
                 className={styles.field}
                 value={price}
                 onChange={(e) => {
-                  setPrice(e.target.value);
+                  const re = /^[0-9\b]+$/;
+                  if (e.target.value === "" || re.test(e.target.value)) {
+                    setPrice(e.target.value);
+                  }
                 }}
               />
             </div>
@@ -688,7 +675,16 @@ export default function Product(props) {
               <label htmlFor='phone' className={styles.fieldName}>
                 Телефон*
               </label>
-              <input
+              <InputMask
+                className={styles.field}
+                mask='+7 (999) 999-99-99'
+                value={phone}
+                onChange={(event) => {
+                  // setPhone(val);
+                  setPhone(event.target.value);
+                }}
+              />
+              {/* <input
                 name='phone'
                 type='text'
                 placeholder='Укажите номер телефона'
@@ -697,7 +693,7 @@ export default function Product(props) {
                 onChange={(e) => {
                   setPhone(e.target.value);
                 }}
-              />
+              /> */}
             </div>
 
             <div className={styles.fieldWrap}>

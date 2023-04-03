@@ -33,12 +33,14 @@ const Pagination = (props) => {
             ? styles["paginationArrow"] + " " + styles["left"] + " " + styles.disabled
             : styles["paginationArrow"] + " " + styles["left"]
         }
-        onClick={onPrevious}>
-        <div className={styles.arrow + " " + styles.left} />
-      </li>
+        onClick={onPrevious}></li>
       {paginationRange.map((pageNumber) => {
         if (pageNumber === DOTS) {
-          return <li className={styles["pagination-item"] + " " + styles.dots}>&#8230;</li>;
+          return (
+            <li className={styles["pagination-item"] + " " + styles.dots} key={pageNumber}>
+              &#8230;
+            </li>
+          );
         }
 
         return (
@@ -51,9 +53,7 @@ const Pagination = (props) => {
       })}
       <li
         className={currentPage === lastPage ? styles["paginationArrow"] + " " + styles.disabled : styles["paginationArrow"]}
-        onClick={onNext}>
-        <div className={styles.arrow + " " + styles.right} />
-      </li>
+        onClick={onNext}></li>
     </ul>
   );
 };

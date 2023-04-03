@@ -1,14 +1,10 @@
-import React, { useState, useRef } from "react";
-import { Field, Form, Formik, ErrorMessage } from "formik";
 import ProgressBar from "@ramonak/react-progress-bar";
-import LayoutLoggedIn from "../../components/LayoutLoggedIn";
-import EstateObject from "../../components/EstateObject";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Field, Form, Formik } from "formik";
+import React, { useRef, useState } from "react";
 import { Navigation } from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
-
-import { objectsData } from "../../components/data";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 import LayoutWorker from "../../components/LayoutWorker";
 import styles from "./workers.module.scss";

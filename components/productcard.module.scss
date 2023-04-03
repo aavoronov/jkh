@@ -1,6 +1,12 @@
 .productItem {
   background: #ffffff;
-  place-self: center;
+  display: flex;
+  flex-direction: column;
+  max-width: 260px;
+  // justify-content: space-between;
+  justify-content: stretch;
+  align-items: stretch;
+  // place-self: center;
 }
 
 .border {
@@ -31,6 +37,8 @@
   line-height: 130%;
   color: #1c1c1c;
   width: 90%;
+  max-width: 230px;
+  word-wrap: break-word;
   cursor: pointer;
 }
 
@@ -94,7 +102,7 @@
     margin-bottom: 8px;
   }
   .productItem {
-    max-width: 260px;
+    max-width: 236px;
   }
   .productName {
     font-size: 16px;

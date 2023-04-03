@@ -1,22 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import React, { useState } from "react";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
-import { Carousel } from "react-responsive-carousel";
-import { Rating } from "react-simple-star-rating";
-import { RotatingLines } from "react-loader-spinner";
 
 import LayoutLoggedIn from "../../components/LayoutLoggedIn";
-import LayoutMap from "../../components/LayoutMap";
-import AdItem from "../../components/AdItem";
-import ServiceAd from "../../components/ServiceAd";
 // import DropdownList from "../components/DropdownList";
-import arrowLeft from "/public/img/arrowLeft.png";
 
 import styles from "./allservices.module.scss";
-import { objectList, servicesList, portfolio, mastersData } from "../../components/data";
 
 import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 

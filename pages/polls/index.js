@@ -23,7 +23,7 @@ import "swiper/css/navigation";
 import "swiper/css/thumbs";
 
 import styles from "./polls.module.scss";
-import { objectList, servicesList, portfolio, mastersData } from "../../components/data";
+import { objectList } from "../../components/data";
 
 import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 

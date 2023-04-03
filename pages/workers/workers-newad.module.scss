@@ -142,16 +142,6 @@
   display: block;
   color: #ffffff;
   margin-right: 22px;
-  width: 60px;
-  height: 60px;
-}
-
-.orgProfilePic {
-  margin-right: 22px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
 }
 
 .orgData {
@@ -585,7 +575,7 @@
 }
 
 .submitBtn {
-  width: 180px;
+  width: 200px;
   display: block;
   margin: 0 auto;
   border-width: 0;
@@ -711,18 +701,6 @@
     position: absolute;
     bottom: 5px;
   }
-}
-
-.messageTime {
-  font-weight: 400;
-  font-size: 12px;
-  line-height: 130%;
-  letter-spacing: 0.04em;
-  color: #78829b;
-  justify-self: flex-end;
-  align-self: flex-end;
-  position: absolute;
-  bottom: 3px;
 }
 
 .partnerTimeWrap {
@@ -892,17 +870,15 @@
   & .orgLetters {
     font-weight: 500;
     font-size: 22px;
-    line-height: 300%;
+    line-height: 130%;
     /* or 28px */
 
-    // text-align: center;
+    text-align: center;
 
     /* FFFFFF */
-    width: 100px;
-    height: 100px;
 
     color: #ffffff;
-    // padding: 35px;
+    padding: 35px;
     position: absolute;
     top: 97px;
     // left: -150px;
@@ -938,153 +914,6 @@
       transition: all 0.2s;
     }
   }
-  & .orgProfilePic {
-    margin-right: 22px;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-  & .orgProfilePicWrap {
-    position: absolute;
-    top: 97px;
-    // left: -150px;
-    left: 30px;
-    &::after {
-      content: "";
-      position: absolute;
-      background-image: url("/img/pencil.png");
-      background-size: 19px 19px;
-      background-position: 50%;
-      width: 21px;
-      height: 21px;
-      display: block;
-
-      bottom: 0;
-      right: 25px;
-      background-color: #fff;
-      border-radius: 50%;
-      box-shadow: 0px 0px 2.94059px rgba(0, 0, 0, 0.25);
-      transition: all 0.2s;
-    }
-    &:hover::after {
-      // filter: brightness(80%);
-      transform: scale(1.1);
-      transition: all 0.2s;
-    }
-  }
-  & .thumbsContainer {
-    display: grid;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    grid-template-columns: repeat(1, 1fr);
-    // flex-direction: "row";
-    // flex-wrap: "wrap";
-  }
-
-  & .thumb {
-    display: inline-flex;
-    // border-radius: 20px;
-    // margin-bottom: 8px;
-    // margin-right: 8px;
-    width: 100%;
-    height: 100%;
-    padding: 4px;
-    overflow: hidden;
-    // border: 1px solid #e0e0e0;
-    filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.04));
-    border-radius: 10px;
-  }
-  & .thumbInner {
-    display: flex;
-    width: 100%;
-    overflow: hidden;
-    flex-direction: column;
-    & img {
-      border-radius: 50%;
-    }
-  }
-  & .img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-  }
-  & .fileName {
-    font-size: 10px;
-  }
-  & .imageRemove {
-    box-sizing: border-box;
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding: 0;
-    width: 25px;
-    min-height: 25px;
-    border-radius: 15px;
-    background: none;
-    border: 1px solid black;
-    background-color: white;
-    background-image: url("/img/cross.png");
-    background-repeat: no-repeat;
-    background-size: 12px;
-    background-position: center;
-    transition: all 0.2s;
-    cursor: pointer;
-    &:hover {
-      background-color: #d8d8d8;
-      transition: all 0.2s;
-    }
-  }
-
-  & .dragndropWrap {
-    border: 1px solid #c4c6d6;
-    border-radius: 5px;
-    padding: 10px;
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    position: absolute;
-    // margin: 0 auto;
-  }
-
-  & .dragndropField {
-    background-color: #f5f5f5;
-    background-image: url("/img/Camera.png");
-    background-size: 51px;
-    background-position: 50%;
-    background-repeat: no-repeat;
-    border-radius: 5px;
-    cursor: pointer;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    // padding: 50px 42px;
-    transition: all 0.2s;
-    &::after {
-      display: none;
-    }
-    &.hoveredOver {
-      background-color: #bdbdbd;
-      transition: all 0.2s;
-    }
-  }
-
-  & .dragndropText {
-    font-size: 12px;
-    text-align: center;
-  }
-
-  & .dragndropWarn {
-    font-size: 10px;
-    text-align: center;
-  }
-
-  //------------------------------dropzone--------------------------//
 }
 .editOrgProfile {
 }
@@ -1171,8 +1000,7 @@
   height: 24px;
   display: block;
   position: absolute;
-  // top: 5px;
-  bottom: 6px;
+  top: 5px;
   right: 15px;
   cursor: pointer;
 }
@@ -1401,81 +1229,80 @@
   height: 36px;
   position: relative;
   // margin: 0 auto;
-}
+  & .dragndropField {
+    // background-color: #f5f5f5;
+    // background-image: url("/img/Camera.png");
+    // background-size: 51px;
+    // background-position: 50%;
+    // background-repeat: no-repeat;
+    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='5' ry='5' stroke='%23C4C6D6FF' stroke-width='2' stroke-dasharray='6%2c 6' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+    border-color: #c4c6d6;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    // padding: 50px 42px;
+    transition: all 0.2s;
+    &::after {
+      display: block;
+      content: "+";
+      position: absolute;
+      right: 14px;
+      bottom: 6px;
+      background: #ff8c00;
+      width: 24px;
+      height: 24px;
+      color: #fff;
+      font-size: 20px;
+      line-height: 24px;
+      text-align: center;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    &:hover {
+      &::after {
+        filter: brightness(120%);
+        transition: all 0.2s;
+      }
+    }
+    &.hoveredOver {
+      // background-color: #bdbdbd;
+      background-image: none;
+      // border: 1px solid #c4c6d6;
+      background-color: #ffffff;
+      background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='5' ry='5' stroke='%23C4C6D6FF' stroke-width='2' stroke-dasharray='6%2c0' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+      transition: all 0.2s;
+      &::after {
+        filter: brightness(120%);
+        transition: all 0.2s;
+      }
+    }
+  }
 
-.dragndropField {
-  // background-color: #f5f5f5;
-  // background-image: url("/img/Camera.png");
-  // background-size: 51px;
-  // background-position: 50%;
-  // background-repeat: no-repeat;
-  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='5' ry='5' stroke='%23C4C6D6FF' stroke-width='2' stroke-dasharray='6%2c 6' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
-  border-color: #c4c6d6;
-  border-radius: 5px;
-  cursor: pointer;
-  width: 100%;
-  height: 100%;
-  // padding: 50px 42px;
-  transition: all 0.2s;
-  &::after {
-    display: block;
-    content: "+";
-    position: absolute;
-    right: 14px;
-    bottom: 6px;
-    background: #ff8c00;
-    width: 24px;
-    height: 24px;
-    color: #fff;
-    font-size: 20px;
-    line-height: 24px;
+  & .dragndropText {
+    font-size: 12px;
     text-align: center;
-    border-radius: 50%;
-    transition: all 0.2s;
   }
-  &:hover {
-    &::after {
-      filter: brightness(120%);
-      transition: all 0.2s;
-    }
+
+  & .dragndropWarn {
+    font-size: 10px;
+    text-align: center;
   }
-  &.hoveredOver {
-    // background-color: #bdbdbd;
-    background-image: none;
-    // border: 1px solid #c4c6d6;
-    background-color: #ffffff;
-    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='5' ry='5' stroke='%23C4C6D6FF' stroke-width='2' stroke-dasharray='6%2c0' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
-    transition: all 0.2s;
-    &::after {
-      filter: brightness(120%);
-      transition: all 0.2s;
-    }
+
+  & .dragndropPlaceholder {
+    height: 100%;
+    display: block;
+    line-height: 36px;
+    font-weight: 400;
+    font-size: 12px;
+
+    /* or 19px */
+
+    /* 07244E */
+
+    color: #07244e;
+    padding-left: 16px;
   }
-}
-
-.dragndropText {
-  font-size: 12px;
-  text-align: center;
-}
-
-.dragndropWarn {
-  font-size: 10px;
-  text-align: center;
-}
-
-.dragndropPlaceholder {
-  height: 100%;
-  display: block;
-  line-height: 36px;
-  font-weight: 400;
-  font-size: 12px;
-
-  /* or 19px */
-
-  /* 07244E */
-
-  color: #07244e;
-  padding-left: 16px;
 }
 
 //-----------------------------------dropzone------------------------//
@@ -1561,156 +1388,6 @@
   padding: 15px 10px 15px 13px;
   &:hover {
     text-decoration: underline;
-  }
-}
-
-.dragndropWrapNewAd {
-  background-color: #ffffff;
-  width: 100%;
-  height: 36px;
-  position: relative;
-  // margin: 0 auto;
-  & .dragndropField {
-    // background-color: #f5f5f5;
-    // background-image: url("/img/Camera.png");
-    // background-size: 51px;
-    // background-position: 50%;
-    // background-repeat: no-repeat;
-    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='5' ry='5' stroke='%23C4C6D6FF' stroke-width='2' stroke-dasharray='6%2c 6' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
-    border-color: #c4c6d6;
-    border-radius: 5px;
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
-    // padding: 50px 42px;
-    transition: all 0.2s;
-    &::after {
-      display: block;
-      content: "+";
-      position: absolute;
-      right: 14px;
-      bottom: 6px;
-      background: #ff8c00;
-      width: 24px;
-      height: 24px;
-      color: #fff;
-      font-size: 20px;
-      line-height: 24px;
-      text-align: center;
-      border-radius: 50%;
-      transition: all 0.2s;
-    }
-    &:hover {
-      &::after {
-        filter: brightness(120%);
-        transition: all 0.2s;
-      }
-    }
-    &.hoveredOverNewAd {
-      // background-color: #bdbdbd;
-      background-image: none;
-      // border: 1px solid #c4c6d6;
-      background-color: #ffffff;
-      background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='5' ry='5' stroke='%23C4C6D6FF' stroke-width='2' stroke-dasharray='6%2c0' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
-      transition: all 0.2s;
-      &::after {
-        filter: brightness(120%);
-        transition: all 0.2s;
-      }
-    }
-  }
-
-  & .dragndropTextNewAd {
-    font-size: 12px;
-    text-align: center;
-  }
-
-  & .dragndropWarnNewAd {
-    font-size: 10px;
-    text-align: center;
-  }
-
-  & .dragndropPlaceholderNewAd {
-    height: 100%;
-    display: block;
-    line-height: 36px;
-    font-weight: 400;
-    font-size: 12px;
-
-    /* or 19px */
-
-    /* 07244E */
-
-    color: #07244e;
-    padding-left: 16px;
-  }
-}
-
-.thumbsContainerNewAd {
-  display: grid;
-  // position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  grid-template-columns: repeat(1, 1fr);
-  // flex-direction: "row";
-  // flex-wrap: "wrap";
-
-  & .thumb {
-    display: inline-flex;
-    // border-radius: 20px;
-    // margin-bottom: 8px;
-    // margin-right: 8px;
-    width: 100%;
-    height: 100%;
-    padding: 4px;
-    overflow: hidden;
-    // border: 1px solid #e0e0e0;
-    filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.04));
-    border-radius: 10px;
-  }
-  & .thumbInner {
-    display: flex;
-    width: 100%;
-    overflow: hidden;
-    flex-direction: column;
-    & img {
-      border-radius: 5px;
-    }
-  }
-  & .img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-  }
-  & .fileName {
-    font-size: 10px;
-  }
-  & .imageRemove {
-    box-sizing: border-box;
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding: 0;
-    width: 25px;
-    min-height: 25px;
-    border-radius: 15px;
-    background: none;
-    border: 1px solid black;
-    background-color: white;
-    background-image: url("/img/cross.png");
-    background-repeat: no-repeat;
-    background-size: 12px;
-    background-position: center;
-    transition: all 0.2s;
-    cursor: pointer;
-    &:hover {
-      background-color: #d8d8d8;
-      transition: all 0.2s;
-    }
   }
 }
 

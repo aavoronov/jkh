@@ -4,11 +4,14 @@ const userSlice = createSlice({
   name: "user",
   initialState: {
     email: "",
+    phone: "",
     role: "",
     pseudonym: "",
     color: "",
     profilePic: "",
     notifications: 0,
+    balance: 0,
+    address: "",
   },
   reducers: {
     updateRole(state, action) {
@@ -28,11 +31,20 @@ const userSlice = createSlice({
       console.log(state);
       console.log(action);
     },
+    updatePhone(state, action) {
+      state.phone = action.payload.phone;
+    },
     updateNotifications(state, action) {
       state.notifications = action.payload.notifications;
+    },
+    updateBalance(state, action) {
+      state.balance = action.payload.balance;
+    },
+    updateAddress(state, action) {
+      state.address = action.payload.address;
     },
   },
 });
 
-export const { updateRole, updateProfile, updateEmail, updateNotifications } = userSlice.actions;
+export const { updateRole, updateProfile, updateEmail, updateNotifications, updatePhone, updateBalance, updateAddress } = userSlice.actions;
 export default userSlice.reducer;

@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-import LayoutLoggedIn from "../../../components/LayoutLoggedIn";
-import EstateObject from "../../../components/EstateObject";
-
-import { objectsData } from "../../../components/data";
-
-import LayoutWorker from "../../../components/LayoutWorker";
-import styles from "../workers.module.scss";
-import InputMask from "react-input-mask";
-import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/router";
+import { useDropzone } from "react-dropzone";
+import LayoutWorker from "../../../components/LayoutWorker";
+import styles from "../workers-newad.module.scss";
+import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
+import { getCookie } from "cookies-next";
+import { toggle } from "../../../store/notificationSlice";
 
 const displayZones = ["Москва и МО", "Ленинград и ЛО", "Свердловск и СО"];
 
@@ -40,17 +38,101 @@ const DropdownList = ({ objects, value, setValue }) => {
   );
 };
 
-export default function WorkerProfile(props) {
+export default function CreateChatAd(props) {
   const router = useRouter();
   const profileData = {
     // photo: "/img/temp/adProfilePic.png",
     orgName: "Компания Бизнес Альянс Компани",
   };
-  const [orgName, setOrgName] = useState(profileData.orgName);
+  const [orgName, setOrgName] = useState("");
   const [displayZone, setDisplayZone] = useState(displayZones[0]);
   const [files, setFiles] = useState([]);
   const [radius, setRadius] = useState(null);
+  const [description, setDescription] = useState("");
+  const [prices, setPrices] = useState([]);
+  const [link, setLink] = useState("");
+  const [hours, setHours] = useState("");
+  const [minutes, setMinutes] = useState("");
 
+  useEffect(() => {
+    async function getChatsInRadius() {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat-rooms/ad-prices`, {
+          headers: { Authorization: getCookie("jkh-token") },
+        });
+        console.log(res.data);
+        setPrices(res.data);
+      } catch (e) {
+        console.log(e);
+      }
+      // ...
+      // return null;
+    }
+    getChatsInRadius();
+  }, []);
+
+  const g_orgName = useSelector((state) => state.user.pseudonym);
+  const g_address = useSelector((state) => state.user.address);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (!!g_orgName) {
+      setOrgName(g_orgName);
+    }
+  }, [g_orgName]);
+
+  const createChatAd = async () => {
+    try {
+      if (!files.length) {
+        throw new Error("Прикрепите изображение");
+      }
+      if (!description) {
+        throw new Error("Заполните поле текста объявления");
+      }
+      if (!link) {
+        throw new Error("Заполните поле ссылки");
+      }
+      if (!hours) {
+        throw new Error("Заполните поле часов публикации");
+      }
+      if (!minutes) {
+        throw new Error("Заполните поле минут публикации");
+      }
+
+      if (hours > 23 || minutes > 59) {
+        throw new Error("Некорректный формат времени публикации");
+      }
+
+      const pricesItem = prices.find((item) => item.radius === radius);
+      console.log(pricesItem);
+      const data = new FormData();
+      // data.append('name', name)
+      // data.append("name", pseudonym);
+      data.append("image", files[0]);
+      data.append("description", description);
+      data.append("link", link);
+      data.append("hours", hours);
+      data.append("minutes", minutes);
+      data.append("radius", pricesItem.radius);
+      data.append("chats", pricesItem.ids);
+      data.append("price", pricesItem.price);
+
+      console.log(data);
+
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/chat-ads`, data, {
+        // "Content-Type": "multipart/form-data",
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: getCookie("jkh-token"),
+        },
+      });
+      console.log(res.data);
+      dispatch(toggle({ text: "Объявление отправлено на модерацию", type: "success" }));
+      router.push("/workers/ads");
+    } catch (e) {
+      dispatch(toggle({ text: e.response?.data?.message ?? e.message, type: "error" }));
+    }
+  };
   const Dropzone = () => {
     const [isDraggedOver, setIsDraggedOver] = useState(false);
 
@@ -138,7 +220,10 @@ export default function WorkerProfile(props) {
       <>
         <div className={styles.dragndropWrap}>
           {!files.length ? (
-            <div {...getRootProps({ className: isDraggedOver ? styles.dragndropField + " " + styles.hoveredOver : styles.dragndropField })}>
+            <div
+              {...getRootProps({
+                className: isDraggedOver ? styles.dragndropField + " " + styles.hoveredOver : styles.dragndropField,
+              })}>
               <input {...getInputProps()} />
               <span className={styles.dragndropPlaceholder}>Разместить изображение</span>
               {/* <p className={styles.dragndropText}>Перетащите сюда файлы или нажмите</p>
@@ -161,17 +246,13 @@ export default function WorkerProfile(props) {
               <label htmlFor='orgName' className={styles.fieldName}>
                 Организация
               </label>
-              <input
-                name='orgName'
-                type='text'
-                placeholder=''
-                className={styles.field}
-                value={orgName}
-                onChange={(e) => {
-                  setOrgName(e.target.value);
-                  console.log(e.target.value);
-                }}
-              />
+              <input disabled name='orgName' type='text' placeholder='' className={styles.field} value={orgName} />
+            </div>
+            <div className={styles.fieldWrap}>
+              <label htmlFor='orgName' className={styles.fieldName}>
+                Адрес
+              </label>
+              <input disabled name='orgName' type='text' placeholder='' className={styles.field} value={g_address} />
             </div>
 
             <div className={styles.fieldWrap}>
@@ -184,12 +265,13 @@ export default function WorkerProfile(props) {
               </label>
               <textarea
                 name='description'
-                maxLength={1000}
                 rows={10}
                 resize='none'
                 type='text'
                 placeholder='Введите текст'
                 className={styles.field + " " + styles.textarea}
+                maxLength={1000}
+                onChange={(e) => setDescription(e.target.value)}
               />
               <div className={styles.warningWrap}>
                 {/* <span className={styles.errorText}>
@@ -201,150 +283,117 @@ export default function WorkerProfile(props) {
             </div>
 
             <div className={styles.fieldWrap}>
-              <label htmlFor='orgName' className={styles.fieldName}>
+              <label htmlFor='link' className={styles.fieldName}>
                 Укажите ссылку на ваш сайт
               </label>
               <input
-                name='orgName'
+                name='link'
                 type='text'
                 placeholder=''
                 className={styles.field}
-                // value={orgName}
-                // onChange={(e) => {
-                //   setOrgName(e.target.value);
-                //   console.log(e.target.value);
-                // }}
+                value={link}
+                onChange={(e) => {
+                  setLink(e.target.value);
+                }}
               />
             </div>
 
             <span className={styles.sectionHeader}>Условия размещения</span>
 
-            <div className={styles.fieldWrap}>
+            {/* <div className={styles.fieldWrap}>
               <label htmlFor='orgName' className={styles.fieldName}>
                 Где показывать
               </label>
               <DropdownList objects={displayZones} value={displayZone} setValue={setDisplayZone} />
-            </div>
+            </div> */}
 
             <div className={styles.fieldWrap + " " + styles.twoSmallFields}>
               <div className={styles.smallField}>
-                <label htmlFor='email' className={styles.fieldName}>
-                  Время публикации
+                <label htmlFor='hours' className={styles.fieldName}>
+                  Время публикации (по Москве)
                 </label>
                 <input
-                  name='email'
-                  type='email'
+                  name='hours'
+                  type='hours'
                   placeholder='Часы'
                   className={styles.field}
-                  // value={email}
-                  // onChange={(e) => {
-                  //   setNickname(e.target.value);
-                  //   console.log(e.target.value);
-                  // }}
+                  value={hours}
+                  onChange={(e) => {
+                    const reg = /^\d+$/;
+                    if ((e.target.value === "" || reg.test(e.target.value)) && e.target.value.length <= 2) {
+                      setHours(e.target.value);
+                    }
+                  }}
                 />
               </div>
               <div className={styles.smallField}>
-                <label htmlFor='email' className={styles.fieldName}></label>
+                <label htmlFor='minutes' className={styles.fieldName}></label>
                 <input
-                  name='email'
-                  type='email'
+                  name='minutes'
+                  type='minutes'
                   placeholder='Минуты'
                   className={styles.field}
-                  // value={email}
-                  // onChange={(e) => {
-                  //   setNickname(e.target.value);
-                  //   console.log(e.target.value);
-                  // }}
+                  value={minutes}
+                  onChange={(e) => {
+                    const reg = /^\d+$/;
+                    if ((e.target.value === "" || reg.test(e.target.value)) && e.target.value.length <= 2) {
+                      setMinutes(e.target.value);
+                    }
+                  }}
                 />
               </div>
+            </div>
+            <div className={styles.fieldWrap}>
+              <label htmlFor='hours' className={styles.fieldName}>
+                Будет округлено до ближайшей следующей пятой минуты.
+              </label>
             </div>
 
             <div className={styles.fieldWrap}>
               <span className={styles.fieldName}>Радиус показа</span>
 
-              <div
-                className={styles.form_radio}
-                onClick={() => {
-                  // setPromotionSecondary("Выделить лейблом VIP");
-                  // setPromotionSecondaryPrice(500);
-                  setRadius("10 км (15 чатов)");
-                }}>
-                <input
-                  id='radius-1'
-                  className={styles.radio}
-                  type='radio'
-                  name='radius'
-                  value='10 км (15 чатов)'
-                  // checked={promoSecondary.type == "Выделить лейблом VIP"}
-                />
-                <label htmlFor='radius-1'>10 км (15 чатов)</label> <span className={styles.price}>1500 ₽</span>
-              </div>
-              <div
-                className={styles.form_radio}
-                onClick={() => {
-                  // setPromotionSecondary("Выделить лейблом VIP");
-                  // setPromotionSecondaryPrice(500);
-                  setRadius("15 км (25 чатов)");
-                }}>
-                <input
-                  id='radius-2'
-                  className={styles.radio}
-                  type='radio'
-                  name='radius'
-                  value='15 км (25 чатов)'
-                  // checked={promoSecondary.type == "Выделить лейблом VIP"}
-                />
-                <label htmlFor='radius-2'>15 км (25 чатов)</label> <span className={styles.price}>2500 ₽</span>
-              </div>
-              <div
-                className={styles.form_radio}
-                onClick={() => {
-                  // setPromotionSecondary("Выделить лейблом VIP");
-                  // setPromotionSecondaryPrice(500);
-                  setRadius("20 км (37 чатов)");
-                }}>
-                <input
-                  id='radius-3'
-                  className={styles.radio}
-                  type='radio'
-                  name='radius'
-                  value='20 км (37 чатов)'
-                  // checked={promoSecondary.type == "Выделить лейблом VIP"}
-                />
-                <label htmlFor='radius-3'>20 км (37 чатов)</label> <span className={styles.price}>3500 ₽</span>
-              </div>
-              <div
-                className={styles.form_radio}
-                onClick={() => {
-                  // setPromotionSecondary("Выделить лейблом VIP");
-                  // setPromotionSecondaryPrice(500);
-                  setRadius("50 км (100 чатов)");
-                }}>
-                <input
-                  id='radius-4'
-                  className={styles.radio}
-                  type='radio'
-                  name='radius'
-                  value='50 км (100 чатов)'
-                  // checked={promoSecondary.type == "Выделить лейблом VIP"}
-                />
-                <label htmlFor='radius-4'>50 км (100 чатов)</label> <span className={styles.price}>5000 ₽</span>
-              </div>
+              {!!prices.length &&
+                prices.map((item, index) => (
+                  <div
+                    style={item.price === 0 ? { opacity: 0.5, pointerEvents: "none" } : { opacity: 1 }}
+                    className={styles.form_radio}
+                    onClick={() => {
+                      // setPromotionSecondary("Выделить лейблом VIP");
+                      // setPromotionSecondaryPrice(500);
+                      setRadius(item.radius);
+                    }}>
+                    <input
+                      id={`radius-${index}`}
+                      className={styles.radio}
+                      type='radio'
+                      name='radius'
+                      value={radius}
+                      disabled={item.price === 0}
+                      checked={item.radius === radius}
+                    />
+                    <label htmlFor={`radius-${index}`} onClick={() => console.log(radius)}>
+                      {item.radius / 1000} км ({item.chats} чатов, {item.users} пользователей)
+                    </label>
+                    <span className={styles.price}>{item.price} ₽</span>
+                  </div>
+                ))}
             </div>
 
             <div className={styles.fieldWrap}>
               <button
                 type='button'
                 className={styles.submitBtn + " " + styles.saveBtn}
+                style={!radius ? { opacity: 0.5, pointerEvents: "none" } : { opacity: 1 }}
                 onClick={() => {
-                  router.push("/workers/ads");
+                  createChatAd();
+                  // router.push("/workers/ads");
                 }}>
-                Оплатить
+                Отправить на модерацию
               </button>
               <span
                 className={styles.cancelBtn}
                 onClick={() => {
-                  router.push("/workers/ads");
+                  confirm("Отменить создание объявления? Данные будут утеряны.") && router.push("/workers/ads");
                 }}>
                 Отменить
               </span>

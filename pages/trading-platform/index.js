@@ -43,13 +43,19 @@ const SubcategoryItem = ({ name, selectedSubcategory, setSelectedSubcategory }) 
   );
 };
 
+export class GetRequestParams {
+  constructor() {}
+  addParam(key, value) {
+    this[key] = value;
+  }
+  serialize() {
+    const params = new URLSearchParams(this);
+    return params.toString();
+  }
+}
+
 export default function TradingPlatform(props) {
   const router = useRouter();
-
-  // console.log(router.query.category);
-  // console.log(router.query.subcategory);
-  // const qcat = router.query.category;
-  // const qsubcat = router.query.subcategory;
 
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(null);
   // const [category, setCategory] = useState(null);
@@ -81,17 +87,6 @@ export default function TradingPlatform(props) {
     const position = window.pageYOffset;
     setScrollPosition(position);
   };
-
-  class GetRequestParams {
-    constructor() {}
-    addParam(key, value) {
-      this[key] = value;
-    }
-    serialize() {
-      const params = new URLSearchParams(this);
-      return params.toString();
-    }
-  }
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -145,13 +140,12 @@ export default function TradingPlatform(props) {
         searchQuery && query.addParam("searchQuery", searchQuery);
       }
 
-      console.log(query.serialize());
+      // console.log(query.serialize());
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trading-platform?${query.serialize()}`, {
         headers: {
           Authorization: getCookie("jkh-token"),
         },
       });
-      console.log(res.data);
       setProducts(res.data.products);
       setPageCount(res.data.count);
     } catch (e) {
@@ -191,7 +185,9 @@ export default function TradingPlatform(props) {
         });
         console.log(res.data);
         setCategories(res.data);
-      } catch (e) {}
+      } catch (e) {
+        console.log(e);
+      }
     }
     getCategories();
   }, []);

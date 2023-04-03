@@ -152,7 +152,25 @@
 .nameWrap {
   display: flex;
   flex-direction: row;
-  max-width: 100%;
+  width: 100%;
+}
+
+.objectLetters {
+  // background-color: #ff8c00;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 35px;
+  text-align: center;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  text-transform: uppercase;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 11px;
+  flex-shrink: 0;
 }
 
 .adName {
@@ -534,6 +552,7 @@
   font-size: 14px;
   line-height: 150%;
   color: #1c1c1c;
+  width: 100%;
 }
 
 .reviewDate {
@@ -604,6 +623,7 @@
   position: absolute;
   background-color: white;
   width: 320px;
+  padding: 0 15px;
   // height: 100px;
   padding-bottom: 15px;
   // top: calc(50vh - 205px);

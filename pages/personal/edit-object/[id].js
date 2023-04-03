@@ -42,7 +42,6 @@ export default function Profile({ id }) {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects/${id}`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
-        console.log(res.data);
         // dispatch(updateProfile({ pseudonym: nicknameLocal }));
         // dispatch(toggle({ text: "Объект успешно удален", type: "success" }));
         // const newObjects = objects.filter((item) => item.id !== id);
@@ -73,7 +72,6 @@ export default function Profile({ id }) {
       const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects/${id}`, {
         headers: { Authorization: getCookie("jkh-token") },
       });
-      console.log(res.data);
       // dispatch(updateProfile({ pseudonym: nicknameLocal }));
       dispatch(toggle({ text: "Объект успешно удален", type: "success" }));
       // const newObjects = objects.filter((item) => item.id !== id);
@@ -104,7 +102,6 @@ export default function Profile({ id }) {
   const updateEstateObject = async () => {
     try {
       const { address, latitude, longitude, precision } = await getGeocode();
-      console.log(address, precision);
       if (precision !== "exact") {
         throw new Error("Введенный адрес не найден. Проверьте правильность введенного адреса");
       }
@@ -115,7 +112,6 @@ export default function Profile({ id }) {
           headers: { Authorization: getCookie("jkh-token") },
         }
       );
-      console.log(res.data);
       // dispatch(updateProfile({ pseudonym: nicknameLocal }));
       dispatch(toggle({ text: "Объект успешно зарегистрирован", type: "success" }));
       // dispatch(updateRole(""));
@@ -212,7 +208,6 @@ export default function Profile({ id }) {
             value={account}
             onChange={(e) => {
               setAccount(e.target.value);
-              console.log(e.target.value);
             }}
           />
         </div>
