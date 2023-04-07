@@ -263,7 +263,7 @@ export default function Product({ id }) {
                 <span className={styles.date}>
                   Объявление размещено{" "}
                   <span className={styles.dateValue}>
-                    {datetime.getDate() +
+                    {datetime.getDate().toString().padStart(2, "0") +
                       "." +
                       (datetime.getMonth() + 1).toString().padStart(2, "0") +
                       "." +
@@ -398,7 +398,7 @@ export default function Product({ id }) {
                     <span className={styles.date}>
                       Объявление размещено{" "}
                       <span className={styles.dateValue}>
-                        {datetime.getDate() +
+                        {datetime.getDate().toString().padStart(2, "0") +
                           "." +
                           (datetime.getMonth() + 1).toString().padStart(2, "0") +
                           "." +

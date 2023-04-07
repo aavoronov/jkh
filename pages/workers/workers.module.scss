@@ -2046,3 +2046,159 @@
 }
 
 //----------------------------------modals--------------------------//
+
+.personalSection {
+  margin: 18px 0px 0;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  background-color: #465e6b;
+  border-radius: 20px;
+  padding: 32px 32px 25px;
+  // max-width: 800px;
+  margin-bottom: 25px;
+}
+
+.submitBtn {
+  width: 220px;
+  display: block;
+  margin: 0 auto;
+  border-width: 0;
+  background-color: #ff8c00;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  &:hover {
+    filter: brightness(120%);
+  }
+}
+
+.personalSection {
+  & .submitBtn {
+    margin: 0;
+    margin-right: 15px;
+    display: inline-block;
+    height: 40px;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .personalSection {
+    & .saveBtn {
+      width: 157px;
+      margin-bottom: 10px;
+    }
+  }
+}
+
+@media screen and (max-width: 960px) {
+  .personalSection {
+    padding: 10px 10px 25px;
+    margin: 18px 0 0;
+  }
+  .myServicesBtnsWrap {
+    position: static;
+  }
+}
+
+//------------------------------profile----------------------------//
+
+.personalSection {
+  position: relative;
+}
+
+.sectionHeader {
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 130%;
+  /* identical to box height, or 21px */
+  display: block;
+  text-align: center;
+  color: #ffffff;
+
+  /* 1c1c1c */
+  margin-bottom: 18px;
+
+  width: 100%;
+}
+
+.object {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 38px;
+  &:not(:last-of-type) {
+    border-bottom: 1px solid #c4c6d6;
+    padding-bottom: 30px;
+    margin-bottom: 30px;
+  }
+}
+.object {
+  position: relative;
+}
+
+.iconWrap {
+  margin-right: 13px;
+}
+
+.objName {
+  display: flex;
+  flex-direction: column;
+}
+
+.objectTitle {
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 130%;
+  /* or 23px */
+
+  /* 1c1c1c */
+
+  color: #1c1c1c;
+}
+
+.objectAddress {
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 130%;
+  /* identical to box height, or 16px */
+
+  /* 254A63 */
+
+  color: #254a63;
+}
+
+.myServicesBtnsWrap {
+  position: absolute;
+  right: 0px;
+}
+
+.myServicesBtn {
+  background-color: white;
+  border-width: 0;
+  background-size: 24px;
+  background-position: 50%;
+  background-repeat: no-repeat;
+  margin: 0 10px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  &:hover {
+    filter: brightness(120%);
+  }
+  &.pencil {
+    background-image: url("/img/pencil.png");
+  }
+  &.trash {
+    background-image: url("/img/trash.png");
+    margin-right: 10;
+  }
+}
+
+@media screen and (max-width: 960px) {
+  .myServicesBtn {
+    margin: 3px;
+  }
+  .nameWrap {
+    max-width: calc(100% - 65px);
+  }
+}

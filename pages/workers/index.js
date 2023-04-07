@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import axios from "axios";
 import { getCookie, setCookie } from "cookies-next";
@@ -9,12 +9,145 @@ import LayoutWorker from "../../components/LayoutWorker";
 import { toggle } from "../../store/notificationSlice";
 import { updateRole } from "../../store/userSlice";
 import styles from "./workers.module.scss";
+import Image from "next/image";
 
-const payments = [1500, -1500, 1500];
+const Transaction = ({ item }) => {
+  let type, isExpense;
+  if (item.basis === "chat ad") {
+    type = "Реклама в чатах";
+    isExpense = true;
+  }
+  console.log(item);
+
+  const datetime = new Date(item.createdAt);
+
+  const sum = isExpense ? -item.sum : item.sum;
+
+  return (
+    <div className={styles.transaction}>
+      <span className={styles.transactionType}>{type}</span>
+      <div className={styles.datetimeWrap}>
+        <span className={styles.transactionDatetime}>
+          {datetime.getDate().toString().padStart(2, "0") +
+            "." +
+            (datetime.getMonth() + 1).toString().padStart(2, "0") +
+            "." +
+            datetime.getFullYear().toString().slice(2) +
+            " " +
+            datetime.getHours().toString().padStart(2, "0") +
+            ":" +
+            datetime.getMinutes().toString().padStart(2, "0")}
+        </span>
+        {/* <span className={styles.transactionDatetime}></span> */}
+      </div>
+      <span className={isExpense ? styles.transactionValue : styles.transactionValue + " " + styles.green}>{sum} баллов</span>
+    </div>
+  );
+};
 
 export default function WorkerProfile(props) {
+  const [objects, setObjects] = useState(null);
+  const [addObject, setAddObject] = useState(false);
+  const [objectAddressField, setObjectAddressField] = useState("");
+  const [transactions, setTransactions] = useState([]);
+  const [startReached, setStartReached] = useState(false);
+  const [page, setPage] = useState(1);
+
   const dispatch = useDispatch();
   const router = useRouter();
+
+  const role = useSelector((state) => state.user.role);
+
+  async function getGeocode() {
+    const res = await axios.get(
+      `https://geocode-maps.yandex.ru/1.x/?format=json&apikey=${process.env.NEXT_PUBLIC_YMAPS_KEY}&geocode=${objectAddressField}`
+    );
+    //  const {data.response.GeoObjectCollection} = res
+    // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text);
+    const fullAddress = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
+    const coords = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos;
+    const precision = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.precision;
+    // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.Address.formatted);
+    // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point);
+    const longitude = coords.split(" ")[0];
+    const latitude = coords.split(" ")[1];
+
+    return { address: fullAddress, latitude, longitude, precision };
+  }
+
+  useEffect(() => {
+    async function getObjects() {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects`, {
+          headers: { Authorization: getCookie("jkh-token") },
+        });
+        setObjects(res.data);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    getObjects();
+  }, []);
+
+  async function getTransactions(page) {
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/transactions?page=${page}`, {
+        headers: { Authorization: getCookie("jkh-token") },
+      });
+      setTransactions((prev) => [...prev, ...res.data]);
+      if (res.data.length < 3) setStartReached(true);
+      setPage((prev) => prev + 1);
+      console.log("transactions", res.data);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  useEffect(() => {
+    getTransactions(page);
+  }, []);
+
+  const registerObject = async () => {
+    try {
+      const { address, latitude, longitude, precision } = await getGeocode();
+
+      console.log(precision);
+      if (precision !== "exact") {
+        throw new Error("Введенный адрес не найден. Проверьте правильность введенного адреса");
+      }
+
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/chat-rooms/worker-object`,
+        { address, latitude, longitude },
+        {
+          headers: { Authorization: getCookie("jkh-token") },
+        }
+      );
+      console.log(res.data);
+      // dispatch(updateProfile({ pseudonym: nicknameLocal }));
+      dispatch(toggle({ text: "Объект отправлен на проверку", type: "success" }));
+      setAddObject(false);
+      setObjectAddressField("");
+    } catch (e) {
+      dispatch(toggle({ text: e.response?.data?.message ?? e.message, type: "error" }));
+      console.log(e);
+    }
+  };
+
+  const deleteObject = async (id) => {
+    try {
+      const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects/${id}`, {
+        headers: { Authorization: getCookie("jkh-token") },
+      });
+      console.log(res.data);
+      // dispatch(updateProfile({ pseudonym: nicknameLocal }));
+      dispatch(toggle({ text: "Объект успешно удален", type: "success" }));
+      const newObjects = objects.filter((item) => item.id !== id);
+      setObjects(newObjects);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   const deleteProfile = async () => {
     try {
@@ -39,7 +172,6 @@ export default function WorkerProfile(props) {
   const user = useSelector((state) => state.user);
   const { pseudonym, email, phone, color, profilePic, balance } = user;
 
-  const [transactionsShown, setTransactionsShown] = useState(1);
   return (
     <LayoutWorker>
       <div className={styles.container}>
@@ -90,54 +222,81 @@ export default function WorkerProfile(props) {
             <span className={styles.spent}>Потрачено на рекламу: 0 баллов</span>
           </div>
         </div>
+        {(role === "uk" || role === "upravdom") && (
+          <div className={styles.personalSection}>
+            <span className={styles.sectionHeader}>Дома под управлением</span>
+            {!!objects?.length &&
+              objects.map((item, index) => {
+                const addressArray = item.estateObject.address.split(", ");
+
+                return (
+                  <div className={styles.object} key={index} style={{ backgroundColor: "white", padding: 10, borderRadius: 10 }}>
+                    <div className={styles.iconWrap}>
+                      <Image src='/img/objectIcon.png' alt='' width={42} height={42} />
+                    </div>
+                    <div className={styles.objName}>
+                      <span className={styles.objectTitle}>{addressArray.at(-2) + " " + addressArray.at(-1)}</span>
+                      <span className={styles.objectAddress}>{addressArray.slice(0, addressArray.length - 2).join(", ")}</span>
+                    </div>
+                    <div className={styles.myServicesBtnsWrap}>
+                      {/* <Link href={{ pathname: "/personal/edit-object/[id]", query: { id: item.id } }}>
+                      <button className={styles.myServicesBtn + " " + styles.pencil}></button>
+                    </Link> */}
+                      <button
+                        className={styles.myServicesBtn + " " + styles.trash}
+                        onClick={() => {
+                          confirm("Вы уверены, что хотите навсегда удалить этот объект? Вы также покинете домовой чат объекта.") &&
+                            deleteObject(item.id);
+                        }}></button>
+                    </div>
+                  </div>
+                );
+              })}
+
+            <button type='button' className={styles.submitBtn} onClick={() => setAddObject((prev) => !prev)}>
+              Добавить дом
+            </button>
+
+            {addObject && (
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ color: "white", marginTop: 10 }}>Введите адрес дома</span>
+                <input
+                  type='text'
+                  value={objectAddressField}
+                  onChange={(e) => setObjectAddressField(e.target.value)}
+                  className={styles.field}
+                  style={{ marginTop: 10 }}
+                  placeholder='Район, город*, улица*, дом*, корпус/строение'
+                />
+                <button
+                  type='button'
+                  className={styles.submitBtn}
+                  style={{ width: 150, height: 40, marginTop: 10 }}
+                  onClick={registerObject}>
+                  Зарегистрировать
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className={styles.transactionsWrap}>
           <div className={styles.sectionHeaderWrap}>
             <span className={styles.blockHeader}>Транзакции</span>
-            <span className={styles.timelapseFilter}>За весь период</span>
+            {/* <span className={styles.timelapseFilter}>За весь период</span> */}
           </div>
           <div className={styles.transactionsBlock}>
-            {[...Array(transactionsShown)].map((e, i) => (
-              <React.Fragment key={i}>
-                <div className={styles.transaction}>
-                  <span className={styles.transactionType}>Покупка услуги</span>
-                  <div className={styles.datetimeWrap}>
-                    <span className={styles.transactionDatetime}>12.08.2022</span>
-                    <span className={styles.transactionDatetime}>14:36</span>
-                  </div>
-                  <span className={payments[0] < 0 ? styles.transactionValue : styles.transactionValue + " " + styles.green}>
-                    {payments[0]} баллов
-                  </span>
-                </div>
-                <div className={styles.transaction}>
-                  <span className={styles.transactionType}>Покупка услуги</span>
-                  <div className={styles.datetimeWrap}>
-                    <span className={styles.transactionDatetime}>12.08.2022</span>
-                    <span className={styles.transactionDatetime}>14:36</span>
-                  </div>
-                  <span className={payments[1] < 0 ? styles.transactionValue : styles.transactionValue + " " + styles.green}>
-                    {payments[1]} баллов
-                  </span>
-                </div>
-                <div className={styles.transaction}>
-                  <span className={styles.transactionType}>Покупка услуги</span>
-                  <div className={styles.datetimeWrap}>
-                    <span className={styles.transactionDatetime}>12.08.2022</span>
-                    <span className={styles.transactionDatetime}>14:36</span>
-                  </div>
-                  <span className={payments[2] < 0 ? styles.transactionValue : styles.transactionValue + " " + styles.green}>
-                    {payments[2]} баллов
-                  </span>
-                </div>
-              </React.Fragment>
-            ))}
+            {!!transactions.length && transactions.map((e, i) => <Transaction item={e} key={i} />)}
           </div>
-          <span
-            className={styles.showMore}
-            onClick={() => {
-              setTransactionsShown(transactionsShown + 1);
-            }}>
-            Показать еще
-          </span>
+          {!startReached && (
+            <span
+              className={styles.showMore}
+              onClick={() => {
+                // setTransactionsShown(transactionsShown + 1);
+              }}>
+              Показать еще
+            </span>
+          )}
         </div>
       </div>
     </LayoutWorker>

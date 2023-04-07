@@ -169,7 +169,7 @@ const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isP
               <span className={styles.price}>{price} ₽</span>
               <span className={styles.locationTime}>{location}</span>
               <span className={styles.locationTime}>
-                {datetime.getDate() +
+                {datetime.getDate().toString().padStart(2, "0") +
                   "." +
                   (datetime.getMonth() + 1).toString().padStart(2, "0") +
                   "." +

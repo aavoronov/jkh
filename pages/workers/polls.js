@@ -1,6 +1,6 @@
 import ProgressBar from "@ramonak/react-progress-bar";
 import { Field, Form, Formik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Navigation } from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
@@ -8,17 +8,264 @@ import { Swiper, SwiperSlide } from "swiper/react";
 
 import LayoutWorker from "../../components/LayoutWorker";
 import styles from "./workers.module.scss";
+import axios from "axios";
+import { getCookie } from "cookies-next";
+import { useDispatch } from "react-redux";
+import { toggle } from "../../store/notificationSlice";
+
+const Poll = ({ item }) => {
+  const PollOption = ({ item, votesTotal }) => {
+    const votes = item.reply.length;
+    const percentage = votesTotal ? Math.trunc((100 * votes) / votesTotal) : 0;
+    return (
+      <div className={styles.form_radio}>
+        <div className={styles.labelWrap}>
+          {/* <Field id='radio-1' className={styles.radio} type='radio' name='option' value='1' /> */}
+          <label htmlFor='radio-1'>{item.option}</label>
+          <span className={styles.percentage}>{percentage}%</span>
+        </div>
+        <ProgressBar
+          completed={percentage}
+          isLabelVisible={false}
+          className={styles.progress}
+          barContainerClassName={styles.progressContainer}
+          completedClassName={styles.progressComplete}
+          height='6px'
+          bgColor='#ff8c00'
+          borderRadius='10px'
+          animateOnRender={true}
+          transitionTimingFunction='ease-out'
+        />
+      </div>
+    );
+  };
+
+  let votesTotal = 0;
+  item.options.forEach((e) => (votesTotal += e.reply.length));
+
+  return (
+    <div className={styles.poll}>
+      {/* <div className={styles.pollHeader} style={{ marginBottom: 10 }}>
+        {item.chat.address}
+      </div> */}
+      <div className={styles.pollHeader}>{item.question}</div>
+      <div className={styles.threeDots}>
+        <div className={styles.threeDotsBtnMenu}>
+          <span
+            className={styles.optionsItem}
+            onClick={() => {
+              setComplaintActive(true);
+              console.log(complaintActive);
+            }}>
+            Пожаловаться
+          </span>
+        </div>
+      </div>
+
+      {item.options.map((item, index) => (
+        <PollOption item={item} key={index} votesTotal={votesTotal} />
+      ))}
+
+      <div className={styles.votesTotal}>{votesTotal} голосов</div>
+    </div>
+  );
+};
+
+const DropdownList = ({ objects, value, setValue, style }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const handleChange = (value, setValue, item) => {
+    const newArray = value;
+    console.log(newArray);
+    console.log(value);
+
+    if (newArray.includes(item)) {
+      newArray = newArray.filter((el) => el !== item);
+      console.log(newArray);
+    } else {
+      newArray = [...newArray, item];
+      console.log(newArray);
+    }
+    return newArray;
+  };
+
+  return (
+    <div className={styles.dropdownWrap} style={style}>
+      <div className={styles.dropdownFieldWrap} onClick={() => setDropdownOpen(!dropdownOpen)}>
+        <span className={styles.dropdownField}>Выберите один или несколько</span>
+        <span className={styles.dropdownBtn}></span>
+      </div>
+      {dropdownOpen ? (
+        <ul className={styles.dropdownList}>
+          {objects.map((item, index) => (
+            <li
+              style={{ position: "relative" }}
+              key={index}
+              className={styles.dropdownListItem}
+              onClick={() => {
+                setValue(handleChange(value, setValue, item));
+                // setDropdownOpen(false);
+              }}>
+              {item}
+              {value.includes(item) && (
+                <img src='/img/greenCheck.png' style={{ position: "absolute", width: 30, height: 30, right: 0, top: 10 }} />
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+};
+
+const ObjectFilterDropdownList = ({ objects, value, setValue, className = "" }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  return (
+    <div className={styles.dropdownWrap + " " + className}>
+      <div className={styles.dropdownFieldWrap} onClick={() => setDropdownOpen(!dropdownOpen)} style={{ backgroundColor: "white" }}>
+        <span className={styles.dropdownField}>{value}</span>
+        <span className={styles.dropdownBtn}></span>
+      </div>
+      {dropdownOpen ? (
+        <ul className={styles.dropdownList}>
+          {objects.map((item, index) => (
+            <li
+              key={index}
+              className={styles.dropdownListItem}
+              onClick={() => {
+                setValue(item);
+                setDropdownOpen(false);
+              }}>
+              {item}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+};
 
 export default function WorkerPolls(props) {
   const navigationPrevRef = useRef(null);
   const navigationNextRef = useRef(null);
+  const dispatch = useDispatch();
 
   const [createPoll, setCreatePoll] = useState(false);
   const [optionsCount, setOptionsCount] = useState(2);
   const [multipleChoice, setMultipleChoice] = useState(false);
+  // const [question, setQuestion] = useState("");
+  const [chats, setChats] = useState([]);
+  const [objects, setObjects] = useState([]);
+  const [dropdownValue, setDropdownValue] = useState([]);
+  const [filterDropdownValue, setFilterDropdownValue] = useState([]);
+  const [pollsData, setPollsData] = useState([]);
+
+  const [pollCreateOptions, setPollCreateOptions] = useState([]);
+
+  async function getMyPollsAsWorkerPerChat(chatId) {
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/polls/${chatId}`, {
+        headers: { Authorization: getCookie("jkh-token") },
+      });
+      console.log(res.data);
+      setPollsData(res.data);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  // async function getMyPollsAsWorker() {
+  //   try {
+  //     const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/polls`, {
+  //       headers: { Authorization: getCookie("jkh-token") },
+  //     });
+  //     console.log(res.data);
+  //     setPollsData(res.data);
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  // }
+
+  useEffect(() => {
+    async function getObjects() {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects`, {
+          headers: { Authorization: getCookie("jkh-token") },
+        });
+        console.log(res.data);
+        setFilterDropdownValue(res.data[0].estateObject.address);
+        setObjects(res.data);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    getObjects();
+  }, []);
+
+  useEffect(() => {
+    // console.log(objects[0].estateObject.roomId);
+    if (!!objects.length) {
+      const chatId = objects.find((item) => item.estateObject.address === filterDropdownValue).estateObject.roomId;
+      console.log(chatId);
+      getMyPollsAsWorkerPerChat(chatId);
+    }
+  }, [objects, filterDropdownValue]);
+
+  const handleCreatePoll = async (question) => {
+    try {
+      const chats = dropdownValue.map((item) => objects.find((el) => el.estateObject.address === item).id);
+      console.log(chats);
+
+      if (!question) {
+        throw new Error("Заполните поле вопроса");
+      }
+
+      if (!pollCreateOptions.length) {
+        throw new Error("Заполните хотя бы два варианта ответа");
+      }
+
+      if (!chats.length) {
+        throw new Error("Выберите хотя бы один дом");
+      }
+
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/polls`,
+        {
+          question: question,
+          chats: chats,
+          multipleChoice,
+          options: pollCreateOptions,
+        },
+        { headers: { Authorization: getCookie("jkh-token") } }
+      );
+
+      console.log(res.data);
+      setCreatePoll(false);
+      setPollCreateOptions([]);
+      setOptionsCount(2);
+      dispatch(toggle({ text: "Опрос успешно создан", type: "success" }));
+    } catch (e) {
+      console.log(e);
+      dispatch(toggle({ text: e.response?.data?.message ?? e.message, type: "error" }));
+    }
+  };
 
   const PollOption = ({ idx }) => {
     const [visible, setVisible] = useState(true);
+    const [value, setValue] = useState(pollCreateOptions[idx] ?? "");
+
+    // useEffect(() =>{
+
+    // }, [value])
+
+    const handleChange = (value) => {
+      setValue(value);
+      const newArray = pollCreateOptions;
+      console.log(value);
+      console.log(newArray);
+      newArray[idx] = value;
+      setPollCreateOptions(newArray);
+    };
     return visible ? (
       <div className={styles.optionFieldWrap}>
         <span
@@ -27,8 +274,17 @@ export default function WorkerPolls(props) {
             setVisible(false);
             setOptionsCount(optionsCount - 1);
             console.log(optionsCount);
+            setPollCreateOptions((prev) => prev.filter((item) => item !== value));
           }}></span>
-        <input name='email' type='text' placeholder='' className={styles.field} key={idx} />
+        <input
+          name='text'
+          type='text'
+          placeholder=''
+          className={styles.field}
+          key={idx}
+          value={value}
+          onChange={(e) => handleChange(e.target.value)}
+        />
       </div>
     ) : null;
   };
@@ -41,7 +297,9 @@ export default function WorkerPolls(props) {
             id={styles.overlay}
             onClick={() => {
               setCreatePoll(false);
+              setPollCreateOptions([]);
               setOptionsCount(2);
+              setDropdownValue([]);
             }}></div>
           <div
             className={styles.adPopup}
@@ -58,15 +316,12 @@ export default function WorkerPolls(props) {
 
             <Formik
               initialValues={{
-                name: "",
-                phone: "",
-                email: "",
+                question: "",
               }}
               onSubmit={(values) => {
-                alert(JSON.stringify(values, null, 2));
+                // alert(JSON.stringify(values, null, 2));
                 // setComplaintError(false);
-                setCreatePoll(false);
-                setOptionsCount(2);
+                handleCreatePoll(values.question);
               }}>
               {({ values }) => (
                 <Form>
@@ -95,7 +350,7 @@ export default function WorkerPolls(props) {
                       </button>
                     </div>
                     {[...Array(optionsCount)].map((el, idx) => {
-                      return <PollOption idx={idx} />;
+                      return <PollOption key={idx} />;
                     })}
                   </div>
 
@@ -115,8 +370,15 @@ export default function WorkerPolls(props) {
                     </label>
                   </div>
 
+                  <DropdownList
+                    objects={objects.map((item) => item.estateObject.address)}
+                    value={dropdownValue}
+                    setValue={setDropdownValue}
+                    style={{ marginBottom: 15 }}
+                  />
+
                   <div className={styles.modalBtnsWrap}>
-                    <button type='submit' className={styles.submitBtn}>
+                    <button type='submit' className={styles.submitBtn} style={{ marginRight: 10 }}>
                       Отправить
                     </button>
                     <span
@@ -124,7 +386,9 @@ export default function WorkerPolls(props) {
                       onClick={() => {
                         // setComplaintError(false);
                         setCreatePoll(false);
+                        setPollCreateOptions([]);
                         setOptionsCount(2);
+                        setDropdownValue([]);
                       }}>
                       Отменить
                     </span>
@@ -137,12 +401,21 @@ export default function WorkerPolls(props) {
       )}
       <div className={styles.container}>
         <h1 className={styles.pageHeader}>Голосования, опросы</h1>
-        <span className={styles.threeDotsBtn}>
-          {/* <div className={styles.threeDotsBtnMenu}>
+        {!!objects.length ? (
+          <ObjectFilterDropdownList
+            value={filterDropdownValue}
+            setValue={setFilterDropdownValue}
+            objects={objects.map((item) => item.estateObject.address)}
+          />
+        ) : (
+          <div style={{ textAlign: "center", color: "white", marginTop: 20 }}>Вы не зарегистрировали ни одного дома под управлением</div>
+        )}
+        {/* <span className={styles.threeDotsBtn}> */}
+        {/* <div className={styles.threeDotsBtnMenu}>
             <span className={styles.chatOptionsItem}>Редактировать</span>
             <span className={styles.chatOptionsItem}>Удалить аккаунт</span>
           </div> */}
-        </span>
+        {/* </span> */}
 
         <Swiper
           // spaceBetween={10}
@@ -165,105 +438,15 @@ export default function WorkerPolls(props) {
           onSwiper={(swiper) => console.log(swiper)}
           // navigation={swiperNavigation}
         >
-          {[...Array(3)].map((e, i) => (
-            <SwiperSlide key={i} className={styles.slide}>
-              <div className={styles.poll}>
-                <div className={styles.pollHeader}>Планируется проведение собрания на 24.07.2022. Кто прийдет</div>
-                <div className={styles.threeDots}>
-                  <div className={styles.threeDotsBtnMenu}>
-                    <span
-                      className={styles.optionsItem}
-                      onClick={() => {
-                        setComplaintActive(true);
-                        console.log(complaintActive);
-                      }}>
-                      Пожаловаться
-                    </span>
-                  </div>
-                </div>
-
-                <div className={styles.form_radio}>
-                  <div className={styles.labelWrap}>
-                    {/* <Field id='radio-1' className={styles.radio} type='radio' name='option' value='1' /> */}
-                    <label htmlFor='radio-1'>Смогу прийти</label>
-                    <span className={styles.percentage}>60%</span>
-                  </div>
-                  <ProgressBar
-                    completed={60}
-                    isLabelVisible={false}
-                    className={styles.progress}
-                    barContainerClassName={styles.progressContainer}
-                    completedClassName={styles.progressComplete}
-                    height='6px'
-                    bgColor='#ff8c00'
-                    borderRadius='10px'
-                    animateOnRender={true}
-                    transitionTimingFunction='ease-out'
-                  />
-                </div>
-                <div className={styles.form_radio}>
-                  <div className={styles.labelWrap}>
-                    {/* <Field id='radio-2' className={styles.radio} type='radio' name='option' value='2' /> */}
-                    <label htmlFor='radio-2'>Смогу не прийти</label>
-                    <span className={styles.percentage}>20%</span>
-                  </div>
-                  <ProgressBar
-                    completed={20}
-                    isLabelVisible={false}
-                    className={styles.progress}
-                    barContainerClassName={styles.progressContainer}
-                    completedClassName={styles.progressComplete}
-                    height='6px'
-                    bgColor='#ff8c00'
-                    borderRadius='10px'
-                    animateOnRender={true}
-                    transitionTimingFunction='ease-out'
-                  />
-                </div>
-                <div className={styles.form_radio}>
-                  <div className={styles.labelWrap}>
-                    {/* <Field id='radio-3' className={styles.radio} type='radio' name='option' value='3' /> */}
-
-                    <label htmlFor='radio-3'>Не смогу прийти</label>
-                    <span className={styles.percentage}>15%</span>
-                  </div>
-                  <ProgressBar
-                    completed={15}
-                    isLabelVisible={false}
-                    className={styles.progress}
-                    barContainerClassName={styles.progressContainer}
-                    completedClassName={styles.progressComplete}
-                    height='6px'
-                    bgColor='#ff8c00'
-                    borderRadius='10px'
-                    animateOnRender={true}
-                    transitionTimingFunction='ease-out'
-                  />
-                </div>
-                <div className={styles.form_radio}>
-                  <div className={styles.labelWrap}>
-                    {/* <Field id='radio-4' className={styles.radio} type='radio' name='option' value='4' /> */}
-                    <label htmlFor='radio-4'>Не смогу не прийти</label>
-                    <span className={styles.percentage}>5%</span>
-                  </div>
-                  <ProgressBar
-                    completed={5}
-                    isLabelVisible={false}
-                    className={styles.progress}
-                    barContainerClassName={styles.progressContainer}
-                    completedClassName={styles.progressComplete}
-                    height='6px'
-                    bgColor='#ff8c00'
-                    borderRadius='10px'
-                    animateOnRender={true}
-                    transitionTimingFunction='ease-out'
-                  />
-                </div>
-
-                <div className={styles.votesTotal}>37 голосов</div>
-              </div>
-            </SwiperSlide>
-          ))}
+          {!!pollsData.length
+            ? pollsData.map((e, i) => (
+                <SwiperSlide className={styles.slide} key={i}>
+                  <Poll item={e} />
+                </SwiperSlide>
+              ))
+            : !!objects.length && (
+                <div style={{ textAlign: "center", color: "white", marginTop: 20 }}>У этого объекта недвижимости еще нет опросов</div>
+              )}
           <span
             className={styles.arrowNext}
             // onClick={onClickHandler}

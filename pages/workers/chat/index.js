@@ -6,7 +6,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
 
-import LayoutLoggedIn from "../../components/LayoutLoggedIn";
+// import LayoutLoggedIn from "../../components/LayoutLoggedIn";
 // import DropdownList from "../components/DropdownList";
 import arrowLeft from "/public/img/arrowLeft.png";
 
@@ -18,15 +18,17 @@ import styles from "./chat.module.scss";
 
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import useWindowDimensions from "../../components/useWindowDimensionsSSR";
+import useWindowDimensions from "../../../components/useWindowDimensionsSSR";
 
 import { getCookie } from "cookies-next";
 import { useDropzone } from "react-dropzone";
 import { Manager } from "socket.io-client";
-import { toggle } from "../../store/notificationSlice";
+import { toggle } from "../../../store/notificationSlice";
 
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
+
+import LayoutWorker from "../../../components/LayoutWorker";
 
 const manager = new Manager(`${process.env.NEXT_PUBLIC_WS_ADDRESS}`, {
   autoConnect: false,
@@ -653,7 +655,7 @@ export default function Chat() {
   }, [myChats]);
 
   return (
-    <LayoutLoggedIn>
+    <LayoutWorker>
       <div className={styles.container}>
         {width < 901 ? (
           <button
@@ -678,7 +680,7 @@ export default function Chat() {
             </div>
           ))}
           <div className={styles.chatTab + " " + styles.active + " " + styles.addChat}>
-            <Link href='/chat/add-chat'>
+            <Link href='/workers/chat/add-chat'>
               <span className={styles.objectLetters}>+</span>
             </Link>
           </div>
@@ -748,7 +750,7 @@ export default function Chat() {
                     onClick={() => {
                       setSearchActive(!searchActive);
                     }}></span>
-                  <div className={styles.chatBtn + " " + styles.chatThreeDots}>
+                  {/* <div className={styles.chatBtn + " " + styles.chatThreeDots}>
                     <div className={styles.threeDotsBtnMenu}>
                       <span className={styles.chatOptionsItem} onClick={() => leaveChat()}>
                         Покинуть чат
@@ -757,7 +759,7 @@ export default function Chat() {
                         Отключить уведомления
                       </span>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </>
             )}
@@ -1093,6 +1095,6 @@ export default function Chat() {
           transition: all 0.1s;
         }
       `}</style>
-    </LayoutLoggedIn>
+    </LayoutWorker>
   );
 }

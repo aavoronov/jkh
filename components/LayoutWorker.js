@@ -491,7 +491,7 @@ export default function LayoutWorker({ children, withProducts }) {
         )}
 
         {(role === "uk" || role === "upravdom") && (
-          <Link href='/workers'>
+          <Link href='/workers/chat'>
             <div className={styles.leftMenuItem}>Домовые чаты</div>
           </Link>
         )}
