@@ -107,6 +107,7 @@ export default function TradingPlatform(props) {
         setSelectedCategory(router.query.category);
         setSelectedSubcategory(router.query.subcategory);
       }
+      setFilterReset((prev) => !prev);
     }
   }, [categories]);
 
@@ -140,7 +141,7 @@ export default function TradingPlatform(props) {
         searchQuery && query.addParam("searchQuery", searchQuery);
       }
 
-      // console.log(query.serialize());
+      console.log(query.serialize());
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trading-platform?${query.serialize()}`, {
         headers: {
           Authorization: getCookie("jkh-token"),
@@ -433,11 +434,11 @@ export default function TradingPlatform(props) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <DropdownList
+              {/* <DropdownList
                 objects={["Москва и Московская область", "Ленинград и Ленинградская область", "Свердловск и Свердловская область"]}
                 value={location}
                 setValue={setLocation}
-              />
+              /> */}
               <button
                 className={styles.findBtn}
                 onClick={() => {

@@ -7,6 +7,7 @@ import { getCookie } from "cookies-next";
 import { useDispatch, useSelector } from "react-redux";
 import LayoutPersonal from "../../components/LayoutPersonal";
 import { toggle } from "../../store/notificationSlice";
+import { getGeocode } from "../../service/functions";
 
 export default function Profile({}) {
   const [address, setAddress] = useState("");
@@ -20,33 +21,16 @@ export default function Profile({}) {
 
   const email = useSelector((state) => state.user.email);
 
-  async function getGeocode() {
-    const res = await axios.get(
-      `https://geocode-maps.yandex.ru/1.x/?format=json&apikey=${process.env.NEXT_PUBLIC_YMAPS_KEY}&geocode=${address + " " + house}`
-    );
-    //  const {data.response.GeoObjectCollection} = res
-    // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text);
-    const fullAddress = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
-    const coords = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos;
-    const precision = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.precision;
-    // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.Address.formatted);
-    // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point);
-    const longitude = coords.split(" ")[0];
-    const latitude = coords.split(" ")[1];
-
-    return { address: fullAddress, latitude, longitude, precision };
-  }
-
   const createEstateObject = async () => {
     try {
-      const { address, latitude, longitude, precision } = await getGeocode();
+      const { geocodedAddress, latitude, longitude, precision } = await getGeocode(address + " " + house);
       console.log(address, precision);
       if (precision !== "exact") {
         throw new Error("Введенный адрес не найден. Проверьте правильность введенного адреса");
       }
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/estate-objects`,
-        { email, address, latitude, longitude, apartment: apartment, account: account, isOwner: isOwner },
+        { email, address: geocodedAddress, latitude, longitude, apartment: apartment, account: account, isOwner: isOwner },
         {
           headers: { Authorization: getCookie("jkh-token") },
         }

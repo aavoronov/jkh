@@ -10,6 +10,7 @@ import { loading } from "../store/loaderSlice";
 import { getCookie } from "cookies-next";
 import { toggle } from "../store/notificationSlice";
 import { useRouter } from "next/router";
+import { currentDatetime } from "../service/functions";
 
 const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isPaidAd = false, refreshFunction }) => {
   const [favorite, setFavorite] = useState(false);
@@ -68,8 +69,6 @@ const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isP
     }
     dispatch(loading({ visible: false }));
   };
-
-  const datetime = new Date(createdAt);
 
   return (
     <>
@@ -168,17 +167,7 @@ const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isP
               </div>
               <span className={styles.price}>{price} ₽</span>
               <span className={styles.locationTime}>{location}</span>
-              <span className={styles.locationTime}>
-                {datetime.getDate().toString().padStart(2, "0") +
-                  "." +
-                  (datetime.getMonth() + 1).toString().padStart(2, "0") +
-                  "." +
-                  datetime.getFullYear().toString().slice(2) +
-                  " " +
-                  datetime.getHours().toString().padStart(2, "0") +
-                  ":" +
-                  datetime.getMinutes().toString().padStart(2, "0")}
-              </span>
+              <span className={styles.locationTime}>{currentDatetime(item.createdAt)}</span>
             </div>
             {isOnMyAdsPage ? (
               <div className={styles.myAdsBtnsWrap}>

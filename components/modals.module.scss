@@ -711,3 +711,32 @@
 }
 
 //-----------------------------------dropzone------------------------//
+
+.otp {
+  // background-color: black;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+  & > * {
+    width: 42px !important;
+  }
+  & :not(:last-child) {
+    margin-right: 18px;
+  }
+}
+
+.input {
+  width: 42px !important;
+  height: 46px;
+  border: 1px solid #b1b8c1;
+  border-radius: 9px;
+  font-size: 28px;
+  &:focus {
+    outline: 1px solid #ff8c00;
+    border: 1px solid #ff8c00;
+  }
+  &.error {
+    outline: 1px solid red;
+    border: 1px solid red;
+  }
+}

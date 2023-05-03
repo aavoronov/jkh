@@ -3,7 +3,7 @@ import styles from "./modals.module.scss";
 import { Field, Form, Formik, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import OtpInput from "react-otp-input-rc-17";
-import OTPInput from "./OTPInput";
+
 import { useDropzone } from "react-dropzone";
 import axios from "axios";
 import { setCookie } from "cookies-next";
@@ -13,6 +13,7 @@ import { toggle } from "../store/notificationSlice";
 import { redirect } from "next/dist/server/api-utils";
 import { useRouter } from "next/router";
 import InputMask from "react-input-mask";
+import { getGeocode } from "../service/functions";
 
 const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
   //   const [modalActive, setModalActive] = useState(false);
@@ -246,81 +247,6 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
     );
   };
 
-  const AuthByPhone = () => {
-    return (
-      <div className={styles.popup}>
-        <CloseBtn />
-        <div className={styles.formWrap}>
-          <span
-            className={styles.popupHeading}
-            onClick={() => {
-              console.log(modalToDisplay);
-            }}>
-            Войти
-          </span>
-          <div className={styles.popupFieldWrap}>
-            <Formik
-              initialValues={{
-                phone: "",
-                // password: "",
-              }}
-              validationSchema={Yup.object({
-                //   login: Yup.string().required("Введите логин"),
-                //   password: Yup.string().required("Введите пароль"),
-                // name: Yup.string()
-                // .max(20, "Must be 20 characters or less")
-                //   .required("Обязательное поле"),
-                // description: Yup.string().required("Обязательное поле"),
-                // phoneNumber: Yup.string()
-                //   .matches(/\d{10}/, "10 цифр")
-                //   .required("Обязательное поле"),
-                // webPage: Yup.string().required("Обязательное поле"),
-              })}
-              onSubmit={(values) => {
-                // alert(JSON.stringify(values, null, 2));
-                setModalToDisplay("confirmationPhone");
-                setCounter(60);
-              }}>
-              {({ values }) => (
-                <Form>
-                  <div className={styles.popupFieldWrap + " " + styles.column}>
-                    <Field name='phone' type='text' placeholder='Телефон' className={styles.field} />
-                    <span className={styles.errorText}>
-                      <ErrorMessage name='phone' />
-                    </span>
-                  </div>
-
-                  <div className={styles.popupFieldWrap}>
-                    <button type='submit' className={styles.submitBtn}>
-                      Получить код
-                    </button>
-                  </div>
-
-                  <div className={styles.popupFieldWrap}>
-                    <button
-                      type='button'
-                      className={styles.secondaryOption}
-                      onClick={() => {
-                        setModalToDisplay("authByLogin");
-                      }}>
-                      Войти по e-mail и паролю
-                    </button>
-                  </div>
-
-                  {/* <div className={styles.popupFieldWrap}>
-                    <span className={styles.eulaText}>
-                      Отправляя данную форму, вы принимаете условие <a className={styles.eulaLink}>пользовательского соглашения</a>
-                    </span>
-                  </div> */}
-                </Form>
-              )}
-            </Formik>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const SignUpByEmail = () => {
     const signUpHandler = async (values) => {
       try {
@@ -399,7 +325,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                     <span className={styles.delimiter}>или</span>
                   </div> */}
 
-                  <div className={styles.popupFieldWrap}>
+                  {/* <div className={styles.popupFieldWrap}>
                     <button
                       type='button'
                       className={styles.secondaryOption}
@@ -408,85 +334,23 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                       }}>
                       Регистрация по телефону
                     </button>
+                  </div> */}
+
+                  <div className={styles.popupFieldWrap}>
+                    <button
+                      type='button'
+                      className={styles.secondaryOption}
+                      onClick={() => {
+                        setModalToDisplay("authByPhone");
+                      }}>
+                      Вход
+                    </button>
                   </div>
 
                   <div className={styles.popupFieldWrap}>
                     <span className={styles.eulaText}>
                       Отправляя данную форму, вы принимаете условие <a className={styles.eulaLink}>пользовательского соглашения</a>
                     </span>
-                  </div>
-                </Form>
-              )}
-            </Formik>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const ConfirmationPhone = () => {
-    return (
-      <div className={styles.popup}>
-        <CloseBtn />
-        <div className={styles.formWrap}>
-          <span
-            className={styles.popupHeading}
-            onClick={() => {
-              console.log(modalToDisplay);
-            }}>
-            Введите код авторизации
-          </span>
-          <div className={styles.popupFieldWrap}>
-            <Formik
-              initialValues={{
-                phone: "",
-                // password: "",
-              }}
-              validationSchema={Yup.object({
-                //   login: Yup.string().required("Введите логин"),
-                //   password: Yup.string().required("Введите пароль"),
-                // name: Yup.string()
-                // .max(20, "Must be 20 characters or less")
-                //   .required("Обязательное поле"),
-                // description: Yup.string().required("Обязательное поле"),
-                // phoneNumber: Yup.string()
-                //   .matches(/\d{10}/, "10 цифр")
-                //   .required("Обязательное поле"),
-                // webPage: Yup.string().required("Обязательное поле"),
-              })}
-              onSubmit={(values) => {
-                // alert(JSON.stringify(values, null, 2));
-
-                // if (otp.length < 4) {
-                //   setPopupError(true);
-                //   console.log(otp.length);
-                // } else console.log("ok");
-
-                alert("Авторизовались");
-                setModalToDisplay("");
-                // setPopupError(false);
-              }}>
-              {({ values }) => (
-                <Form>
-                  {/* <OTPInput hasErrored={popupError} checkLength={checkLength} state={otp} setState={setOtp} /> */}
-                  <OTPInput />
-
-                  <div className={styles.popupFieldWrap}>
-                    <button type='submit' className={styles.submitBtn}>
-                      Получить код
-                    </button>
-                  </div>
-
-                  <div className={styles.popupFieldWrap}>
-                    <button
-                      type='button'
-                      className={counter ? styles.resendInactive : styles.resendActive}
-                      onClick={() => {
-                        counter ? null : setCounter(60);
-                      }}>
-                      Отправить еще раз
-                      <br /> {Timer(60)}
-                    </button>
                   </div>
                 </Form>
               )}
@@ -704,6 +568,212 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
     );
   };
 
+  const PhoneSignIn = () => {
+    const [phone, setPhone] = useState("");
+    const [stage, setStage] = useState(1);
+    const [counter, setCounter] = useState(10);
+    const [otp, setOtp] = useState("");
+
+    const Timer = () => {
+      useEffect(() => {
+        const timer = counter > 0 && setInterval(() => setCounter(counter - 1), 1000);
+        return () => clearInterval(timer);
+      }, [counter]);
+
+      return counter ? <span className={styles.resendIn}>через {counter} секунд</span> : null;
+    };
+
+    const handlePhoneSubmit = async () => {
+      try {
+        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/phone/verification`, { phone: phone });
+        // setModalToDisplay("confirmationPhone");
+        // setCounter(60);
+        console.log(res.data);
+        dispatch(toggle({ text: res.data.otp, type: "info" }));
+        return true;
+      } catch (e) {
+        dispatch(toggle({ text: e.response?.data?.message ?? e.message, type: "error" }));
+        console.log(e);
+        return false;
+      }
+    };
+
+    const handleOtpSubmit = async () => {
+      try {
+        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/phone/sign-in`, { phone: phone, otp: otp });
+        // setModalToDisplay("confirmationPhone");
+        // setCounter(60);
+        console.log(res.data);
+        dispatch(updateRole({ role: res.data.user.role }));
+        setModalToDisplay("");
+        setPopupError(false);
+
+        setCookie("jkh-token", res.data.token, { maxAge: 3600 * 24 * 30 });
+        if (res.data.user.fieldsRequired)
+          dispatch(toggle({ text: "Пожалуйста, заполните поля почты и пароля в личном кабинете", type: "info" }));
+        return true;
+      } catch (e) {
+        dispatch(toggle({ text: e.response?.data?.message ?? e.message, type: "error" }));
+        console.log(e);
+      }
+    };
+
+    return (
+      <div className={styles.popup}>
+        <CloseBtn />
+        <div className={styles.formWrap}>
+          {stage === 1 && (
+            <>
+              <span
+                className={styles.popupHeading}
+                onClick={() => {
+                  console.log(modalToDisplay);
+                }}>
+                Войти
+              </span>
+              <div className={styles.popupFieldWrap}>
+                <Formik
+                  initialValues={{
+                    phone: "",
+                  }}
+                  onSubmit={async (values) => {
+                    // alert(JSON.stringify(values, null, 2));
+                    // handleSubmit();
+                    if (!phone) {
+                      dispatch(toggle({ text: "Введите номер телефона", type: "error" }));
+                      throw new Error("Введите номер телефона");
+                    }
+                    if (phone.includes("_")) {
+                      dispatch(toggle({ text: "Некорректный формат номера телефона", type: "error" }));
+                      throw new Error("Некорректный формат номера телефона");
+                    }
+                    const success = await handlePhoneSubmit();
+                    if (success) {
+                      setStage(2);
+                      setCounter(60);
+                    }
+
+                    // setPhone(phone);
+                  }}>
+                  {({ values }) => (
+                    <Form>
+                      <div className={styles.popupFieldWrap + " " + styles.column}>
+                        {/* <Field name='phone' type='text' placeholder='Телефон' className={styles.field} />
+                      <span className={styles.errorText}>
+                        <ErrorMessage name='phone' />
+                      </span> */}
+                        <InputMask
+                          className={styles.field}
+                          mask='+7 (999) 999-99-99'
+                          placeholder='Телефон'
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                        />
+                      </div>
+
+                      <div className={styles.popupFieldWrap}>
+                        <button type='submit' className={styles.submitBtn}>
+                          Получить код
+                        </button>
+                      </div>
+
+                      <div className={styles.popupFieldWrap}>
+                        <button
+                          type='button'
+                          className={styles.secondaryOption}
+                          onClick={() => {
+                            setModalToDisplay("authByLogin");
+                          }}>
+                          Войти по e-mail и паролю
+                        </button>
+                      </div>
+
+                      {/* <div className={styles.popupFieldWrap}>
+                      <span className={styles.eulaText}>
+                        Отправляя данную форму, вы принимаете условие <a className={styles.eulaLink}>пользовательского соглашения</a>
+                      </span>
+                    </div> */}
+                    </Form>
+                  )}
+                </Formik>
+              </div>
+            </>
+          )}
+
+          {stage === 2 && (
+            <>
+              <span
+                className={styles.popupHeading}
+                onClick={() => {
+                  console.log(modalToDisplay);
+                }}>
+                Введите код авторизации
+              </span>
+              <div className={styles.popupFieldWrap}>
+                <Formik
+                  initialValues={{
+                    phone: "",
+                    // password: "",
+                  }}
+                  validationSchema={Yup.object({})}
+                  onSubmit={(values) => {
+                    // alert(JSON.stringify(values, null, 2));
+
+                    // if (otp.length < 4) {
+                    //   setPopupError(true);
+                    //   console.log(otp.length);
+                    // } else console.log("ok");
+
+                    // alert("Авторизовались");
+                    handleOtpSubmit();
+                    console.log(otp);
+                    // setModalToDisplay("");
+                    // setPopupError(false);
+                  }}>
+                  {({ values }) => (
+                    <Form>
+                      {/* <OTPInput hasErrored={popupError} checkLength={checkLength} state={otp} setState={setOtp} /> */}
+
+                      {/* <OtpInput checkLength={checkLength} state={otp} setState={setOtp} /> */}
+                      <OtpInput
+                        value={otp}
+                        onChange={setOtp}
+                        containerStyle={styles.otp}
+                        inputStyle={styles.input}
+                        // errorStyle={styles.error}
+                        // hasErrored={this.props.checkLength(this.state)}
+                      />
+
+                      <div className={styles.popupFieldWrap}>
+                        <button type='submit' className={styles.submitBtn}>
+                          Отправить
+                        </button>
+                      </div>
+
+                      <div className={styles.popupFieldWrap}>
+                        <button
+                          type='button'
+                          className={counter ? styles.resendInactive : styles.resendActive}
+                          onClick={async () => {
+                            if (!counter) {
+                              (await handlePhoneSubmit()) && setCounter(60);
+                            }
+                          }}>
+                          Отправить еще раз
+                          <br /> {Timer(60)}
+                        </button>
+                      </div>
+                    </Form>
+                  )}
+                </Formik>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const Partnership = () => {
     const [orgType, setOrgType] = useState("");
     const [stage, setStage] = useState(1);
@@ -724,23 +794,6 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
         creds.append("latitude", data.latitude);
         creds.append("longitude", data.longitude);
         creds.append("address", data.address);
-
-        async function getGeocode() {
-          const res = await axios.get(
-            `https://geocode-maps.yandex.ru/1.x/?format=json&apikey=${process.env.NEXT_PUBLIC_YMAPS_KEY}&geocode=${address + " " + house}`
-          );
-          //  const {data.response.GeoObjectCollection} = res
-          // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text);
-          const fullAddress = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
-          const coords = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos;
-          const precision = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.precision;
-          // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.Address.formatted);
-          // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point);
-          const longitude = coords.split(" ")[0];
-          const latitude = coords.split(" ")[1];
-
-          return { address: fullAddress, latitude, longitude, precision };
-        }
 
         console.log(creds);
 
@@ -764,23 +817,6 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
       const [agree, setAgree] = useState(false);
       const [address, setAddress] = useState("");
       const [riasToken, setRiasToken] = useState("");
-
-      async function getGeocode() {
-        const res = await axios.get(
-          `https://geocode-maps.yandex.ru/1.x/?format=json&apikey=${process.env.NEXT_PUBLIC_YMAPS_KEY}&geocode=${address}`
-        );
-        //  const {data.response.GeoObjectCollection} = res
-        // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text);
-        const fullAddress = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
-        const coords = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos;
-        const precision = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.precision;
-        // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.Address.formatted);
-        // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point);
-        const longitude = coords.split(" ")[0];
-        const latitude = coords.split(" ")[1];
-
-        return { fullAddress, latitude, longitude, precision };
-      }
 
       const Dropzone = ({ files, setFiles, placeholder }) => {
         const [isDraggedOver, setIsDraggedOver] = useState(false);
@@ -928,7 +964,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                   onChange={(e) => setAddress(e.target.value)}
                 />
               </div>
-              <div className={styles.popupFieldWrap + " " + styles.column}>
+              {/* <div className={styles.popupFieldWrap + " " + styles.column}>
                 <input
                   name='riasToken'
                   type='text'
@@ -937,7 +973,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                   value={riasToken}
                   onChange={(e) => setRiasToken(e.target.value)}
                 />
-              </div>
+              </div> */}
 
               <div className={styles.popupFieldWrap + " " + styles.column}>
                 <Dropzone files={inn} setFiles={setInn} placeholder='ИНН' />
@@ -965,7 +1001,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                       if (!re.test(email)) {
                         throw new Error("Почта введена некорректно");
                       }
-                      const { latitude, longitude, fullAddress } = await getGeocode(address);
+                      const { latitude, longitude, geocodedAddress } = await getGeocode(address);
                       const data = {
                         name: name,
                         phone: phone,
@@ -976,7 +1012,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                         riasToken: riasToken,
                         latitude,
                         longitude,
-                        address: fullAddress,
+                        address: geocodedAddress,
                       };
                       console.log(data);
                       return signUpAsWorker(data, orgType);
@@ -1126,11 +1162,11 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
     <>
       <Overlay />
       {modalToDisplay == "authByLogin" && <AuthByLogin />}
-      {modalToDisplay == "signUpByPhone" && <SignUpByPhone />}
-      {modalToDisplay == "authByPhone" && <AuthByPhone />}
+      {/* {modalToDisplay == "signUpByPhone" && <SignUpByPhone />} */}
+      {modalToDisplay == "authByPhone" && <PhoneSignIn />}
       {modalToDisplay == "signUpByEmail" && <SignUpByEmail />}
       {modalToDisplay == "emailConfirmation" && <EmailConfirmation />}
-      {modalToDisplay == "confirmationPhone" && <ConfirmationPhone />}
+      {/* {modalToDisplay == "confirmationPhone" && <ConfirmationPhone />} */}
       {modalToDisplay == "passwordReset1" && <PasswordReset1 />}
       {modalToDisplay == "passwordReset2" && <PasswordReset2 />}
       {modalToDisplay == "passwordReset3" && <PasswordReset3 />}

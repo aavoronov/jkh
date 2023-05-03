@@ -1,6 +1,4 @@
 import React from "react";
-import "swiper/css";
-import "swiper/css/navigation";
 
 import axios from "axios";
 import { getCookie } from "cookies-next";

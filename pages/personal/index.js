@@ -10,9 +10,10 @@ import LayoutPersonal from "../../components/LayoutPersonal";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { getCookie, setCookie } from "cookies-next";
-import { updateProfile, updateRole } from "../../store/userSlice";
+import { updatePhone, updateProfile, updateRole } from "../../store/userSlice";
 import { toggle } from "../../store/notificationSlice";
 import { useRouter } from "next/router";
+import InputMask from "react-input-mask";
 
 export default function Profile({}) {
   // const profileData = {
@@ -35,6 +36,9 @@ export default function Profile({}) {
 
   const [emailChange, setEmailChange] = useState("");
   const [emailPassword, setEmailPassword] = useState("");
+
+  const [phoneChange, setPhoneChange] = useState("");
+  const [phonePassword, setPhonePassword] = useState("");
 
   const [objects, setObjects] = useState(null);
 
@@ -94,6 +98,7 @@ export default function Profile({}) {
   const pseudonym = useSelector((state) => state.user.pseudonym);
   const email = useSelector((state) => state.user.email);
   const profilePic = useSelector((state) => state.user.profilePic);
+  const phone = useSelector((state) => state.user.phone);
   const [nicknameLocal, setNicknameLocal] = useState(pseudonym);
   const [emailLocal, setEmailLocal] = useState(pseudonym);
 
@@ -244,7 +249,8 @@ export default function Profile({}) {
 
   const changeEmail = async () => {
     try {
-      if (!emailPassword || !emailChange) {
+      // !emailPassword ||
+      if (!emailChange) {
         throw new Error("Для смены почты заполните поля новой почты и пароля");
       }
       const res = await axios.post(
@@ -257,9 +263,32 @@ export default function Profile({}) {
       console.log(res.data);
       // dispatch(updateProfile({ pseudonym: nicknameLocal }));
       dispatch(toggle({ text: "Адрес электронной почты успешно обновлен. Проверьте почту", type: "success" }));
-      dispatch(updateRole(""));
+      dispatch(updateRole({ role: "" }));
       router.replace("/");
       setCookie("jkh-token", "");
+    } catch (e) {
+      dispatch(toggle({ text: e.response?.data?.message ?? e.message, type: "error" }));
+      console.log(e);
+    }
+  };
+
+  const changePhone = async () => {
+    try {
+      if (!phonePassword || !phoneChange) {
+        throw new Error("Для смены телефона заполните поля нового телефона и пароля");
+      }
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/updatePhone`,
+        { phone: phoneChange, password: phonePassword },
+        {
+          headers: { Authorization: getCookie("jkh-token") },
+        }
+      );
+      console.log(res.data);
+      dispatch(updatePhone({ phone: phoneChange }));
+      dispatch(toggle({ text: "Номер телефона успешно обновлен", type: "success" }));
+      setPhoneChange("");
+      setPhonePassword("");
     } catch (e) {
       dispatch(toggle({ text: e.response?.data?.message ?? e.message, type: "error" }));
       console.log(e);
@@ -274,7 +303,7 @@ export default function Profile({}) {
       console.log(res.data);
       // dispatch(updateProfile({ pseudonym: nicknameLocal }));
       dispatch(toggle({ text: "Ваш аккаунт успешно удален", type: "success" }));
-      dispatch(updateRole(""));
+      dispatch(updateRole({ role: "" }));
       router.replace("/");
       setCookie("jkh-token", "");
     } catch (e) {
@@ -329,6 +358,20 @@ export default function Profile({}) {
               // setNickname(e.target.value);
               console.log(e.target.value);
             }}
+          />
+        </div>
+
+        <div className={styles.fieldWrap}>
+          <label htmlFor='phone' className={styles.fieldName}>
+            Телефон
+          </label>
+          <InputMask
+            className={styles.field}
+            mask='+7 (999) 999-99-99'
+            placeholder=''
+            value={phone}
+            // onChange={(e) => setPhoneChange(e.target.value)}
+            disabled
           />
         </div>
 
@@ -402,13 +445,6 @@ export default function Profile({}) {
 
         <span className={styles.sectionHeader}>Сменить email</span>
 
-        {/* <label htmlFor='oldEmail' className={styles.fieldName}>
-          Текущий email
-        </label>
-        <div className={styles.fieldWrap + " " + styles.relative}>
-          <input name='oldEmail' type='text' placeholder='' className={styles.field} />
-        </div> */}
-
         <div className={styles.fieldWrap}>
           <label htmlFor='newEmail' className={styles.fieldName}>
             Новый email
@@ -449,6 +485,50 @@ export default function Profile({}) {
             onClick={() => {
               setEmailChange("");
               setEmailPassword("");
+            }}>
+            Отменить
+          </span>
+        </div>
+
+        <span className={styles.sectionHeader}>Сменить телефон</span>
+
+        <div className={styles.fieldWrap}>
+          <label htmlFor='newPhone' className={styles.fieldName}>
+            Новый номер телефона
+          </label>
+
+          <InputMask
+            className={styles.field}
+            mask='+7 (999) 999-99-99'
+            placeholder=''
+            value={phoneChange}
+            onChange={(e) => setPhoneChange(e.target.value)}
+          />
+        </div>
+
+        <div className={styles.fieldWrap}>
+          <label htmlFor='newPhone' className={styles.fieldName}>
+            Введите пароль от учетной записи
+          </label>
+          <input
+            name='newPhone'
+            type='password'
+            placeholder=''
+            className={styles.field}
+            value={phonePassword}
+            onChange={(e) => setPhonePassword(e.target.value)}
+          />
+        </div>
+
+        <div className={styles.fieldWrap}>
+          <button type='button' className={styles.submitBtn + " " + styles.saveBtn} onClick={changePhone}>
+            Сохранить
+          </button>
+          <span
+            className={styles.cancelBtn}
+            onClick={() => {
+              setPhoneChange("");
+              setPhonePassword("");
             }}>
             Отменить
           </span>

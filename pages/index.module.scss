@@ -664,15 +664,27 @@
   }
 }
 
+// @keyframes banner-btn-heartbeat {
+//   from {
+//     transform: scale(1);
+//   }
+//   25% {
+//     transform: scale(1.05, 1.05);
+//   }
+//   to {
+//     transform: scale(1);
+//   }
+// }
+
 @keyframes banner-btn-heartbeat {
   from {
-    transform: scale(1);
+    transform: perspective(500px) translateZ(0);
   }
   25% {
-    transform: scale(1.05, 1.05);
+    transform: perspective(500px) translateZ(30px);
   }
   to {
-    transform: scale(1);
+    transform: perspective(500px) translateZ(0);
   }
 }
 

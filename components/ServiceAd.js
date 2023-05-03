@@ -23,19 +23,22 @@ const ServiceAd = ({ data }) => {
   const dispatch = useDispatch();
   const router = useRouter();
 
+  let sumRating = 0;
+  data.reviews.forEach((item) => (sumRating = sumRating + item.rating));
+
   const [complaintActive, setComplaintActive] = useState(false);
   const [complaintError, setComplaintError] = useState(false);
-  const [votes, setVotes] = useState(0);
-  const [rating, setRating] = useState(0);
+  const [votes, setVotes] = useState(data.reviews.length);
+  const [rating, setRating] = useState(sumRating / votes);
 
-  useEffect(() => {
-    if (!!data.reviews) {
-      setVotes(data.reviews.length);
-      let sumRating = 0;
-      data.reviews.forEach((item) => (sumRating = sumRating + item.rating));
-      setRating(sumRating / votes);
-    }
-  }, [data]);
+  // useEffect(() => {
+  //   if (!!data.reviews) {
+  //     setVotes(data.reviews.length);
+  //     let sumRating = 0;
+  //     data.reviews.forEach((item) => (sumRating = sumRating + item.rating));
+  //     setRating(sumRating / votes);
+  //   }
+  // }, []);
 
   return (
     <>
@@ -162,13 +165,7 @@ const ServiceAd = ({ data }) => {
             </div>
             <div className={styles.rating}>
               <div>
-                <Image
-                  src='/img/star6.svg'
-                  width={25}
-                  height={25}
-                  className={rating ? "" : styles.starGrey}
-                  onClick={() => console.log(rating)}
-                />
+                <Image src='/img/star6.svg' width={25} height={25} className={rating ? "" : styles.starGrey} />
               </div>
               <div className={styles.ratingNumbers}>
                 {votes ? <span>{Math.round(rating * 100) / 100}</span> : <span className={styles.noRating}>Нет рейтинга</span>}
@@ -206,9 +203,11 @@ const ServiceAd = ({ data }) => {
               </div>
             </div>
             <div className={styles.nameWrap}>
-              <Link href='/services/service-inner'>
-                <span className={styles.adName}>{data.name}</span>
-              </Link>
+              {/* <Link href='/services/service-inner'> */}
+              <span className={styles.adName} onClick={() => router.push({ pathname: "/services/[id]", query: { id: data.id } })}>
+                {data.name}
+              </span>
+              {/* </Link> */}
               {data.isPaidAd ? <span className={styles.isAd}>Реклама</span> : null}
             </div>
             <span className={styles.adLocation}>{data.address}</span>
@@ -254,8 +253,8 @@ const ServiceAd = ({ data }) => {
                   }}
                   rewind={true}
                   slidesPerView={4}
-                  onSlideChange={() => console.log("slide change")}
-                  onSwiper={(swiper) => console.log(swiper)}
+                  // onSlideChange={() => console.log("slide change")}
+                  // onSwiper={(swiper) => console.log(swiper)}
                   // navigation={swiperNavigation}
                 >
                   {data.portfolio &&
@@ -298,7 +297,11 @@ const ServiceAd = ({ data }) => {
               <SwiperSlide>Slide 4</SwiperSlide> */}
                 </Swiper>
                 <div className={styles.masterBtnsWrap}>
-                  <button className={styles.adCallBtn}>Позвонить</button>
+                  {data.user.phone && (
+                    <a href={`tel:${data.user.phone}`} className={styles.adCallBtn}>
+                      Позвонить
+                    </a>
+                  )}
                   {/* <button className={styles.adWriteBtn}>Написать в чате</button> */}
                 </div>
               </>
@@ -338,8 +341,8 @@ const ServiceAd = ({ data }) => {
                 }
               }}
               rewind={true}
-              onSlideChange={() => console.log("slide change")}
-              onSwiper={(swiper) => console.log(swiper)}
+              // onSlideChange={() => console.log("slide change")}
+              // onSwiper={(swiper) => console.log(swiper)}
               // navigation={swiperNavigation}
             >
               {data.sliderPhotos &&
@@ -378,7 +381,11 @@ const ServiceAd = ({ data }) => {
               <SwiperSlide>Slide 4</SwiperSlide> */}
             </Swiper>
             <div className={styles.masterBtnsWrap}>
-              <button className={styles.adCallBtn}>Позвонить</button>
+              {data.user.phone && (
+                <a href={`tel:${data.user.phone}`} className={styles.adCallBtn}>
+                  Позвонить
+                </a>
+              )}
               {/* <button className={styles.adWriteBtn}>Написать в чате</button> */}
             </div>
           </>

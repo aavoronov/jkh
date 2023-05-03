@@ -24,6 +24,7 @@ import { toggle } from "../../store/notificationSlice";
 import allPlaces from "/public/img/allPlaces.png";
 import arrowLeft from "/public/img/arrowLeft.png";
 import { createComplaint, Types } from "../../service/functions";
+import { useRouter } from "next/router";
 
 const zoomOptions = {
   position: { right: 30, top: 50 },
@@ -59,7 +60,7 @@ const getUglyCategory = (category) => {
 const getObjectProperties = (item) => {
   const { object, reviews, rating, count } = item;
   return {
-    coordinates: object.object.point.coordinates,
+    coordinates: [object.object.point.coordinates[1], object.object.point.coordinates[0]],
     photos: object.images || ["/img/no-image.jpg"],
     id: object.objectId,
     name: object.name,
@@ -93,7 +94,7 @@ const dataConvert = (points) => {
         // geometry: [item.point.coordinates[1], item.point.coordinates[0]],
         options: { iconLayout: "default#image", iconImageHref: `img/${item.category}Mark.png`, iconImageSize: [38, 50] },
       };
-      console.log(item.point);
+      // console.log(item.point);
       return features.push(tmpObj);
     });
   return features;
@@ -137,6 +138,7 @@ export default function InteractiveMap(props) {
   const [draggableCoords, setDraggableCoords] = useState(null);
   const [sendToModerator, setSendToModerator] = useState(false);
   const [objectInfoActive, setObjectInfoActive] = useState(null);
+  const [commentId, setCommentId] = useState(null);
   const [rating, setRating] = useState(0);
   const [complaintActive, setComplaintActive] = useState(false);
   const [complaintError, setComplaintError] = useState(false);
@@ -151,6 +153,8 @@ export default function InteractiveMap(props) {
   const [phoneError, setPhoneError] = useState(false);
 
   const mapRef = useRef(null);
+
+  const router = useRouter();
 
   const ThatMapThing = () => {
     const RouteBuilder = React.useMemo(() => {
@@ -216,6 +220,9 @@ export default function InteractiveMap(props) {
 
   useEffect(() => {
     async function getEstateObjects() {
+      const routerObjectId = router.query.id;
+
+      console.log("routerObjectId", routerObjectId);
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects`, {
           headers: { Authorization: getCookie("jkh-token") },
@@ -225,6 +232,7 @@ export default function InteractiveMap(props) {
           let data = [];
           res.data.forEach((item) => {
             return data.push({
+              id: item.id,
               address: item.estateObject.address.split(",").slice(-2).join().trim() + ", " + item.estateObject.apartment,
               // coordinates: [+item.estateObject.latitude, +item.estateObject.longitude],
               coordinates: [+item.estateObject.point.coordinates[1], +item.estateObject.point.coordinates[0]],
@@ -233,16 +241,31 @@ export default function InteractiveMap(props) {
           return data;
         };
         res.data.length && setEstateObjects(prepareData());
-        setDropdownValue(
-          res.data.length
-            ? res.data[0].estateObject.address.split(",").slice(-2).join().trim() + ", " + res.data[0].estateObject.apartment
-            : null
-        );
+
+        let mapStateCenter = [55.74977233765063, 37.629171261904766];
+        let filterValue = null;
+
+        if (res.data.length) {
+          console.log("1");
+          if (!!routerObjectId) {
+            console.log("2");
+            const object = res.data.find((item) => item.estateObject.id === +routerObjectId);
+            if (!!object) {
+              console.log("object123", object);
+              console.log("3");
+              mapStateCenter = [object.estateObject.point.coordinates[1], object.estateObject.point.coordinates[0]];
+              filterValue = object.estateObject.address.split(",").slice(-2).join().trim() + ", " + object.estateObject.apartment;
+            }
+          } else {
+            mapStateCenter = [res.data[0].estateObject.point.coordinates[1], res.data[0].estateObject.point.coordinates[0]];
+            filterValue = res.data[0].estateObject.address.split(",").slice(-2).join().trim() + ", " + res.data[0].estateObject.apartment;
+          }
+        }
+
+        setDropdownValue(filterValue);
+
         setMapState({
-          center: res.data.length
-            ? // ? [res.data[0].estateObject.latitude, res.data[0].estateObject.longitude]
-              [res.data[0].estateObject.point.coordinates[1], res.data[0].estateObject.point.coordinates[0]]
-            : [55.74977233765063, 37.629171261904766],
+          center: mapStateCenter,
           zoom: 15,
           behaviors: ["default", "scrollZoom"],
           style: { height: "calc(100vh - 59px)", width: { mapWidth }, position: "relative" },
@@ -340,6 +363,11 @@ export default function InteractiveMap(props) {
     const res = await axios.get(
       `https://geocode-maps.yandex.ru/1.x/?format=json&apikey=${process.env.NEXT_PUBLIC_YMAPS_KEY}&geocode=${coordinates}`
     );
+
+    const isSuccess = !!res.data.response.GeoObjectCollection.featureMember.length;
+    if (!isSuccess) {
+      throw new Error("Введенный адрес не найден. Проверьте правильность введенного адреса");
+    }
     //  const {data.response.GeoObjectCollection} = res
     // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text);
     const fullAddress = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
@@ -555,10 +583,11 @@ export default function InteractiveMap(props) {
   const ReviewThread = ({ item }) => {
     const [isReplyActive, setIsReplyActive] = useState(false);
     const date = new Date(item.createdAt);
+    console.log("item", item);
     return (
       <div className={styles.reviewThread}>
         <div className={styles.review}>
-          <div className={styles.reviewNameWrap}>
+          <div className={styles.reviewNameWrap} style={{ position: "relative" }}>
             {item.user.profile.profilePic ? (
               <img
                 className={styles.reviewProfilePic}
@@ -574,6 +603,18 @@ export default function InteractiveMap(props) {
               </span>
             )}
             <span className={styles.reviewName}>{item.user.profile.pseudonym}</span>
+            <div className={styles.threeDotsBtn} style={{ position: "absolute", right: -20 }}>
+              <div className={styles.threeDotsBtnMenu}>
+                <span
+                  className={styles.objectOptionsItem}
+                  onClick={() => {
+                    setComplaintActive("review");
+                    setCommentId(item.id);
+                  }}>
+                  Пожаловаться
+                </span>
+              </div>
+            </div>
           </div>
           <div className={styles.reviewMeta}>
             <Rating initialValue={item.rating} readonly={true} size={11} fillColor='#FF8C00' emptyColor='#D1D3DF'></Rating>
@@ -656,6 +697,18 @@ export default function InteractiveMap(props) {
                   </span>
                 )}
                 <span className={styles.reviewName}>{reply.user.profile.pseudonym}</span>
+                <div className={styles.threeDotsBtn} style={{ position: "absolute", right: 0 }}>
+                  <div className={styles.threeDotsBtnMenu}>
+                    <span
+                      className={styles.objectOptionsItem}
+                      onClick={() => {
+                        setComplaintActive("reply");
+                        setCommentId(reply.id);
+                      }}>
+                      Пожаловаться
+                    </span>
+                  </div>
+                </div>
               </div>
               <div className={styles.reviewMeta}>
                 {/* <Rating initialValue={3} readonly={true} size={11} fillColor='#FF8C00' emptyColor='#D1D3DF'></Rating> */}
@@ -686,130 +739,229 @@ export default function InteractiveMap(props) {
     }
   };
 
+  // useEffect(() => {
+  //   if (estateObjects.length && router.query.id && !!mapRef.current) {
+  //     const object = estateObjects.find((item) => item.id === +router.query.id);
+  //     console.log("estateObjects", estateObjects);
+  //     console.log("object", object);
+  //     mapRef.current.setCenter(object.coordinates);
+  //     setDropdownValue(object.address);
+  //   }
+  // }, [estateObjects, router.query.id, mapRef.current]);
+
+  useEffect(() => {
+    if (estateObjects.length && router.query.id) {
+      const object = estateObjects.find((item) => item.id === +router.query.id);
+      console.log("estateObjects", estateObjects);
+      console.log("object", object.address);
+      setDropdownValue(object.address);
+    }
+  }, [estateObjects, router.query.id]);
+
   return (
     <LayoutMap menuIsCollapsible={true} menuIsOpen={menuIsOpen} setMenuIsOpen={setMenuIsOpen}>
-      {complaintActive ? (
-        <>
-          <div
-            id={styles.overlay}
-            onClick={() => {
-              setComplaintError(false);
-              setComplaintActive(false);
-            }}></div>
-          <div className={styles.complaintPopup}>
-            <div
-              className={styles.closeBtn}
-              onClick={() => {
-                setComplaintActive(false);
-                setComplaintError(false);
-              }}></div>
-            <span className={styles.complaintHeading}>Пожаловаться на объект</span>
-            <div className={styles.objectWrap}>
-              <div className={styles.imageWrap}>
-                <img
-                  onClick={() => console.log(objectInfoActive.photos)}
-                  src={
-                    objectInfoActive.photos[0] === "/img/no-image.jpg"
-                      ? objectInfoActive.photos[0]
-                      : `${process.env.NEXT_PUBLIC_API_URL}/uploads/map-objects/${objectInfoActive.photos[0]}`
-                  }
-                  width={90}
-                  height={72}
-                />
-              </div>
-              <div className={styles.objectInfoWrap}>
-                <div className={styles.complaintCategory}>{objectInfoActive.humanFriendlyCategory}</div>
-                <div className={styles.complaintName}>{objectInfoActive.name}</div>
-              </div>
-            </div>
-            <Formik
-              initialValues={{
-                issue: "",
-                comment: "",
-              }}
-              onSubmit={(values) => {
-                if (values.issue == "Другое" && !values.comment) {
-                  setComplaintError(true);
-                  return;
-                }
-                values.objectId = objectInfoActive.id;
-                const data = {
-                  type: Types.mapObject,
-                  objectId: objectInfoActive.id,
-                  reason: values.issue,
-                  text: values.issue === "Другое" ? values.comment : undefined,
-                };
-                createComplaint(data);
-                // alert(JSON.stringify(data, null, 2));
-                dispatch(toggle({ type: "success", text: "Жалоба успешно отправлена" }));
-                setComplaintError(false);
-                setComplaintActive(false);
-              }}>
-              {({ values }) => (
-                <Form>
-                  <div className={styles.form_radio}>
-                    <Field id='radio-1' className={styles.radio} type='radio' name='issue' value='Объект отсутствует на указанном месте' />
-                    <label htmlFor='radio-1'>Объект отсутствует на указанном месте</label>
-                  </div>
+      {complaintActive
+        ? (() => {
+            const isMap = complaintActive === "map";
+            const isReview = complaintActive === "review";
+            const isReply = complaintActive === "reply";
 
-                  <div className={styles.form_radio}>
-                    <Field id='radio-2' className={styles.radio} type='radio' name='issue' value='Не соответствует описание' />
-                    <label htmlFor='radio-2'>Не соответствует описание</label>
-                  </div>
-
-                  <div className={styles.form_radio}>
-                    <Field id='radio-3' className={styles.radio} type='radio' name='issue' value='Не соответствуют фото' />
-                    <label htmlFor='radio-3'>Не соответствуют фото</label>
-                  </div>
-
-                  <div className={styles.form_radio}>
-                    <Field id='radio-4' className={styles.radio} type='radio' name='issue' value='Это реклама' />
-                    <label htmlFor='radio-4'>Это реклама</label>
-                  </div>
-
-                  <div className={styles.form_radio}>
-                    <Field id='radio-5' className={styles.radio} type='radio' name='issue' value='Другое' />
-                    <label htmlFor='radio-5'>Другое</label>
-                  </div>
-
-                  {values.issue == "Другое" ? (
-                    <div className={styles.complaintFieldWrap}>
-                      <Field
-                        as='textarea'
-                        name='comment'
-                        maxLength={1500}
-                        rows={10}
-                        resize='none'
-                        type='text'
-                        placeholder='Напишите ваш отзыв'
-                        className={styles.field + " " + styles.textarea + " " + styles.complaintComment}
-                      />
-                      <div className={styles.warningWrap}>
-                        {complaintError ? <span className={styles.errorText}>Обязательное поле</span> : null}
-                        <span className={styles.warning}>Не более 1500 символов</span>
+            return (
+              <>
+                <div
+                  id={styles.overlay}
+                  onClick={() => {
+                    setComplaintError(false);
+                    setComplaintActive(false);
+                  }}></div>
+                <div className={styles.complaintPopup}>
+                  <div
+                    className={styles.closeBtn}
+                    onClick={() => {
+                      setComplaintActive(false);
+                      setComplaintError(false);
+                    }}></div>
+                  <span className={styles.complaintHeading}>{`Пожаловаться на ${isMap ? "объект" : "комментарий"}`}</span>
+                  {isMap && (
+                    <div className={styles.objectWrap}>
+                      <div className={styles.imageWrap}>
+                        <img
+                          onClick={() => console.log(objectInfoActive.photos)}
+                          src={
+                            objectInfoActive.photos[0] === "/img/no-image.jpg"
+                              ? objectInfoActive.photos[0]
+                              : `${process.env.NEXT_PUBLIC_API_URL}/uploads/map-objects/${objectInfoActive.photos[0]}`
+                          }
+                          width={90}
+                          height={72}
+                        />
+                      </div>
+                      <div className={styles.objectInfoWrap}>
+                        <div className={styles.complaintCategory}>{objectInfoActive.humanFriendlyCategory}</div>
+                        <div className={styles.complaintName}>{objectInfoActive.name}</div>
                       </div>
                     </div>
-                  ) : null}
+                  )}
+                  <Formik
+                    initialValues={{
+                      issue: "",
+                      comment: "",
+                    }}
+                    onSubmit={(values) => {
+                      if (values.issue == "Другое" && !values.comment) {
+                        setComplaintError(true);
+                        return;
+                      }
+                      // values.objectId = objectInfoActive.id;
+                      const type =
+                        complaintActive === "map" ? Types.mapObject : complaintActive === "review" ? Types.mapReview : Types.mapReply;
+                      const data = {
+                        type: type,
+                        objectId: isMap ? objectInfoActive.id : commentId,
+                        reason: values.issue,
+                        text: values.issue === "Другое" ? values.comment : undefined,
+                      };
+                      createComplaint(data);
+                      // alert(JSON.stringify(data, null, 2));
+                      dispatch(toggle({ type: "success", text: "Жалоба успешно отправлена" }));
+                      setComplaintError(false);
+                      setComplaintActive(false);
+                    }}>
+                    {({ values }) =>
+                      isMap ? (
+                        <Form>
+                          <div className={styles.form_radio}>
+                            <Field
+                              id='radio-1'
+                              className={styles.radio}
+                              type='radio'
+                              name='issue'
+                              value='Объект отсутствует на указанном месте'
+                            />
+                            <label htmlFor='radio-1'>Объект отсутствует на указанном месте</label>
+                          </div>
 
-                  <div className={styles.fieldWrap}>
-                    <button type='submit' className={styles.submitBtn}>
-                      Отправить
-                    </button>
-                    <span
-                      className={styles.cancelBtn}
-                      onClick={() => {
-                        setComplaintError(false);
-                        setComplaintActive(false);
-                      }}>
-                      Отменить
-                    </span>
-                  </div>
-                </Form>
-              )}
-            </Formik>
-          </div>
-        </>
-      ) : null}
+                          <div className={styles.form_radio}>
+                            <Field id='radio-2' className={styles.radio} type='radio' name='issue' value='Не соответствует описание' />
+                            <label htmlFor='radio-2'>Не соответствует описание</label>
+                          </div>
+
+                          <div className={styles.form_radio}>
+                            <Field id='radio-3' className={styles.radio} type='radio' name='issue' value='Не соответствуют фото' />
+                            <label htmlFor='radio-3'>Не соответствуют фото</label>
+                          </div>
+
+                          <div className={styles.form_radio}>
+                            <Field id='radio-4' className={styles.radio} type='radio' name='issue' value='Это реклама' />
+                            <label htmlFor='radio-4'>Это реклама</label>
+                          </div>
+
+                          <div className={styles.form_radio}>
+                            <Field id='radio-5' className={styles.radio} type='radio' name='issue' value='Другое' />
+                            <label htmlFor='radio-5'>Другое</label>
+                          </div>
+
+                          {values.issue == "Другое" ? (
+                            <div className={styles.complaintFieldWrap}>
+                              <Field
+                                as='textarea'
+                                name='comment'
+                                maxLength={1500}
+                                rows={10}
+                                resize='none'
+                                type='text'
+                                placeholder='Напишите ваш отзыв'
+                                className={styles.field + " " + styles.textarea + " " + styles.complaintComment}
+                              />
+                              <div className={styles.warningWrap}>
+                                {complaintError ? <span className={styles.errorText}>Обязательное поле</span> : null}
+                                <span className={styles.warning}>Не более 1500 символов</span>
+                              </div>
+                            </div>
+                          ) : null}
+
+                          <div className={styles.fieldWrap}>
+                            <button type='submit' className={styles.submitBtn}>
+                              Отправить
+                            </button>
+                            <span
+                              className={styles.cancelBtn}
+                              onClick={() => {
+                                setComplaintError(false);
+                                setComplaintActive(false);
+                              }}>
+                              Отменить
+                            </span>
+                          </div>
+                        </Form>
+                      ) : (
+                        <Form>
+                          <div className={styles.form_radio}>
+                            <Field id='radio-1' className={styles.radio} type='radio' name='issue' value='Неизвестно, что здесь будет' />
+                            <label htmlFor='radio-1'>Неизвестно, что здесь будет</label>
+                          </div>
+
+                          {/* <div className={styles.form_radio}>
+                            <Field id='radio-2' className={styles.radio} type='radio' name='issue' value='Не соответствует описание' />
+                            <label htmlFor='radio-2'>Не соответствует описание</label>
+                          </div>
+
+                          <div className={styles.form_radio}>
+                            <Field id='radio-3' className={styles.radio} type='radio' name='issue' value='Не соответствуют фото' />
+                            <label htmlFor='radio-3'>Не соответствуют фото</label>
+                          </div>
+
+                          <div className={styles.form_radio}>
+                            <Field id='radio-4' className={styles.radio} type='radio' name='issue' value='Это реклама' />
+                            <label htmlFor='radio-4'>Это реклама</label>
+                          </div>
+
+                          <div className={styles.form_radio}>
+                            <Field id='radio-5' className={styles.radio} type='radio' name='issue' value='Другое' />
+                            <label htmlFor='radio-5'>Другое</label>
+                          </div> */}
+
+                          {values.issue == "Другое" ? (
+                            <div className={styles.complaintFieldWrap}>
+                              <Field
+                                as='textarea'
+                                name='comment'
+                                maxLength={1500}
+                                rows={10}
+                                resize='none'
+                                type='text'
+                                placeholder='Напишите ваш отзыв'
+                                className={styles.field + " " + styles.textarea + " " + styles.complaintComment}
+                              />
+                              <div className={styles.warningWrap}>
+                                {complaintError ? <span className={styles.errorText}>Обязательное поле</span> : null}
+                                <span className={styles.warning}>Не более 1500 символов</span>
+                              </div>
+                            </div>
+                          ) : null}
+
+                          <div className={styles.fieldWrap}>
+                            <button type='submit' className={styles.submitBtn}>
+                              Отправить
+                            </button>
+                            <span
+                              className={styles.cancelBtn}
+                              onClick={() => {
+                                setComplaintError(false);
+                                setComplaintActive(false);
+                              }}>
+                              Отменить
+                            </span>
+                          </div>
+                        </Form>
+                      )
+                    }
+                  </Formik>
+                </div>
+              </>
+            );
+          })()
+        : null}
       <button
         className={menuIsOpen ? styles.addObjectBtn : styles.addObjectBtn + " " + styles.toTheRight}
         onClick={() => {
@@ -817,12 +969,12 @@ export default function InteractiveMap(props) {
         }}>
         <span className={styles.addObjectHint}>Добавить объект на карту</span>
       </button>
-      <button className={menuIsOpen ? styles.mapOptionsBtn : styles.mapOptionsBtn + " " + styles.toTheRight}>
+      {/* <button className={menuIsOpen ? styles.mapOptionsBtn : styles.mapOptionsBtn + " " + styles.toTheRight}>
         <div className={styles.mapOptionsMenu}>
           <span className={styles.mapOptionsItem}>Показать установленные объекты</span>
           <span className={styles.mapOptionsItem}>Показать предложенные объекты</span>
         </div>
-      </button>
+      </button> */}
       <YMaps query={{ apikey: process.env.NEXT_PUBLIC_YMAPS_KEY }}>
         {width < 769 ? (
           <button
@@ -991,7 +1143,7 @@ export default function InteractiveMap(props) {
                         <span
                           className={styles.objectOptionsItem}
                           onClick={() => {
-                            setComplaintActive(true);
+                            setComplaintActive("map");
                           }}>
                           Пожаловаться
                         </span>
@@ -1193,8 +1345,7 @@ export default function InteractiveMap(props) {
                   </label>
                   <Dropzone />
                 </div>
-                <div className={styles.fieldWrap}>
-                  {/* <input type='checkbox' name='sendToModerator' id='sendToModerator' className={styles.checkbox} /> */}
+                {/* <div className={styles.fieldWrap}>
                   <label htmlFor='sendToModerator' className={styles.fieldName + " " + styles.checkboxWrap}>
                     <div
                       name='sendToModerator'
@@ -1213,7 +1364,7 @@ export default function InteractiveMap(props) {
                       </span>
                     </span>
                   </label>
-                </div>
+                </div> */}
                 {sendToModerator ? (
                   <div className={styles.fieldWrap}>
                     <Field

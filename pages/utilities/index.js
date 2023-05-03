@@ -29,7 +29,7 @@ export default function Utilities(props) {
   useEffect(() => {
     async function getEstateObjects() {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects`, {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects/notifications`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
         setEstateObjects(res.data);
@@ -56,7 +56,7 @@ export default function Utilities(props) {
           </Link>
         </div>
       )}
-      {estateObjects.length ? <EstateObject data={estateObjects[0].estateObject} account={"invalid"} /> : null}
+      {/* {estateObjects.length ? <EstateObject data={estateObjects[0].estateObject} account={"invalid"} /> : null} */}
     </LayoutLoggedIn>
   );
 }

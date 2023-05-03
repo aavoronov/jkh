@@ -606,10 +606,17 @@
   }
 }
 
+@media screen and (min-width: 1661px) {
+  .objectBtn {
+    margin-right: 30px;
+  }
+}
+
 @media screen and (max-width: 1660px) {
   .objectBtn {
     padding: 12px 8px;
     margin-left: 10px;
+    margin-right: 10px;
   }
   .objectFirstHalf,
   .objectSecondHalf {

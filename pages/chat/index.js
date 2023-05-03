@@ -10,10 +10,6 @@ import LayoutLoggedIn from "../../components/LayoutLoggedIn";
 // import DropdownList from "../components/DropdownList";
 import arrowLeft from "/public/img/arrowLeft.png";
 
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/thumbs";
-
 import styles from "./chat.module.scss";
 
 import axios from "axios";
@@ -27,6 +23,7 @@ import { toggle } from "../../store/notificationSlice";
 
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
+import { useRouter } from "next/router";
 
 const manager = new Manager(`${process.env.NEXT_PUBLIC_WS_ADDRESS}`, {
   autoConnect: false,
@@ -168,6 +165,8 @@ const getHumanReadableDateCompare = (datePrev, date) => {
 };
 
 export default function Chat() {
+  const router = useRouter();
+
   const datepickerRef = useRef(null);
 
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(null);
@@ -199,7 +198,7 @@ export default function Chat() {
   async function getMessages() {
     if (!!email && !startReached) {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/${email}`, {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat`, {
           headers: {
             Authorization: getCookie("jkh-token"),
           },
@@ -223,7 +222,7 @@ export default function Chat() {
             color: color,
             profilePic: profilePic,
             file: item.file,
-            isPaid: (item.role === "stores") | (item.role === "business"),
+            isPaid: (item.user.role === "stores") | (item.user.role === "business"),
             roomId: item.roomId,
           };
         });
@@ -242,7 +241,7 @@ export default function Chat() {
   async function getMoreMessages() {
     if (!!email && !startReached) {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/more/${email}?page=${scrollPage}&chat=${currentChatId}`, {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/more?page=${scrollPage}&chat=${currentChatId}`, {
           headers: {
             Authorization: getCookie("jkh-token"),
           },
@@ -262,7 +261,7 @@ export default function Chat() {
             color: color,
             profilePic: profilePic,
             file: item.file,
-            isPaid: (item.role === "stores") | (item.role === "business"),
+            isPaid: (item.user.role === "stores") | (item.user.role === "business"),
             roomId: item.roomId,
           };
         });
@@ -477,7 +476,7 @@ export default function Chat() {
   const CalendarBtnInput = forwardRef(({ onClick }, ref) => <button className={styles.calendarBtn} onClick={onClick} ref={ref}></button>);
 
   async function getSearchMessages() {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/search/${email}?query=${query}&chat=${currentChatId}`, {
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/search?query=${query}&chat=${currentChatId}`, {
       headers: { Authorization: getCookie("jkh-token") },
     });
     setSearchMessages(res.data.data);
@@ -485,24 +484,31 @@ export default function Chat() {
 
   async function getCalendarMessages(date) {
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/calendar/${email}?date=${date}&chat=${currentChatId}`, {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/calendar?date=${date}&chat=${currentChatId}`, {
         headers: { Authorization: getCookie("jkh-token") },
       });
-      const messages = res.data.data.map((item) => {
+      const fetchedMessages = res.data.data.map((item) => {
         const serverDate = item.createdAt;
         const localDate = new Date(serverDate);
+        const name = item.user.profile ? item.user.profile.pseudonym : item.user.workerProfile.name;
+        const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
+        const profilePic = item.user.profile ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
+        const link = item.chatAd?.link ?? item.link;
         return {
           message: item.message,
           date: localDate,
           time: localDate.getHours().toString().padStart(2, "0") + ":" + localDate.getMinutes().toString().padStart(2, "0"),
-          name: item.user.profile.pseudonym,
-          color: item.user.profile.color,
+          link: link,
+          name: name,
+          color: color,
+          profilePic: profilePic,
           file: item.file,
+          isPaid: (item.user.role === "stores") | (item.user.role === "business"),
           roomId: item.roomId,
         };
       });
-      // console.log(initialMessages);
-      setCalendarMessages(messages);
+
+      setCalendarMessages(fetchedMessages);
       // setMessages(res.data.data);}
     } catch (e) {
       console.log(e);
@@ -600,7 +606,7 @@ export default function Chat() {
     async function getMyChats() {
       if (!!email) {
         try {
-          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat-rooms/my/${email}`, {
+          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat-rooms/my`, {
             headers: {
               Authorization: getCookie("jkh-token"),
             },
@@ -618,14 +624,20 @@ export default function Chat() {
 
   useEffect(() => {
     if (!!myChats.length) {
-      setCurrentChat(myChats[0].address);
-      setCurrentChatId(parseInt(myChats[0].id));
+      if (!!router.query.id) {
+        const chat = myChats.find((item) => item.id === +router.query.id);
+        setCurrentChat(chat.address);
+        setCurrentChatId(chat.id);
+      } else {
+        setCurrentChat(myChats[0].address);
+        setCurrentChatId(parseInt(myChats[0].id));
+      }
     } else {
       setCurrentChat("");
       setCurrentChatId("");
       setMessages([]);
     }
-  }, [myChats]);
+  }, [myChats, router.query.id]);
 
   useEffect(() => {
     if (!!myChats.length) {
@@ -818,42 +830,33 @@ export default function Chat() {
                 <div className={styles.searchResults}>
                   {!!searchMessages.length && <span className={styles.resultsHeader}>{searchMessages.length} сообщений найдено</span>}
                   {searchMessages.map((item, index) => {
-                    const datetime = new Date(item.createdAt);
-                    // console.log(datetime.getDate());
-                    // console.log((datetime.getMonth() + 1).toString().padStart(2, "0"));
-                    // console.log(datetime.getFullYear().toString().slice(2));
-                    // console.log(datetime.getHours());
-                    // console.log(datetime.getMinutes());
+                    const color = item.user.profile?.color ?? item.user.workerProfile?.color;
+                    const name = item.user.profile ? item.user.profile.pseudonym : item.user.workerProfile.name;
+                    const profilePic = item.user.profile ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
 
                     return (
                       <div className={styles.searchResultsItem} key={index}>
-                        <span className={styles.objectLetters} style={{ backgroundColor: item.user.profile.color }}>
-                          {item.user.profile.pseudonym.split(" ").length > 1
-                            ? item.user.profile.pseudonym.split(" ")[0][0] + item.user.profile.pseudonym.split(" ")[1][0]
-                            : item.user.profile.pseudonym.slice(0, 2)}
-                        </span>
+                        {profilePic ? (
+                          // <img src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${item.user.profile.profilePic}`} />
+                          <div className={styles.participantPic}>
+                            <img
+                              src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/profiles/${profilePic}`}
+                              style={{ width: 35, height: 35, borderRadius: 35, objectFit: "cover" }}
+                            />
+                          </div>
+                        ) : (
+                          <span className={styles.objectLetters} style={{ backgroundColor: color }}>
+                            {name.split(" ").length > 1 ? name.split(" ")[0][0] + name.split(" ")[1][0] : name.slice(0, 2)}
+                          </span>
+                        )}
 
                         <div className={styles.searchMsgWrap}>
-                          <span className={styles.SearchMsgName}>
-                            {item.user.profile.pseudonym.length > 15
-                              ? item.user.profile.pseudonym.substring(0, 15) + "..."
-                              : item.user.profile.pseudonym}
-                          </span>
+                          <span className={styles.SearchMsgName}>{name.length > 15 ? name.substring(0, 15) + "..." : name}</span>
                           <span className={styles.SearchMsgText}>
                             {item.message.length > 15 ? item.message.substring(0, 25) + "..." : item.message}
                           </span>
                         </div>
-                        <span className={styles.SearchMsgTime}>
-                          {datetime.getDate().toString().padStart(2, "0") +
-                            "." +
-                            (datetime.getMonth() + 1).toString().padStart(2, "0") +
-                            "." +
-                            datetime.getFullYear().toString().slice(2) +
-                            " " +
-                            datetime.getHours().toString().padStart(2, "0") +
-                            ":" +
-                            datetime.getMinutes().toString().padStart(2, "0")}
-                        </span>
+                        <span className={styles.SearchMsgTime}>{currentDatetime(item.createdAt)}</span>
 
                         {/* date.getDate() + " " + monthNames[date.getMonth()]; */}
                       </div>
@@ -863,8 +866,8 @@ export default function Chat() {
               </div>
             ) : null}
             {!calendarMessages.length && startReached && !!myChats.length && <div className={styles.chatDate}>{"Начало истории чата"}</div>}
-            {/* {messages.map((item, index) => { */}
-            {!calendarMessages.length
+
+            {/* {!calendarMessages.length
               ? messages
                   .filter((item) => (Array.isArray(item.roomId) ? item.roomId.includes(currentChatId) : item.roomId === currentChatId))
                   .map((item, index) => {
@@ -887,7 +890,7 @@ export default function Chat() {
                     return (
                       <>
                         {date && <div className={styles.chatDate}>{date}</div>}
-                        {/* <div className={styles.chatDate}>{date}</div> */}
+                        
                         <ChatMessage
                           key={index}
                           name={item.name}
@@ -905,7 +908,7 @@ export default function Chat() {
                     // isMine = false, isPaid = false, name, text, profilePic, time, pic = false
                   })
               : calendarMessages
-                  // .filter((item) => item.roomId === currentChatId)
+                  .filter((item) => (Array.isArray(item.roomId) ? item.roomId.includes(currentChatId) : item.roomId === currentChatId))
                   .map((item, index) => {
                     let date = "";
 
@@ -925,8 +928,12 @@ export default function Chat() {
                     // console.log(messages.filter((item) => item.roomId === currentChatId));
                     return (
                       <>
-                        {date && <div className={styles.chatDate}>{date}</div>}
-                        {/* <div className={styles.chatDate}>{date}</div> */}
+                        {date && (
+                          <div className={styles.chatDate} onClick={() => console.log("test")}>
+                            {date}
+                          </div>
+                        )}
+                       
                         <ChatMessage
                           key={index}
                           name={item.name}
@@ -942,7 +949,47 @@ export default function Chat() {
                       </>
                     );
                     // isMine = false, isPaid = false, name, text, profilePic, time, pic = false
-                  })}
+                  })} */}
+
+            {(() => {
+              const msgs = !!calendarMessages.length ? calendarMessages : messages;
+              return msgs
+                .filter((item) => (Array.isArray(item.roomId) ? item.roomId.includes(currentChatId) : item.roomId === currentChatId))
+                .map((item, index) => {
+                  let date = "";
+
+                  // const chatsIds = myChats.map((item) => item.id);
+                  // console.log(chatsIds);
+
+                  if (!!item.date) {
+                    if (index === 0) {
+                      date = getHumanReadableDate(item.date);
+                    } else {
+                      date = getHumanReadableDateCompare(msgs.filter((item) => item.roomId === currentChatId)[index - 1].date, item.date);
+                    }
+                  }
+                  // console.log(messages.filter((item) => item.roomId === currentChatId));
+                  return (
+                    <>
+                      {date && <div className={styles.chatDate}>{date}</div>}
+
+                      <ChatMessage
+                        key={index}
+                        name={item.name}
+                        text={item.message.replace(/\n/g, "<br/>")}
+                        link={item.link}
+                        isMine={item.name === pseudonym}
+                        isPaid={item.isPaid}
+                        time={item.time}
+                        color={item.color}
+                        profilePic={item.profilePic}
+                        file={item.file}
+                      />
+                    </>
+                  );
+                  // isMine = false, isPaid = false, name, text, profilePic, time, pic = false
+                });
+            })()}
 
             <div className={styles.scrollDummy} ref={chatRef}></div>
           </div>
@@ -1096,3 +1143,11 @@ export default function Chat() {
     </LayoutLoggedIn>
   );
 }
+
+// export async function getServerSideProps(context) {
+//   console.log(context.params);
+
+//   return {
+//     props: { id: context.params.id },
+//   };
+// }

@@ -12,6 +12,7 @@ import estateInfoIcon from "../public/img/estateInfoIcon.png";
 import servicesBlockIcon from "../public/img/servicesBlockIcon.png";
 import axios from "axios";
 import { getCookie } from "cookies-next";
+import { useRouter } from "next/router";
 
 export default function EstateObject({ data, account }) {
   console.log(data);
@@ -21,6 +22,10 @@ export default function EstateObject({ data, account }) {
   const [debtValue, setDebtValue] = useState(0);
   const [error, setError] = useState(null);
   // const data = props.data;
+
+  const router = useRouter();
+
+  const notifications = data.chat?.messages?.length ?? 0;
 
   useEffect(() => {
     async function getData() {
@@ -198,20 +203,26 @@ export default function EstateObject({ data, account }) {
           )}
         </div>
         <div className={styles.firstHalfBtnsWrap}>
-          <Link href='/chat'>
-            <div className={styles.objectBtn}>
-              <div className={styles.BtnIconRegular}>
-                <Image src={chatBtnIcon} alt='' height={55} width={55} />
-                <span className={styles.notificationsNumber}>{info.notifications.chat > 99 ? "99+" : info.notifications.chat}</span>
-              </div>
+          <div
+            className={styles.objectBtn}
+            style={data.chat?.id ? { pointerEvents: "all" } : { pointerEvents: "none", opacity: 0.4 }}
+            onClick={() => router.push({ pathname: "/chat/", query: { id: data.chat?.id } })}>
+            <div className={styles.BtnIconRegular}>
+              <Image src={chatBtnIcon} alt='' height={55} width={55} />
+              {notifications > 0 && <span className={styles.notificationsNumber}>{notifications > 99 ? "99+" : notifications}</span>}
+            </div>
+            {!!data.chat?.accesses.length ? (
               <span>
                 Внутридомовой
                 <br />
                 чат
               </span>
-            </div>
-          </Link>
-          <Link href='/interactive-map'>
+            ) : (
+              <span style={{ color: "red" }}>Вы не зарегистрированы в этом чате</span>
+            )}
+          </div>
+
+          <Link href={`/interactive-map?id=${data.id}`}>
             <div className={styles.objectBtn}>
               <div className={styles.BtnIconRegular}>
                 <Image src={mapBtnIcon} alt='' height={55} width={55} />

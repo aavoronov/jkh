@@ -20,6 +20,7 @@ import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
 import useWindowDimensions from "../../../components/useWindowDimensionsSSR";
 import { loading } from "../../../store/loaderSlice";
+import { currentDatetime } from "../../../service/functions";
 
 export default function Product({ id }) {
   const [product, setProduct] = useState(null);
@@ -31,6 +32,7 @@ export default function Product({ id }) {
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [priceSuggestion, setPriceSuggestion] = useState(false);
   const [popupError, setPopupError] = useState(false);
+  const [phoneShown, setPhoneShown] = useState(false);
 
   const navigationPrevRef = useRef(null);
   const navigationNextRef = useRef(null);
@@ -223,7 +225,7 @@ export default function Product({ id }) {
         </>
       ) : null}
 
-      {product && (
+      {product ? (
         <div className={styles.container}>
           <div className={styles.breadcrumbs}>
             {/* <span>Главная</span> */}
@@ -232,7 +234,7 @@ export default function Product({ id }) {
               <span>Торговая площадка</span>
             </Link>
 
-            {/* <span
+            <span
               onClick={() =>
                 router.push({
                   pathname: "/trading-platform",
@@ -253,7 +255,7 @@ export default function Product({ id }) {
                 })
               }>
               {product.subcategory.subcategory}
-            </span> */}
+            </span>
 
             <span>{product.name}</span>
           </div>
@@ -261,18 +263,7 @@ export default function Product({ id }) {
             <>
               <div className={styles.meta}>
                 <span className={styles.date}>
-                  Объявление размещено{" "}
-                  <span className={styles.dateValue}>
-                    {datetime.getDate().toString().padStart(2, "0") +
-                      "." +
-                      (datetime.getMonth() + 1).toString().padStart(2, "0") +
-                      "." +
-                      datetime.getFullYear().toString().slice(2) +
-                      " " +
-                      datetime.getHours().toString().padStart(2, "0") +
-                      ":" +
-                      datetime.getMinutes().toString().padStart(2, "0")}
-                  </span>
+                  Объявление размещено <span className={styles.dateValue}>{currentDatetime(datetime)}</span>
                 </span>
                 {/* <span className={styles.faveBtn}>Добавить в избранное</span> */}
                 <button
@@ -396,18 +387,7 @@ export default function Product({ id }) {
                 <>
                   <div className={styles.meta}>
                     <span className={styles.date}>
-                      Объявление размещено{" "}
-                      <span className={styles.dateValue}>
-                        {datetime.getDate().toString().padStart(2, "0") +
-                          "." +
-                          (datetime.getMonth() + 1).toString().padStart(2, "0") +
-                          "." +
-                          datetime.getFullYear().toString().slice(2) +
-                          " " +
-                          datetime.getHours().toString().padStart(2, "0") +
-                          ":" +
-                          datetime.getMinutes().toString().padStart(2, "0")}
-                      </span>
+                      Объявление размещено <span className={styles.dateValue}>{currentDatetime(datetime)}</span>
                     </span>
                     {/* <span className={styles.faveBtn}>Добавить в избранное</span> */}
                     <button className={favorite ? styles.faveBtn + " " + styles.faved : styles.faveBtn} onClick={() => toggleFavorite(id)}>
@@ -440,20 +420,39 @@ export default function Product({ id }) {
               Предложить свою цену
             </button> */}
               <div className={styles.btnsWrap}>
-                <button className={styles.adCallBtn}>Показать телефон</button>
+                {!phoneShown && (
+                  <button className={styles.adCallBtn} onClick={() => setPhoneShown((prev) => !prev)}>
+                    Показать телефон
+                  </button>
+                )}
                 {/* <button className={styles.adWriteBtn}>Написать в чате</button> */}
               </div>
-              <span className={styles.messengersHeader}>Мессенджеры:</span>
-              <div className={styles.messengersWrap}>
-                {product.hasWhatsapp && (
-                  <a href={`https://wa.me/${product.phone}`} className={styles.messengerItem + " " + styles.whatsapp}></a>
-                )}
-                {!product.hasTelegram && (
-                  <a href={`https://t.me/+${product.phone}`} className={styles.messengerItem + " " + styles.telegram}></a>
-                )}
-              </div>
+              {phoneShown && (
+                <>
+                  <a href={`tel:${product.phone}`} style={{ marginTop: 10, marginBottom: 10, display: "block" }}>
+                    {product.phone}
+                  </a>
+                  {(product.hasWhatsapp || product.hasTelegram) && <span className={styles.messengersHeader}>Мессенджеры:</span>}
+                  <div className={styles.messengersWrap}>
+                    {product.hasWhatsapp && (
+                      <a
+                        href={`https://wa.me/${product.phone.replace(/[\(\)\+\-\s]/g, "")}`}
+                        className={styles.messengerItem + " " + styles.whatsapp}></a>
+                    )}
+                    {product.hasTelegram && (
+                      <a
+                        href={`https://t.me/+${product.phone.replace(/[\(\)\+\-\s]/g, "")}`}
+                        className={styles.messengerItem + " " + styles.telegram}></a>
+                    )}
+                  </div>
+                </>
+              )}
               <div className={styles.profileMeta}>
-                <span className={styles.profileSince}>Виктория Ивановна на сайте с 2019 года</span>
+                {product.user.profile.pseudonym && (
+                  <span className={styles.profileSince}>
+                    {product.user.profile.pseudonym} на сайте с {product.user.profile.createdAt.slice(0, 4)} года
+                  </span>
+                )}
                 {/* <span className={styles.profileChecked}>Проверенный</span> */}
               </div>
               {width > 1134 ? (
@@ -472,6 +471,10 @@ export default function Product({ id }) {
 
           <span className={styles.descHeader}>Описание</span>
           <p className={styles.productDescription}>{product.description}</p>
+        </div>
+      ) : (
+        <div style={{ position: "absolute", top: 20, width: "100%", textAlign: "center" }}>
+          Товар не найден. Проверьте правильность введенного адреса
         </div>
       )}
       <style jsx global>{`

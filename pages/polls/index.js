@@ -30,8 +30,9 @@ import axios from "axios";
 import { getCookie } from "cookies-next";
 import { useDispatch } from "react-redux";
 import { toggle } from "../../store/notificationSlice";
+import { Types, createComplaint } from "../../service/functions";
 
-const Poll = ({ item }) => {
+const Poll = ({ item, setComplaintActive }) => {
   const PollOption = ({ item, votesTotal, isMultipleChoice, selected, setSelected, increment = false }) => {
     const votes = increment ? item.reply.length + 1 : item.reply.length;
     const percentage = votesTotal ? Math.trunc((100 * votes) / votesTotal) : 0;
@@ -107,19 +108,19 @@ const Poll = ({ item }) => {
   const [selected, setSelected] = useState([]);
   const dispatch = useDispatch();
 
-  async function submitReply(optionId) {
+  async function submitReply() {
     try {
-      if (!selected) {
+      if (!selected || !selected.length) {
         if (item.isMultipleChoice) {
           throw new Error("Выберите хотя бы один вариант ответа");
         } else {
           throw new Error("Выберите вариант ответа");
         }
       }
-      console.log(optionId);
+      console.log(selected);
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/polls/reply/`,
-        { optionId: optionId },
+        { optionId: selected },
         {
           headers: { Authorization: getCookie("jkh-token") },
         }
@@ -130,7 +131,7 @@ const Poll = ({ item }) => {
       selected.forEach((item) => {
         setVotesTotal((prev) => prev + 1);
       });
-      setIncrement(selected);
+      setIncrement((prev) => [...prev, ...selected]);
       setSelected([]);
     } catch (e) {
       console.log(e);
@@ -146,8 +147,7 @@ const Poll = ({ item }) => {
           <span
             className={styles.optionsItem}
             onClick={() => {
-              setComplaintActive(true);
-              console.log(complaintActive);
+              setComplaintActive(item.id);
             }}>
             Пожаловаться
           </span>
@@ -245,6 +245,8 @@ export default function Polls(props) {
   const [pollsData, setPollsData] = useState([]);
 
   const [scrollPosition, setScrollPosition] = useState(0);
+
+  const dispatch = useDispatch();
 
   const navigationPrevRef = useRef(null);
   const navigationNextRef = useRef(null);
@@ -352,7 +354,7 @@ export default function Polls(props) {
                 setComplaintActive(false);
                 setComplaintError(false);
               }}></div>
-            <span className={styles.complaintHeading}>Пожаловаться на услугу</span>
+            <span className={styles.complaintHeading}>Пожаловаться на голосование</span>
 
             <Formik
               initialValues={{
@@ -360,39 +362,46 @@ export default function Polls(props) {
                 comment: "",
               }}
               onSubmit={(values) => {
-                if (values.issue == 4 && !values.comment) {
+                if (values.issue == "Другое" && !values.comment) {
                   setComplaintError(true);
-                  console.log("error");
                   return;
                 }
 
-                alert(JSON.stringify(values, null, 2));
+                const data = {
+                  type: Types.poll,
+                  objectId: complaintActive,
+                  reason: values.issue,
+                  text: values.issue === "Другое" ? values.comment : undefined,
+                };
+                createComplaint(data);
+                // alert(JSON.stringify(data, null, 2));
+                dispatch(toggle({ type: "success", text: "Жалоба успешно отправлена" }));
                 setComplaintError(false);
                 setComplaintActive(false);
               }}>
               {({ values }) => (
                 <Form>
                   <div className={styles.form_radio}>
-                    <Field id='complaint-1' className={styles.radio} type='radio' name='issue' value='1' />
+                    <Field id='complaint-1' className={styles.radio} type='radio' name='issue' value='Некорректный вопрос' />
                     <label htmlFor='complaint-1'>Некорректный вопрос</label>
                   </div>
 
                   <div className={styles.form_radio}>
-                    <Field id='complaint-2' className={styles.radio} type='radio' name='issue' value='2' />
+                    <Field id='complaint-2' className={styles.radio} type='radio' name='issue' value='Неправильная информация' />
                     <label htmlFor='complaint-2'>Неправильная информация</label>
                   </div>
 
                   <div className={styles.form_radio}>
-                    <Field id='complaint-3' className={styles.radio} type='radio' name='issue' value='3' />
+                    <Field id='complaint-3' className={styles.radio} type='radio' name='issue' value='Опрос не по нашему дому' />
                     <label htmlFor='complaint-3'>Опрос не по нашему дому</label>
                   </div>
 
                   <div className={styles.form_radio}>
-                    <Field id='complaint-4' className={styles.radio} type='radio' name='issue' value='4' />
+                    <Field id='complaint-4' className={styles.radio} type='radio' name='issue' value='Другое' />
                     <label htmlFor='complaint-4'>Другое</label>
                   </div>
 
-                  {values.issue == 4 ? (
+                  {values.issue == "Другое" ? (
                     <div className={styles.complaintFieldWrap}>
                       <Field
                         as='textarea'
@@ -462,7 +471,7 @@ export default function Polls(props) {
           {!!pollsData.length
             ? pollsData.map((e, i) => (
                 <SwiperSlide className={styles.slide} key={i}>
-                  <Poll item={e} />
+                  <Poll item={e} setComplaintActive={setComplaintActive} />
                 </SwiperSlide>
               ))
             : !!objects.length && <div style={{ marginTop: 20 }}>У этого объекта недвижимости еще нет опросов</div>}

@@ -7,10 +7,6 @@ import * as Yup from "yup";
 import { useDropzone } from "react-dropzone";
 // import DropdownList from "../components/DropdownList";
 
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/thumbs";
-
 import styles from "./add-chat.module.scss";
 
 import axios from "axios";
@@ -24,10 +20,6 @@ import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a lo
 
 // import LayoutLoggedIn from "../../components/LayoutLoggedIn";
 // import DropdownList from "../components/DropdownList";
-
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/thumbs";
 
 import LayoutWorker from "../../../components/LayoutWorker";
 

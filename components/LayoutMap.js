@@ -135,7 +135,7 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
     const getNotifications = async () => {
       if (!!email) {
         try {
-          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/notifications/${email}`, {
+          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/notifications`, {
             headers: {
               Authorization: getCookie("jkh-token"),
             },
@@ -236,7 +236,7 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
                   <li>
                     <span
                       onClick={() => {
-                        dispatch(updateRole(""));
+                        dispatch(updateRole({ role: "" }));
                         router.replace("/");
                         setCookie("jkh-token", "");
                       }}>
@@ -336,7 +336,7 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
               <li>
                 <span
                   onClick={() => {
-                    dispatch(updateRole(""));
+                    dispatch(updateRole({ role: "" }));
                     router.replace("/");
                     setCookie("jkh-token", "");
                   }}>

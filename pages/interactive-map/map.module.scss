@@ -794,7 +794,7 @@
 }
 
 .complaintPopup {
-  position: absolute;
+  position: fixed;
   background-color: white;
   width: 320px;
   // height: 100px;
@@ -883,6 +883,7 @@
   width: 90px;
   height: 72px;
   margin-right: 18px;
+  flex-shrink: 0;
 }
 
 .complaintCategory {

@@ -10,6 +10,7 @@ import { toggle } from "../../store/notificationSlice";
 import { updateRole } from "../../store/userSlice";
 import styles from "./workers.module.scss";
 import Image from "next/image";
+import { currentDatetime, getGeocode } from "../../service/functions";
 
 const Transaction = ({ item }) => {
   let type, isExpense;
@@ -19,25 +20,13 @@ const Transaction = ({ item }) => {
   }
   console.log(item);
 
-  const datetime = new Date(item.createdAt);
-
   const sum = isExpense ? -item.sum : item.sum;
 
   return (
     <div className={styles.transaction}>
       <span className={styles.transactionType}>{type}</span>
       <div className={styles.datetimeWrap}>
-        <span className={styles.transactionDatetime}>
-          {datetime.getDate().toString().padStart(2, "0") +
-            "." +
-            (datetime.getMonth() + 1).toString().padStart(2, "0") +
-            "." +
-            datetime.getFullYear().toString().slice(2) +
-            " " +
-            datetime.getHours().toString().padStart(2, "0") +
-            ":" +
-            datetime.getMinutes().toString().padStart(2, "0")}
-        </span>
+        <span className={styles.transactionDatetime}>{currentDatetime(item.createdAt)}</span>
         {/* <span className={styles.transactionDatetime}></span> */}
       </div>
       <span className={isExpense ? styles.transactionValue : styles.transactionValue + " " + styles.green}>{sum} баллов</span>
@@ -52,28 +41,12 @@ export default function WorkerProfile(props) {
   const [transactions, setTransactions] = useState([]);
   const [startReached, setStartReached] = useState(false);
   const [page, setPage] = useState(1);
+  const [expenses, setExpenses] = useState(0);
 
   const dispatch = useDispatch();
   const router = useRouter();
 
   const role = useSelector((state) => state.user.role);
-
-  async function getGeocode() {
-    const res = await axios.get(
-      `https://geocode-maps.yandex.ru/1.x/?format=json&apikey=${process.env.NEXT_PUBLIC_YMAPS_KEY}&geocode=${objectAddressField}`
-    );
-    //  const {data.response.GeoObjectCollection} = res
-    // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text);
-    const fullAddress = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
-    const coords = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos;
-    const precision = res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.precision;
-    // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.Address.formatted);
-    // console.log(res.data.response.GeoObjectCollection.featureMember[0].GeoObject.Point);
-    const longitude = coords.split(" ")[0];
-    const latitude = coords.split(" ")[1];
-
-    return { address: fullAddress, latitude, longitude, precision };
-  }
 
   useEffect(() => {
     async function getObjects() {
@@ -107,9 +80,25 @@ export default function WorkerProfile(props) {
     getTransactions(page);
   }, []);
 
+  async function getMyExpenses() {
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/transactions/expenses`, {
+        headers: { Authorization: getCookie("jkh-token") },
+      });
+      console.log("res.data", res.data);
+      setExpenses(res.data);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  useEffect(() => {
+    getMyExpenses();
+  }, []);
+
   const registerObject = async () => {
     try {
-      const { address, latitude, longitude, precision } = await getGeocode();
+      const { geocodedAddress, latitude, longitude, precision } = await getGeocode(objectAddressField);
 
       console.log(precision);
       if (precision !== "exact") {
@@ -118,7 +107,7 @@ export default function WorkerProfile(props) {
 
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/chat-rooms/worker-object`,
-        { address, latitude, longitude },
+        { address: geocodedAddress, latitude: latitude, longitude: longitude },
         {
           headers: { Authorization: getCookie("jkh-token") },
         }
@@ -161,7 +150,7 @@ export default function WorkerProfile(props) {
       console.log(res.data);
       // dispatch(updateProfile({ pseudonym: nicknameLocal }));
       dispatch(toggle({ text: "Ваш аккаунт успешно удален", type: "success" }));
-      dispatch(updateRole(""));
+      dispatch(updateRole({ role: "" }));
       router.replace("/");
       setCookie("jkh-token", "");
     } catch (e) {
@@ -202,7 +191,11 @@ export default function WorkerProfile(props) {
                 />
               ) : (
                 <span className={styles.orgLetters} style={{ backgroundColor: color }}>
-                  {pseudonym.split(" ").length > 1 ? pseudonym.split(" ")[0][0] + pseudonym.split(" ")[1][0] : pseudonym.slice(0, 2)}
+                  {!!pseudonym
+                    ? pseudonym.split(" ").length > 1
+                      ? pseudonym.split(" ")[0][0] + pseudonym.split(" ")[1][0]
+                      : pseudonym.slice(0, 2)
+                    : ""}
                 </span>
               )}
               <span className={styles.orgName}>{pseudonym}</span>
@@ -219,7 +212,7 @@ export default function WorkerProfile(props) {
             <span className={styles.infoBtn}>i</span>
             <span className={styles.balance}>Ваш баланс</span>
             <span className={styles.balanceValue}>{balance} баллов</span>
-            <span className={styles.spent}>Потрачено на рекламу: 0 баллов</span>
+            <span className={styles.spent}>Потрачено на рекламу: {expenses} баллов</span>
           </div>
         </div>
         {(role === "uk" || role === "upravdom") && (
@@ -286,7 +279,11 @@ export default function WorkerProfile(props) {
             {/* <span className={styles.timelapseFilter}>За весь период</span> */}
           </div>
           <div className={styles.transactionsBlock}>
-            {!!transactions.length && transactions.map((e, i) => <Transaction item={e} key={i} />)}
+            {!!transactions.length ? (
+              transactions.map((e, i) => <Transaction item={e} key={i} />)
+            ) : (
+              <div style={{ color: "white", marginBottom: 30 }}>Транзакций пока не было</div>
+            )}
           </div>
           {!startReached && (
             <span

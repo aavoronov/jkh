@@ -1,8 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
-import "swiper/css";
-import "swiper/css/navigation";
 
 import AdItem from "./AdItem";
 import LayoutLoggedIn from "./LayoutLoggedIn";
@@ -11,8 +9,6 @@ import arrowLeft from "/public/img/arrowLeft.png";
 
 import styles from "./personal.module.scss";
 import useWindowDimensions from "./useWindowDimensionsSSR";
-
-// SwiperCore.use([Navigation]);
 
 export default function LayoutPersonal({ children, withProducts }) {
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(null);

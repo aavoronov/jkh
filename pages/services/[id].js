@@ -169,17 +169,17 @@ export default function ServiceInner({ id }) {
 
         <div className={block1open ? styles.serviceBlock : styles.serviceBlock + " " + styles.collapsed}>
           <span className={styles.dropdownBtn} onClick={() => setBlock1open(!block1open)}></span>
-          <div className={styles.blockHeader}>Сантехнические работы</div>
+          <div className={styles.blockHeader}>{service.subcategory.category.category + " / " + service.subcategory.subcategory}</div>
           <table>
             <colgroup style={{ width: "100%" }}>
               <col span='1' style={{ width: "40%" }}></col>
               <col span='1' style={{ width: "60%" }}></col>
             </colgroup>
             <tbody>
-              <tr>
+              {/* <tr>
                 <td className={styles.firstcol}>Опыт работы</td>
                 <td className={styles.secondcol}>{service.experience}</td>
-              </tr>
+              </tr> */}
               <tr>
                 <td className={styles.firstcol}>Бригада</td>
                 <td className={styles.secondcol}>{service.brigade ? "Да" : "Нет"}</td>
@@ -219,11 +219,16 @@ export default function ServiceInner({ id }) {
           <div className={styles.reviewForm}>
             <div className={styles.master}>
               <div className={styles.image}>
-                <Image src={data.profilePic} width={52} height={52} />
+                <img
+                  src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/services/${service.mainImage}`}
+                  style={{ width: 52, height: 52 }}
+                  width={52}
+                  height={52}
+                />
               </div>
               <div className={styles.nameWrap}>
                 <div className={styles.ratePrompt}>Оцените работу специалиста</div>
-                <div className={styles.rateName}>{data.name}</div>
+                <div className={styles.rateName}>{service.name}</div>
               </div>
             </div>
             <div className={styles.ratingWrap}>
@@ -308,16 +313,31 @@ export default function ServiceInner({ id }) {
                       )}
                     </div>
                     <div className={styles.nameWrap}>
-                      <div className={styles.reviewerName}>{item.user.profile.pseudonym}</div>
+                      <div className={styles.reviewerName} style={{ position: "relative" }}>
+                        {item.user.profile.pseudonym}
+                      </div>
                       <Rating initialValue={item.rating} readonly={true} size={13} fillColor='#22C54F' emptyColor='#D1D3DF'></Rating>
                     </div>
-                    <span className={styles.reviewDate}>
-                      {date.getDate().toString().padStart(2, "0") +
-                        "." +
-                        (date.getMonth() + 1).toString().padStart(2, "0") +
-                        "." +
-                        date.getFullYear().toString()}
-                    </span>
+                    <div style={{ display: "flex", flexDirection: "row" }}>
+                      <div className={styles.reviewDate}>
+                        {date.getDate().toString().padStart(2, "0") +
+                          "." +
+                          (date.getMonth() + 1).toString().padStart(2, "0") +
+                          "." +
+                          date.getFullYear().toString()}
+                      </div>
+                      <div className={styles.threeDotsBtn} style={{ marginLeft: 10, marginTop: -10, flexShrink: 0, position: "static" }}>
+                        <div className={styles.threeDotsBtnMenu}>
+                          <span
+                            className={styles.objectOptionsItem}
+                            onClick={() => {
+                              setComplaintActive("review");
+                            }}>
+                            Пожаловаться
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <p className={styles.reviewText}>{item.text}</p>
                 </div>
@@ -338,7 +358,9 @@ export default function ServiceInner({ id }) {
         </div>
 
         <div className={styles.masterBtnsWrap}>
-          <button className={styles.adCallBtn}>Позвонить</button>
+          <a href={`tel:${service.user.phone}`} className={styles.adCallBtn}>
+            Позвонить
+          </a>
           {/* <button className={styles.adWriteBtn}>Написать в чате</button> */}
         </div>
       </>
@@ -412,7 +434,10 @@ export default function ServiceInner({ id }) {
         },
       });
       setRating(0);
-      dispatch(toggle({ text: "Спасибо! Отзыв отправлен на модерацию", type: "success" }));
+      dispatch(toggle({ text: "Спасибо! Отзыв опубликован", type: "success" }));
+      getObjectById();
+      setPage(1);
+      getReviews(page);
     } catch (e) {
       console.log(e);
       dispatch(toggle({ text: e.response.data.message, type: "error" }));
@@ -445,99 +470,189 @@ export default function ServiceInner({ id }) {
                 setComplaintActive(false);
                 setComplaintError(false);
               }}></div>
-            <span className={styles.complaintHeading}>Пожаловаться на объект</span>
+            <span className={styles.complaintHeading}>{`Пожаловаться на ${
+              complaintActive === "service" ? "услугу" : "комментарий"
+            } `}</span>
 
-            <Formik
-              initialValues={{
-                issue: "",
-                comment: "",
-              }}
-              onSubmit={(values) => {
-                if (values.issue == "Другое" && !values.comment) {
-                  setComplaintError(true);
-                  return;
-                }
-                // values.objectId = objectInfoActive.id;
-                const complaintData = {
-                  type: Types.service,
-                  objectId: id,
-                  reason: values.issue,
-                  text: values.issue === "Другое" ? values.comment : undefined,
-                };
-                createComplaint(complaintData);
-                // alert(JSON.stringify(complaintData, null, 2));
-                dispatch(toggle({ type: "success", text: "Жалоба успешно отправлена" }));
-                setComplaintError(false);
-                setComplaintActive(false);
-              }}>
-              {({ values }) => (
-                <Form>
-                  <div className={styles.form_radio}>
-                    <Field
-                      id='complaint-1'
-                      className={styles.radio}
-                      type='radio'
-                      name='issue'
-                      value='Цена не соответствует заявленной в объявлении'
-                    />
-                    <label htmlFor='complaint-1'>Цена не соответствует заявленной в объявлении</label>
-                  </div>
-
-                  <div className={styles.form_radio}>
-                    <Field id='complaint-2' className={styles.radio} type='radio' name='issue' value='Не соответствует описание' />
-                    <label htmlFor='complaint-2'>Не соответствует описание</label>
-                  </div>
-
-                  <div className={styles.form_radio}>
-                    <Field id='complaint-3' className={styles.radio} type='radio' name='issue' value='Нагрубил при общении' />
-                    <label htmlFor='complaint-3'>Нагрубил при общении</label>
-                  </div>
-
-                  <div className={styles.form_radio}>
-                    <Field id='complaint-4' className={styles.radio} type='radio' name='issue' value='Мошенник' />
-                    <label htmlFor='complaint-4'>Мошенник</label>
-                  </div>
-
-                  <div className={styles.form_radio}>
-                    <Field id='complaint-5' className={styles.radio} type='radio' name='issue' value='Другое' />
-                    <label htmlFor='complaint-5'>Другое</label>
-                  </div>
-
-                  {values.issue == "Другое" ? (
-                    <div className={styles.complaintFieldWrap}>
+            {complaintActive === "service" ? (
+              <Formik
+                initialValues={{
+                  issue: "",
+                  comment: "",
+                }}
+                onSubmit={(values) => {
+                  if (values.issue == "Другое" && !values.comment) {
+                    setComplaintError(true);
+                    return;
+                  }
+                  // values.objectId = objectInfoActive.id;
+                  const complaintData = {
+                    type: Types.service,
+                    objectId: id,
+                    reason: values.issue,
+                    text: values.issue === "Другое" ? values.comment : undefined,
+                  };
+                  createComplaint(complaintData);
+                  // alert(JSON.stringify(complaintData, null, 2));
+                  dispatch(toggle({ type: "success", text: "Жалоба успешно отправлена" }));
+                  setComplaintError(false);
+                  setComplaintActive(false);
+                }}>
+                {({ values }) => (
+                  <Form>
+                    <div className={styles.form_radio}>
                       <Field
-                        as='textarea'
-                        name='comment'
-                        maxLength={1500}
-                        rows={10}
-                        resize='none'
-                        type='text'
-                        placeholder='Напишите ваш отзыв'
-                        className={styles.field + " " + styles.textarea + " " + styles.complaintComment}
+                        id='complaint-1'
+                        className={styles.radio}
+                        type='radio'
+                        name='issue'
+                        value='Цена не соответствует заявленной в объявлении'
                       />
-                      <div className={styles.warningWrap}>
-                        {complaintError ? <span className={styles.errorText}>Обязательное поле</span> : null}
-                        <span className={styles.warning}>Не более 1500 символов</span>
-                      </div>
+                      <label htmlFor='complaint-1'>Цена не соответствует заявленной в объявлении</label>
                     </div>
-                  ) : null}
 
-                  <div className={styles.fieldWrap}>
-                    <button type='submit' className={styles.submitBtn}>
-                      Отправить
-                    </button>
-                    <span
-                      className={styles.cancelBtn}
-                      onClick={() => {
-                        setComplaintError(false);
-                        setComplaintActive(false);
-                      }}>
-                      Отменить
-                    </span>
-                  </div>
-                </Form>
-              )}
-            </Formik>
+                    <div className={styles.form_radio}>
+                      <Field id='complaint-2' className={styles.radio} type='radio' name='issue' value='Не соответствует описание' />
+                      <label htmlFor='complaint-2'>Не соответствует описание</label>
+                    </div>
+
+                    <div className={styles.form_radio}>
+                      <Field id='complaint-3' className={styles.radio} type='radio' name='issue' value='Нагрубил при общении' />
+                      <label htmlFor='complaint-3'>Нагрубил при общении</label>
+                    </div>
+
+                    <div className={styles.form_radio}>
+                      <Field id='complaint-4' className={styles.radio} type='radio' name='issue' value='Мошенник' />
+                      <label htmlFor='complaint-4'>Мошенник</label>
+                    </div>
+
+                    <div className={styles.form_radio}>
+                      <Field id='complaint-5' className={styles.radio} type='radio' name='issue' value='Другое' />
+                      <label htmlFor='complaint-5'>Другое</label>
+                    </div>
+
+                    {values.issue == "Другое" ? (
+                      <div className={styles.complaintFieldWrap}>
+                        <Field
+                          as='textarea'
+                          name='comment'
+                          maxLength={1500}
+                          rows={10}
+                          resize='none'
+                          type='text'
+                          placeholder='Напишите ваш отзыв'
+                          className={styles.field + " " + styles.textarea + " " + styles.complaintComment}
+                        />
+                        <div className={styles.warningWrap}>
+                          {complaintError ? <span className={styles.errorText}>Обязательное поле</span> : null}
+                          <span className={styles.warning}>Не более 1500 символов</span>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div className={styles.fieldWrap}>
+                      <button type='submit' className={styles.submitBtn}>
+                        Отправить
+                      </button>
+                      <span
+                        className={styles.cancelBtn}
+                        onClick={() => {
+                          setComplaintError(false);
+                          setComplaintActive(false);
+                        }}>
+                        Отменить
+                      </span>
+                    </div>
+                  </Form>
+                )}
+              </Formik>
+            ) : (
+              <Formik
+                initialValues={{
+                  issue: "",
+                  comment: "",
+                }}
+                onSubmit={(values) => {
+                  if (values.issue == "Другое" && !values.comment) {
+                    setComplaintError(true);
+                    return;
+                  }
+                  // values.objectId = objectInfoActive.id;
+                  const complaintData = {
+                    type: complaintActive === "service" ? Types.service : Types.serviceReview,
+                    objectId: id,
+                    reason: values.issue,
+                    text: values.issue === "Другое" ? values.comment : undefined,
+                  };
+                  createComplaint(complaintData);
+                  // alert(JSON.stringify(complaintData, null, 2));
+                  dispatch(toggle({ type: "success", text: "Жалоба успешно отправлена" }));
+                  setComplaintError(false);
+                  setComplaintActive(false);
+                }}>
+                {({ values }) => (
+                  <Form>
+                    <div className={styles.form_radio}>
+                      <Field id='complaint-1' className={styles.radio} type='radio' name='issue' value='Неизвестно, что здесь будет' />
+                      <label htmlFor='complaint-1'>Неизвестно, что здесь будет</label>
+                    </div>
+
+                    {/* <div className={styles.form_radio}>
+                      <Field id='complaint-2' className={styles.radio} type='radio' name='issue' value='Не соответствует описание' />
+                      <label htmlFor='complaint-2'>Не соответствует описание</label>
+                    </div>
+
+                    <div className={styles.form_radio}>
+                      <Field id='complaint-3' className={styles.radio} type='radio' name='issue' value='Нагрубил при общении' />
+                      <label htmlFor='complaint-3'>Нагрубил при общении</label>
+                    </div>
+
+                    <div className={styles.form_radio}>
+                      <Field id='complaint-4' className={styles.radio} type='radio' name='issue' value='Мошенник' />
+                      <label htmlFor='complaint-4'>Мошенник</label>
+                    </div>
+
+                    <div className={styles.form_radio}>
+                      <Field id='complaint-5' className={styles.radio} type='radio' name='issue' value='Другое' />
+                      <label htmlFor='complaint-5'>Другое</label>
+                    </div> */}
+
+                    {values.issue == "Другое" ? (
+                      <div className={styles.complaintFieldWrap}>
+                        <Field
+                          as='textarea'
+                          name='comment'
+                          maxLength={1500}
+                          rows={10}
+                          resize='none'
+                          type='text'
+                          placeholder='Напишите ваш отзыв'
+                          className={styles.field + " " + styles.textarea + " " + styles.complaintComment}
+                        />
+                        <div className={styles.warningWrap}>
+                          {complaintError ? <span className={styles.errorText}>Обязательное поле</span> : null}
+                          <span className={styles.warning}>Не более 1500 символов</span>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div className={styles.fieldWrap}>
+                      <button type='submit' className={styles.submitBtn}>
+                        Отправить
+                      </button>
+                      <span
+                        className={styles.cancelBtn}
+                        onClick={() => {
+                          setComplaintError(false);
+                          setComplaintActive(false);
+                        }}>
+                        Отменить
+                      </span>
+                    </div>
+                  </Form>
+                )}
+              </Formik>
+            )}
           </div>
         </>
       ) : null}
@@ -547,10 +662,12 @@ export default function ServiceInner({ id }) {
             Найти мастера
           </Link>
         </div> */}
-        <div className={styles.leftMenuItem} onClick={() => router.push("./all-services")}>
+        {/* <div className={styles.leftMenuItem} onClick={() => router.push("./all-services")}>
           Найти мастера
+        </div> */}
+        <div className={styles.leftMenuItem} onClick={() => router.push("/personal/create-service")}>
+          Предложить свою услугу
         </div>
-        <div className={styles.leftMenuItem}>Предложить свою услугу</div>
         <AdItem buttonText='подключить сервис' buttonLink='#' image={"/img/payAd.png"} width={245} height={342} />
       </aside>
       <div className={styles.container}>
@@ -565,7 +682,7 @@ export default function ServiceInner({ id }) {
             </button>
           </>
         ) : null}
-        {!!service && (
+        {!!service && Object.keys(service).length > 1 ? (
           <div className={styles.col}>
             <div className={styles.adWrap}>
               <div className={styles.adProfileWrap}>
@@ -618,7 +735,7 @@ export default function ServiceInner({ id }) {
                     <span
                       className={styles.objectOptionsItem}
                       onClick={() => {
-                        setComplaintActive(true);
+                        setComplaintActive("service");
                       }}>
                       Пожаловаться
                     </span>
@@ -626,7 +743,7 @@ export default function ServiceInner({ id }) {
                 </div>
                 <div className={styles.nameWrap}>
                   <span className={styles.adName}>{service.name}</span>
-                  {data.isPaidAd ? <span className={styles.isAd}>Реклама</span> : null}
+                  {service.isPaidAd ? <span className={styles.isAd}>Реклама</span> : null}
                 </div>
                 <span className={styles.adLocation}>{service.address}</span>
                 <span className={styles.adPrice}>Цена на работы:</span>
@@ -637,6 +754,10 @@ export default function ServiceInner({ id }) {
               </div>
             </div>
             {width < 900 ? <ServiceDetails /> : null}
+          </div>
+        ) : (
+          <div onClick={() => console.log(Object.keys(service))} style={{ position: "absolute", top: 20, textAlign: "center" }}>
+            Услуга не найдена. Проверьте правильность введенного адреса
           </div>
         )}
       </div>

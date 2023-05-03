@@ -18,36 +18,28 @@ import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 import { loading } from "../../store/loaderSlice";
 import { GetRequestParams } from "../trading-platform";
 
-// SwiperCore.use([Navigation]);
-
 export default function Services(props) {
   const [guarantee, setGuarantee] = useState(false);
   const [withAccommodation, setWithAccommodation] = useState(false);
   const [withoutAccommodation, setWithoutAccommodation] = useState(false);
-  const [radius, setRadius] = useState(null);
+  const [radius, setRadius] = useState("Любое расстояние");
   const [contract, setContract] = useState(false);
   const [examples, setExamples] = useState(false);
   const [privatePerson, setPrivatePerson] = useState(false);
   const [organization, setOrganization] = useState(false);
-  const [jobNow, setJobNow] = useState(false);
+  // const [jobNow, setJobNow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [categories, setCategories] = useState(null);
-
-  // const [categoryHorizontal, setCategoryHorizontal] = useState("Любая категория");
-  // const [location, setLocation] = useState("Москва и Московская область");
-  // const [withPhotos, setWithPhotos] = useState(false);
-  // const [buySellMode, setBuySellMode] = useState("Любая категория");
-  // const [condition, setCondition] = useState([]);
-  // const [pmin, setPmin] = useState("");
-  // const [pmax, setPmax] = useState("");
-  // const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(0);
   const [filterReset, setFilterReset] = useState(true);
   const [services, setServices] = useState([]);
 
   const [activeObject, setActiveObject] = useState(null);
+  const [activeObjectCoords, setActiveObjectCoords] = useState([]);
+
   const [activeService, setActiveService] = useState("Все категории");
 
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(null);
@@ -61,6 +53,7 @@ export default function Services(props) {
         });
         setEstateObjects(res.data);
         setActiveObject(res.data[0].estateObject.address + ", " + res.data[0].estateObject.apartment);
+        setActiveObjectCoords(res.data[0].estateObject.point.coordinates);
         console.log(res.data);
       } catch (e) {
         console.log(e);
@@ -68,6 +61,15 @@ export default function Services(props) {
     }
     getEstateObjects();
   }, []);
+
+  useEffect(() => {
+    if (estateObjects.length) {
+      setActiveObjectCoords(
+        estateObjects.find((item) => item.estateObject.address + ", " + item.estateObject.apartment === activeObject).estateObject.point
+          .coordinates
+      );
+    }
+  }, [activeObject]);
 
   const { height, width } = useWindowDimensions();
   const dispatch = useDispatch();
@@ -102,6 +104,10 @@ export default function Services(props) {
   async function getServices(page) {
     try {
       dispatch(loading({ visible: true }));
+      // console.log("activeObject", estateObjects[0].estateObject.address);
+
+      // console.log("selectedEstateObjectCoords", selectedEstateObjectCoords);
+
       const query = new GetRequestParams();
       query.addParam("page", page);
       !!guarantee && query.addParam("warranty", true);
@@ -112,13 +118,20 @@ export default function Services(props) {
       !!organization && !privatePerson && query.addParam("organization", true);
       !!withAccommodation && !withoutAccommodation && query.addParam("withAccommodation", true);
       !!withoutAccommodation && !withAccommodation && query.addParam("withoutAccommodation", true);
-
       activeService !== "Все категории" && query.addParam("category", categories.find((item) => item.category === activeService).id);
-      //radius
-      //address
-      //city
+      !!radius && radius !== "Любое расстояние" && query.addParam("radius", radius);
+      !!searchQuery && query.addParam("searchQuery", searchQuery);
+      if (!!activeObjectCoords && activeObjectCoords.length) {
+        query.addParam("longitude", activeObjectCoords[0]);
+        query.addParam("latitude", activeObjectCoords[1]);
+      }
+
+      // console.log("point", activeObjectCoords);
+
+      // query.addParam("point", selectedEstateObjectCoords);
+
       //estate object
-      //job now?
+      //searchQuery
 
       console.log(query.serialize());
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/services?${query.serialize()}`, {
@@ -136,23 +149,27 @@ export default function Services(props) {
   }
 
   const resetFilters = () => {
-    setSelectedCategory(null);
-    setSelectedSubcategory(null);
-    setCategoryHorizontal("Любая категория");
-    setLocation("Москва и Московская область");
-    setWithPhotos(false);
-    setBuySellMode("Любая категория");
-    setCondition([]);
-    setPmin("");
-    setPmax("");
+    setGuarantee(false);
+    setWithAccommodation(false);
+    setWithoutAccommodation(false);
+    setRadius("Любое расстояние");
+    setContract(false);
+    setExamples(false);
+    setPrivatePerson(false);
+    setOrganization(false);
+    setIsChecked(false);
     setSearchQuery("");
     setPage(1);
+    setActiveService("Все категории");
     setFilterReset((prev) => !prev);
   };
 
+  // useEffect(() => {
+  //   getServices(page);
+  // }, [filterReset]);
   useEffect(() => {
-    getServices(page);
-  }, [filterReset]);
+    if (!!activeObjectCoords.length) getServices(page);
+  }, [activeObjectCoords, filterReset]);
 
   useEffect(() => {
     async function getCategories() {
@@ -170,10 +187,6 @@ export default function Services(props) {
       }
     }
     getCategories();
-  }, []);
-
-  useEffect(() => {
-    getServices(page);
   }, []);
 
   useEffect(() => {
@@ -230,35 +243,75 @@ export default function Services(props) {
           </label>
         </div>
 
-        <div className={styles.filterWrap + " " + styles.fieldWithBtn}>
+        {/* <div className={styles.filterWrap + " " + styles.fieldWithBtn}>
           <span className={styles.filterBlockName}>Место, город</span>
           <input name='name' type='text' placeholder='Выбрать город' className={styles.field} />
-        </div>
+        </div> */}
 
         <div className={styles.filterWrap}>
           <div className={styles.form_radio} onClick={() => setRadius("5km")}>
             <span className={styles.filterBlockName}>Радиус поиска услуги</span>
-            <input id='radio-1' className={styles.radio} type='radio' name='radius' value='1' />
+            <input
+              id='radio-1'
+              className={styles.radio}
+              type='radio'
+              name='radius'
+              value='5000'
+              onChange={() => setRadius(5000)}
+              checked={radius === 5000}
+            />
             <label htmlFor='radio-1'>5 км</label>
           </div>
 
           <div className={styles.form_radio} onClick={() => setRadius("10km")}>
-            <input id='radio-2' className={styles.radio} type='radio' name='radius' value='2' />
+            <input
+              id='radio-2'
+              className={styles.radio}
+              type='radio'
+              name='radius'
+              value='10000'
+              onChange={() => setRadius(10000)}
+              checked={radius === 10000}
+            />
             <label htmlFor='radio-2'>10 км</label>
           </div>
 
           <div className={styles.form_radio} onClick={() => setRadius("15km")}>
-            <input id='radio-3' className={styles.radio} type='radio' name='radius' value='3' />
+            <input
+              id='radio-3'
+              className={styles.radio}
+              type='radio'
+              name='radius'
+              value='15000'
+              onChange={() => setRadius(15000)}
+              checked={radius === 15000}
+            />
             <label htmlFor='radio-3'>15 км</label>
           </div>
 
           <div className={styles.form_radio} onClick={() => setRadius("20km")}>
-            <input id='radio-4' className={styles.radio} type='radio' name='radius' value='4' />
+            <input
+              id='radio-4'
+              className={styles.radio}
+              type='radio'
+              name='radius'
+              value='20000'
+              onChange={() => setRadius(20000)}
+              checked={radius === 20000}
+            />
             <label htmlFor='radio-4'>20 км</label>
           </div>
 
           <div className={styles.form_radio} onClick={() => setRadius("any")}>
-            <input id='radio-5' className={styles.radio} type='radio' name='radius' value='5' />
+            <input
+              id='radio-5'
+              className={styles.radio}
+              type='radio'
+              name='radius'
+              value='Любое расстояние'
+              onChange={() => setRadius("Любое расстояние")}
+              checked={radius === "Любое расстояние"}
+            />
             <label htmlFor='radio-5'>Любое расстояние </label>
           </div>
         </div>
@@ -321,7 +374,7 @@ export default function Services(props) {
           </label>
         </div>
 
-        <div className={styles.filterWrap}>
+        {/* <div className={styles.filterWrap}>
           <label htmlFor='jobNow' className={styles.fieldName + " " + styles.checkboxWrap}>
             <div
               name='jobNow'
@@ -331,7 +384,7 @@ export default function Services(props) {
               }}></div>
             <span className={styles.filterName}>Работа сейчас</span>
           </label>
-        </div>
+        </div> */}
         <div className={styles.fieldWrap}>
           <button
             className={styles.submitBtn}
@@ -380,7 +433,14 @@ export default function Services(props) {
           </div>
         ) : null}
         <div className={styles.mainInputWrap + " " + styles.fieldWithBtn}>
-          <input name='name' type='text' placeholder='Я хочу найти...' className={styles.field} />
+          <input
+            name='name'
+            type='text'
+            placeholder='Я хочу найти...'
+            className={styles.field}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
         <div className={styles.dropdownsWrap}>
           <div className={styles.dropdownName}>

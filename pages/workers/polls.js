@@ -213,14 +213,15 @@ export default function WorkerPolls(props) {
 
   const handleCreatePoll = async (question) => {
     try {
-      const chats = dropdownValue.map((item) => objects.find((el) => el.estateObject.address === item).id);
+      const chats = dropdownValue.map((item) => objects.find((el) => el.estateObject.address === item).estateObject.roomId);
       console.log(chats);
+      console.log("pollCreateOptions", pollCreateOptions);
 
       if (!question) {
         throw new Error("Заполните поле вопроса");
       }
 
-      if (!pollCreateOptions.length) {
+      if (pollCreateOptions.length < 2) {
         throw new Error("Заполните хотя бы два варианта ответа");
       }
 
@@ -262,8 +263,8 @@ export default function WorkerPolls(props) {
       setValue(value);
       const newArray = pollCreateOptions;
       console.log(value);
-      console.log(newArray);
       newArray[idx] = value;
+      console.log(newArray);
       setPollCreateOptions(newArray);
     };
     return visible ? (
@@ -350,7 +351,7 @@ export default function WorkerPolls(props) {
                       </button>
                     </div>
                     {[...Array(optionsCount)].map((el, idx) => {
-                      return <PollOption key={idx} />;
+                      return <PollOption key={idx} idx={idx} />;
                     })}
                   </div>
 

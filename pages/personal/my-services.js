@@ -53,7 +53,7 @@ export default function MyServices({}) {
       });
       console.log(res.data);
       dispatch(toggle({ text: "Объявление успешно удалено", type: "success" }));
-      getMyProducts(page);
+      getMyServices(page);
       // setShown(false);
     } catch (e) {
       console.log(e);
@@ -86,7 +86,7 @@ export default function MyServices({}) {
               </div>
               <div className={styles.adInfoWrap}>
                 <div className={styles.myServicesBtnsWrap}>
-                  <button className={styles.myServicesBtn + " " + styles.pencil}></button>
+                  {/* <button className={styles.myServicesBtn + " " + styles.pencil}></button> */}
                   <button
                     className={styles.myServicesBtn + " " + styles.trash}
                     onClick={() => {
@@ -98,7 +98,7 @@ export default function MyServices({}) {
                     <span className={styles.adName}>{item.name}</span>
                   </Link>
                 </div>
-                <span className={styles.adLocation}>{item.location}</span>
+                <span className={styles.adLocation}>{item.address}</span>
                 <span className={styles.adPrice}>Цена на работы:</span>
                 <span className={styles.adPriceValue}>{item.price}</span>
                 <p className={styles.adDescription}>
@@ -122,7 +122,7 @@ export default function MyServices({}) {
         pageSize={process.env.NEXT_PUBLIC_SERVICES_PAGE_LIMIT}
         onPageChange={(page) => {
           setPage(page);
-          getMyProducts(page);
+          getMyServices(page);
         }}
       />
     </LayoutPersonal>

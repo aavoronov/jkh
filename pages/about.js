@@ -74,7 +74,7 @@ function Home() {
             <Overlay />
             <aside className={menuIsOpen ? [styles["menu-mobile"] + " " + styles["menu-active"]] : styles["menu-mobile"]}>
               <a href='#'>
-                <div className={[styles.header__button + " " + styles.gradient]} onClick={() => setModalToDisplay("authByLogin")}>
+                <div className={[styles.header__button + " " + styles.gradient]} onClick={() => setModalToDisplay("authByPhone")}>
                   <Image src={personal} className={styles.button__icon} alt='' width={65} />
                   <span className={styles.button__text}>Войти</span>
                 </div>
@@ -126,7 +126,7 @@ function Home() {
                 </div>
               </div>
               <a href='#'>
-                <div className={[styles.header__button + " " + styles.gradient]} onClick={() => setModalToDisplay("authByLogin")}>
+                <div className={[styles.header__button + " " + styles.gradient]} onClick={() => setModalToDisplay("authByPhone")}>
                   <Image src={personal} className={styles.button__icon} alt='' width={65} />
                   <span className={styles.button__text}>Войти</span>
                 </div>

@@ -11,41 +11,38 @@ import { toggle } from "../../../store/notificationSlice";
 
 const displayZones = ["Москва и МО", "Ленинград и ЛО", "Свердловск и СО"];
 
-const DropdownList = ({ objects, value, setValue }) => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  return (
-    <div className={styles.dropdownWrap}>
-      <div className={styles.dropdownFieldWrap} onClick={() => setDropdownOpen(!dropdownOpen)}>
-        <span className={styles.dropdownField}>{value}</span>
-        <span className={styles.dropdownBtn}></span>
-      </div>
-      {dropdownOpen ? (
-        <ul className={styles.dropdownList}>
-          {objects.map((item, index) => (
-            <li
-              key={index}
-              className={styles.dropdownListItem}
-              onClick={() => {
-                setValue(item);
-                setDropdownOpen(false);
-              }}>
-              {item}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
-  );
-};
+// const DropdownList = ({ objects, value, setValue }) => {
+//   const [dropdownOpen, setDropdownOpen] = useState(false);
+//   return (
+//     <div className={styles.dropdownWrap}>
+//       <div className={styles.dropdownFieldWrap} onClick={() => setDropdownOpen(!dropdownOpen)}>
+//         <span className={styles.dropdownField}>{value}</span>
+//         <span className={styles.dropdownBtn}></span>
+//       </div>
+//       {dropdownOpen ? (
+//         <ul className={styles.dropdownList}>
+//           {objects.map((item, index) => (
+//             <li
+//               key={index}
+//               className={styles.dropdownListItem}
+//               onClick={() => {
+//                 setValue(item);
+//                 setDropdownOpen(false);
+//               }}>
+//               {item}
+//             </li>
+//           ))}
+//         </ul>
+//       ) : null}
+//     </div>
+//   );
+// };
 
 export default function CreateChatAd(props) {
   const router = useRouter();
-  const profileData = {
-    // photo: "/img/temp/adProfilePic.png",
-    orgName: "Компания Бизнес Альянс Компани",
-  };
+
   const [orgName, setOrgName] = useState("");
-  const [displayZone, setDisplayZone] = useState(displayZones[0]);
+  // const [displayZone, setDisplayZone] = useState(displayZones[0]);
   const [files, setFiles] = useState([]);
   const [radius, setRadius] = useState(null);
   const [description, setDescription] = useState("");
@@ -377,6 +374,11 @@ export default function CreateChatAd(props) {
                     <span className={styles.price}>{item.price} ₽</span>
                   </div>
                 ))}
+              <div className={styles.fieldWrap}>
+                <label htmlFor='hours' className={styles.fieldName}>
+                  Охват может измениться к моменту публикации объявления.
+                </label>
+              </div>
             </div>
 
             <div className={styles.fieldWrap}>

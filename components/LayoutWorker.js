@@ -3,8 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { RotatingLines } from "react-loader-spinner";
-import "swiper/css";
-import "swiper/css/navigation";
 
 // import LayoutLoggedIn from "./LayoutLoggedIn";
 // import DropdownList from "../components/DropdownList";
@@ -177,7 +175,7 @@ function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = fal
     const getNotifications = async () => {
       if (!!email) {
         try {
-          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/notifications/${email}`, {
+          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/notifications`, {
             headers: {
               Authorization: getCookie("jkh-token"),
             },
@@ -315,7 +313,7 @@ function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = fal
                   <li>
                     <span
                       onClick={() => {
-                        dispatch(updateRole(""));
+                        dispatch(updateRole({ role: "" }));
                         router.replace("/");
                         setCookie("jkh-token", "");
                       }}>
@@ -374,8 +372,6 @@ function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = fal
     </div>
   );
 }
-
-// SwiperCore.use([Navigation]);
 
 export default function LayoutWorker({ children, withProducts }) {
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(null);

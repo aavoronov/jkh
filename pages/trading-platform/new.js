@@ -6,10 +6,6 @@ import { useDropzone } from "react-dropzone";
 import LayoutLoggedIn from "../../components/LayoutLoggedIn";
 // import DropdownList from "../components/DropdownList";
 
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/thumbs";
-
 import styles from "./new.module.scss";
 
 import axios from "axios";

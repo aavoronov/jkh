@@ -9,8 +9,6 @@ import styles from "./allservices.module.scss";
 
 import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 
-// SwiperCore.use([Navigation]);
-
 export default function AllServices(props) {
   const [categoriesVisible, setCategoriesVisible] = useState(true);
   const { width, height } = useWindowDimensions();

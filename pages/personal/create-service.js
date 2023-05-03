@@ -10,6 +10,9 @@ import { useDropzone } from "react-dropzone";
 import LayoutPersonal from "../../components/LayoutPersonal";
 import axios from "axios";
 import { getCookie } from "cookies-next";
+import { useDispatch } from "react-redux";
+import { toggle } from "../../store/notificationSlice";
+import { getGeocode } from "../../service/functions";
 
 export default function createService({}) {
   const profileData = {
@@ -27,6 +30,7 @@ export default function createService({}) {
   const [portfolioFiles, setPortfolioFiles] = useState([]);
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState(null);
 
+  const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [brigade, setBrigade] = useState(false);
   const [contract, setContract] = useState(false);
@@ -37,6 +41,9 @@ export default function createService({}) {
   const [workTime, setWorkTime] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+  const [type, setType] = useState("Частное лицо");
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     async function getCategories() {
@@ -57,14 +64,35 @@ export default function createService({}) {
 
   const createService = async () => {
     try {
+      function toggleWarning(text) {
+        throw new Error(text);
+      }
+      if (!personalPhoto.length) toggleWarning("Добавьте фотографию");
+      if (!passportPhoto1.length || !passportPhoto2.length) toggleWarning("Добавьте сканы паспорта");
+      if (!address) toggleWarning("Заполните адрес");
+      if (!name) toggleWarning(type === "Частное лицо" ? "Заполните имя" : "Заполните название организации");
+      if (!workDays) toggleWarning("Заполните дни работы");
+      if (!workLocation) toggleWarning("Заполните место работы");
+      if (!workTime) toggleWarning("Заполните время работы");
+      if (!price) toggleWarning("Заполните цену");
+      if (!description) toggleWarning("Заполните описание");
+
+      const { geocodedAddress, latitude, longitude, precision } = await getGeocode(address);
+      console.log("precision", precision);
+      if (precision !== "exact") toggleWarning("Введенный адрес не найден. Проверьте правильность введенного адреса");
+
       const data = new FormData();
-      // data.append('name', name)
-      data.append("subcategory", subcategories[0]);
+      console.log("geocodedAddress", geocodedAddress);
+      data.append("name", name);
+      data.append("subcategory", selectedSubcategoryId);
       data.append("mainImage", personalPhoto[0]);
       data.append("passport", passportPhoto1[0]);
       data.append("passport", passportPhoto2[0]);
+      data.append("isOrg", type === "Организация");
       portfolioFiles.forEach((item) => data.append("portfolio", item));
-      data.append("address", address);
+      data.append("address", geocodedAddress);
+      data.append("latitude", latitude);
+      data.append("longitude", longitude);
       data.append("brigade", brigade);
       data.append("contract", contract);
       data.append("accommodation", accommodation);
@@ -84,8 +112,10 @@ export default function createService({}) {
         },
       });
       console.log(res.data);
+      dispatch(toggle({ text: "Объявление успешно создано", type: "success" }));
     } catch (e) {
-      console.log(e);
+      // console.log(e);
+      dispatch(toggle({ text: e.response?.data?.message ?? e.message, type: "error" }));
     }
   };
 
@@ -108,7 +138,7 @@ export default function createService({}) {
         <ul className={styles.subcategoryList}>
           {subcategoryList.map((item, idx) => (
             <li
-              className={subcategories.includes(item.id) ? styles.subsubcat + " " + styles.checked : styles.subsubcat}
+              className={subcategories === item.subcategory ? styles.subsubcat + " " + styles.checked : styles.subsubcat}
               key={idx}
               // onClick={() => {
               //   subcategories.indexOf(item) > -1
@@ -119,7 +149,11 @@ export default function createService({}) {
               //       )
               //     : setSubcategories(subcategories.concat(item));
               // }}
-              onClick={() => setSubcategories(subcategories.concat(item.id))}
+              // onClick={() => setSubcategories(subcategories.concat(item.id))}
+              onClick={() => {
+                setSelectedSubcategoryId(item.id);
+                setSubcategories(item.subcategory);
+              }}
               // onClick={() => console.log(item.id)}
             >
               {item.subcategory}
@@ -180,7 +214,7 @@ export default function createService({}) {
       },
       maxFiles: portfolio ? 10 : 1,
       maxSize: 3000000,
-      multiple: true,
+      multiple: portfolio,
     });
     // const { getRootProps, getInputProps } = useDropzone({ maxFiles: 10, maxSize: 3000000, multiple: true, onDrop });
 
@@ -195,11 +229,11 @@ export default function createService({}) {
       setFiles([]);
     };
 
-    const thumbs = files.map((file) => (
+    const thumbs = files.map((file, index) => (
       <div
         className={styles.thumb}
         // key={file.name}
-        key={Math.random().toString()}>
+        key={index}>
         <div className={styles.thumbInner}>
           <img
             src={file.preview}
@@ -214,7 +248,7 @@ export default function createService({}) {
             onClick={() => {
               removeFile(file);
             }}></button>
-          <span className={styles.fileName}>{file.name}</span>
+          {/* <span className={styles.fileName}>{file.name}</span> */}
         </div>
       </div>
     ));
@@ -305,7 +339,39 @@ export default function createService({}) {
           </div>
 
           <div className={styles.personalSection}>
-            <span className={styles.createAdSubsectionHeader}>{chosenCategory}</span>
+            <span className={styles.createAdSubsectionHeader}>{chosenCategory + " / " + subcategories}</span>
+            <div className={styles.createAdFieldWrap}>
+              <label htmlFor='type' className={styles.fieldName} style={{ alignSelf: "start" }}>
+                Тип исполнителя
+              </label>
+              <div>
+                <div className={styles.form_radio}>
+                  <input
+                    id='type-1'
+                    className={styles.radio}
+                    type='radio'
+                    name='type'
+                    value={type}
+                    onChange={() => setType("Частное лицо")}
+                    checked={type === "Частное лицо"}
+                  />
+                  <label htmlFor='type-1'>Частное лицо</label>
+                </div>
+
+                <div className={styles.form_radio}>
+                  <input
+                    id='type-2'
+                    className={styles.radio}
+                    type='radio'
+                    name='type'
+                    value={type}
+                    onChange={() => setType("Организация")}
+                    checked={type === "Организация"}
+                  />
+                  <label htmlFor='type-2'>Организация</label>
+                </div>
+              </div>
+            </div>
             <div className={styles.createAdFieldWrap}>
               <label htmlFor='address' className={styles.fieldName}>
                 Адрес объекта
@@ -313,12 +379,27 @@ export default function createService({}) {
               <input
                 name='address'
                 type='text'
-                placeholder=''
+                placeholder='населенный пункт, улица, дом'
                 className={styles.field}
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
               />
             </div>
+
+            <div className={styles.createAdFieldWrap}>
+              <label htmlFor='name' className={styles.fieldName}>
+                {type === "Частное лицо" ? "Имя исполнителя" : "Название организации"}
+              </label>
+              <input
+                name='name'
+                type='text'
+                placeholder=''
+                className={styles.field}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+
             <div className={styles.createAdFieldWrap}>
               <label htmlFor='brigade' className={styles.fieldName}>
                 Бригада
@@ -455,27 +536,27 @@ export default function createService({}) {
                     ? styles.submitBtn + " " + styles.saveBtn
                     : styles.submitBtn + " " + styles.saveBtn + " " + styles.disabled
                 }
-                onClick={async () => {
-                  const data = {
-                    category: chosenCategory,
-                    subcategory: subcategories[0],
-                    mainFile: personalPhoto[0],
-                    passport1: passportPhoto1[0],
-                    passport2: passportPhoto2[0],
-                    photos: portfolioFiles,
-                    address,
-                    brigade,
-                    contract,
-                    accommodation,
-                    warranty,
-                    workDays,
-                    workLocation,
-                    workTime,
-                    price,
-                    description,
-                  };
+                onClick={() => {
+                  // const data = {
+                  //   category: chosenCategory,
+                  //   subcategory: subcategories[0],
+                  //   mainFile: personalPhoto[0],
+                  //   passport1: passportPhoto1[0],
+                  //   passport2: passportPhoto2[0],
+                  //   photos: portfolioFiles,
+                  //   address,
+                  //   brigade,
+                  //   contract,
+                  //   accommodation,
+                  //   warranty,
+                  //   workDays,
+                  //   workLocation,
+                  //   workTime,
+                  //   price,
+                  //   description,
+                  // };
                   // alert(JSON.stringify(data));
-                  await createService();
+                  createService();
                   // router.push("/services");
                 }}>
                 Опубликовать
