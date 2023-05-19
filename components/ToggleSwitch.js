@@ -12,7 +12,6 @@ const ToggleSwitch = ({ label, value, setValue }) => {
           id={label}
           onClick={(event) => {
             setValue(event.target.value);
-            console.log(event.target.value);
           }}
         />
         <label className='label' htmlFor={label}>

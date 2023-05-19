@@ -2,15 +2,15 @@ import React, { useEffect, useState } from "react";
 
 import axios from "axios";
 import { getCookie, setCookie } from "cookies-next";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import LayoutWorker from "../../components/LayoutWorker";
+import { currentDatetime, getGeocode } from "../../service/functions";
 import { toggle } from "../../store/notificationSlice";
 import { updateRole } from "../../store/userSlice";
 import styles from "./workers.module.scss";
-import Image from "next/image";
-import { currentDatetime, getGeocode } from "../../service/functions";
 
 const Transaction = ({ item }) => {
   let type, isExpense;
@@ -18,7 +18,6 @@ const Transaction = ({ item }) => {
     type = "Реклама в чатах";
     isExpense = true;
   }
-  console.log(item);
 
   const sum = isExpense ? -item.sum : item.sum;
 
@@ -70,7 +69,6 @@ export default function WorkerProfile(props) {
       setTransactions((prev) => [...prev, ...res.data]);
       if (res.data.length < 3) setStartReached(true);
       setPage((prev) => prev + 1);
-      console.log("transactions", res.data);
     } catch (e) {
       console.log(e);
     }
@@ -85,7 +83,6 @@ export default function WorkerProfile(props) {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/transactions/expenses`, {
         headers: { Authorization: getCookie("jkh-token") },
       });
-      console.log("res.data", res.data);
       setExpenses(res.data);
     } catch (e) {
       console.log(e);
@@ -100,7 +97,6 @@ export default function WorkerProfile(props) {
     try {
       const { geocodedAddress, latitude, longitude, precision } = await getGeocode(objectAddressField);
 
-      console.log(precision);
       if (precision !== "exact") {
         throw new Error("Введенный адрес не найден. Проверьте правильность введенного адреса");
       }
@@ -112,7 +108,6 @@ export default function WorkerProfile(props) {
           headers: { Authorization: getCookie("jkh-token") },
         }
       );
-      console.log(res.data);
       // dispatch(updateProfile({ pseudonym: nicknameLocal }));
       dispatch(toggle({ text: "Объект отправлен на проверку", type: "success" }));
       setAddObject(false);
@@ -128,7 +123,6 @@ export default function WorkerProfile(props) {
       const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects/${id}`, {
         headers: { Authorization: getCookie("jkh-token") },
       });
-      console.log(res.data);
       // dispatch(updateProfile({ pseudonym: nicknameLocal }));
       dispatch(toggle({ text: "Объект успешно удален", type: "success" }));
       const newObjects = objects.filter((item) => item.id !== id);
@@ -147,7 +141,6 @@ export default function WorkerProfile(props) {
           headers: { Authorization: getCookie("jkh-token") },
         }
       );
-      console.log(res.data);
       // dispatch(updateProfile({ pseudonym: nicknameLocal }));
       dispatch(toggle({ text: "Ваш аккаунт успешно удален", type: "success" }));
       dispatch(updateRole({ role: "" }));
@@ -162,7 +155,7 @@ export default function WorkerProfile(props) {
   const { pseudonym, email, phone, color, profilePic, balance } = user;
 
   return (
-    <LayoutWorker>
+    <LayoutWorker title='ЖКХ Консьерж - рабочий кабинет' description='description' keywords='keywords'>
       <div className={styles.container}>
         <h1 className={styles.pageHeader}>Рабочий кабинет</h1>
         <span className={styles.threeDotsBtn}>

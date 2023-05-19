@@ -30,7 +30,6 @@ export const createComplaint = async (data: IComplaintData): Promise<void> => {
       headers: { Authorization: getCookie("jkh-token") },
     });
     // return { text: "success", status: 201 };
-    console.log(res);
   } catch (e) {
     console.log(e);
   }
@@ -72,4 +71,23 @@ export const currentDatetime = (date: string | Date) => {
     ":" +
     datetime.getMinutes().toString().padStart(2, "0")
   );
+};
+
+interface IQueryParameters {
+  method?: "get" | "post" | "delete" | "patch";
+  url: string;
+  noAuth?: boolean;
+  payload?: any;
+}
+
+export const axiosConfig = (params: IQueryParameters) => {
+  return {
+    url: params.url,
+    data: params.payload,
+    method: params.method || "get",
+    headers: {
+      Authorization: !params.noAuth ? getCookie("jkh-token") : void 0,
+      "Content-Type": params.payload instanceof FormData ? "multipart/form-data" : "application/json",
+    },
+  };
 };

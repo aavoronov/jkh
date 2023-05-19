@@ -1,18 +1,14 @@
-import React, { useEffect, useState, useRef } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import styles from "./personal-sections.module.scss";
+import React, { useEffect, useState } from "react";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
+import styles from "./personal-sections.module.scss";
 
-import LayoutPersonal from "../../components/LayoutPersonal";
-import ProductCard from "../../components/ProductCard";
-import { useDispatch } from "react-redux";
 import axios from "axios";
 import { getCookie } from "cookies-next";
-import { loading } from "../../store/loaderSlice";
+import { useDispatch } from "react-redux";
+import LayoutPersonal from "../../components/LayoutPersonal";
 import Pagination from "../../components/Pagination";
+import ProductCard from "../../components/ProductCard";
+import { loading } from "../../store/loaderSlice";
 
 export default function MyFavorites({}) {
   const [products, setProducts] = useState([]);
@@ -24,13 +20,11 @@ export default function MyFavorites({}) {
   const getMyFaves = async (page) => {
     try {
       dispatch(loading({ visible: true }));
-      console.log(page);
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trading-platform/favorites?page=${page}`, {
         headers: {
           Authorization: getCookie("jkh-token"),
         },
       });
-      console.log(res.data);
       setProducts(res.data.products);
       setPageCount(res.data.count);
     } catch (e) {
@@ -42,7 +36,7 @@ export default function MyFavorites({}) {
   useEffect(() => getMyFaves(page), []);
 
   return (
-    <LayoutPersonal withProducts>
+    <LayoutPersonal withProducts title='ЖКХ Консьерж - избранное' description='description' keywords='keywords'>
       <h1 className={styles.pageHeading + " " + styles.withProducts}>Избранное</h1>
       <div className={styles.productsWrap}>
         {products.length ? (

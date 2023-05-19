@@ -1,16 +1,13 @@
-import React, { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import styles from "./personal-sections.module.scss";
+import React, { useEffect, useState } from "react";
 import LayoutPersonal from "../../components/LayoutPersonal";
+import styles from "./personal-sections.module.scss";
 
-import useWindowDimensions from "../../components/useWindowDimensionsSSR";
-import Pagination from "../../components/Pagination";
-import { useDispatch } from "react-redux";
 import axios from "axios";
 import { getCookie } from "cookies-next";
+import { useDispatch } from "react-redux";
+import Pagination from "../../components/Pagination";
+import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 import { loading } from "../../store/loaderSlice";
 import { toggle } from "../../store/notificationSlice";
 
@@ -26,13 +23,11 @@ export default function MyServices({}) {
   async function getMyServices(page) {
     try {
       dispatch(loading({ visible: true }));
-      console.log(page);
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/services/my?page=${page}`, {
         headers: {
           Authorization: getCookie("jkh-token"),
         },
       });
-      console.log(res.data);
       setServices(res.data.services);
       setPageCount(res.data.count);
     } catch (e) {
@@ -51,7 +46,6 @@ export default function MyServices({}) {
           Authorization: getCookie("jkh-token"),
         },
       });
-      console.log(res.data);
       dispatch(toggle({ text: "Объявление успешно удалено", type: "success" }));
       getMyServices(page);
       // setShown(false);
@@ -62,7 +56,7 @@ export default function MyServices({}) {
   };
 
   return (
-    <LayoutPersonal>
+    <LayoutPersonal title='ЖКХ Консьерж - мои услуги' description='description' keywords='keywords'>
       <h1 className={styles.pageHeading}>Мои услуги</h1>
 
       {!services.length ? (

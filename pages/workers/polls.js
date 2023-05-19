@@ -6,12 +6,12 @@ import "swiper/css";
 import "swiper/css/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 
-import LayoutWorker from "../../components/LayoutWorker";
-import styles from "./workers.module.scss";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 import { useDispatch } from "react-redux";
+import LayoutWorker from "../../components/LayoutWorker";
 import { toggle } from "../../store/notificationSlice";
+import styles from "./workers.module.scss";
 
 const Poll = ({ item }) => {
   const PollOption = ({ item, votesTotal }) => {
@@ -55,7 +55,6 @@ const Poll = ({ item }) => {
             className={styles.optionsItem}
             onClick={() => {
               setComplaintActive(true);
-              console.log(complaintActive);
             }}>
             Пожаловаться
           </span>
@@ -76,15 +75,11 @@ const DropdownList = ({ objects, value, setValue, style }) => {
 
   const handleChange = (value, setValue, item) => {
     const newArray = value;
-    console.log(newArray);
-    console.log(value);
 
     if (newArray.includes(item)) {
       newArray = newArray.filter((el) => el !== item);
-      console.log(newArray);
     } else {
       newArray = [...newArray, item];
-      console.log(newArray);
     }
     return newArray;
   };
@@ -167,7 +162,6 @@ export default function WorkerPolls(props) {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/polls/${chatId}`, {
         headers: { Authorization: getCookie("jkh-token") },
       });
-      console.log(res.data);
       setPollsData(res.data);
     } catch (e) {
       console.log(e);
@@ -192,7 +186,6 @@ export default function WorkerPolls(props) {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
-        console.log(res.data);
         setFilterDropdownValue(res.data[0].estateObject.address);
         setObjects(res.data);
       } catch (e) {
@@ -203,10 +196,8 @@ export default function WorkerPolls(props) {
   }, []);
 
   useEffect(() => {
-    // console.log(objects[0].estateObject.roomId);
     if (!!objects.length) {
       const chatId = objects.find((item) => item.estateObject.address === filterDropdownValue).estateObject.roomId;
-      console.log(chatId);
       getMyPollsAsWorkerPerChat(chatId);
     }
   }, [objects, filterDropdownValue]);
@@ -214,8 +205,6 @@ export default function WorkerPolls(props) {
   const handleCreatePoll = async (question) => {
     try {
       const chats = dropdownValue.map((item) => objects.find((el) => el.estateObject.address === item).estateObject.roomId);
-      console.log(chats);
-      console.log("pollCreateOptions", pollCreateOptions);
 
       if (!question) {
         throw new Error("Заполните поле вопроса");
@@ -240,7 +229,6 @@ export default function WorkerPolls(props) {
         { headers: { Authorization: getCookie("jkh-token") } }
       );
 
-      console.log(res.data);
       setCreatePoll(false);
       setPollCreateOptions([]);
       setOptionsCount(2);
@@ -262,9 +250,7 @@ export default function WorkerPolls(props) {
     const handleChange = (value) => {
       setValue(value);
       const newArray = pollCreateOptions;
-      console.log(value);
       newArray[idx] = value;
-      console.log(newArray);
       setPollCreateOptions(newArray);
     };
     return visible ? (
@@ -274,7 +260,6 @@ export default function WorkerPolls(props) {
           onClick={() => {
             setVisible(false);
             setOptionsCount(optionsCount - 1);
-            console.log(optionsCount);
             setPollCreateOptions((prev) => prev.filter((item) => item !== value));
           }}></span>
         <input
@@ -291,7 +276,7 @@ export default function WorkerPolls(props) {
   };
 
   return (
-    <LayoutWorker>
+    <LayoutWorker title='ЖКХ Консьерж - голосования и опросы' description='description' keywords='keywords'>
       {createPoll && (
         <>
           <div
@@ -345,7 +330,6 @@ export default function WorkerPolls(props) {
                         className={styles.addOptionBtn}
                         onClick={() => {
                           optionsCount < 8 && setOptionsCount(optionsCount + 1);
-                          console.log(optionsCount);
                         }}>
                         Добавить ответ
                       </button>
@@ -365,7 +349,6 @@ export default function WorkerPolls(props) {
                         className={multipleChoice ? styles.checkbox + " " + styles.checked : styles.checkbox}
                         onClick={() => {
                           setMultipleChoice(!multipleChoice);
-                          console.log(multipleChoice);
                         }}></div>
                       Выбор нескольких ответов
                     </label>
@@ -435,8 +418,8 @@ export default function WorkerPolls(props) {
             }
           }}
           rewind={true}
-          onSlideChange={() => console.log("slide change")}
-          onSwiper={(swiper) => console.log(swiper)}
+          // onSlideChange={() => console.log("slide change")}
+          // onSwiper={(swiper) => console.log(swiper)}
           // navigation={swiperNavigation}
         >
           {!!pollsData.length

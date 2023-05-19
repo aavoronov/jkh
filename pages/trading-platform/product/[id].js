@@ -19,8 +19,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
 import useWindowDimensions from "../../../components/useWindowDimensionsSSR";
-import { loading } from "../../../store/loaderSlice";
 import { currentDatetime } from "../../../service/functions";
+import { loading } from "../../../store/loaderSlice";
 
 export default function Product({ id }) {
   const [product, setProduct] = useState(null);
@@ -71,7 +71,6 @@ export default function Product({ id }) {
           Authorization: getCookie("jkh-token"),
         },
       });
-      console.log(res.data);
       favorite ? setLikesCount((prev) => prev - 1) : setLikesCount((prev) => prev + 1);
       setFavorite((prev) => !prev);
     } catch (e) {
@@ -87,7 +86,6 @@ export default function Product({ id }) {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trading-platform/${id}`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
-        console.log(res.data);
         setProduct(res.data);
         setDatetime(new Date(res.data.createdAt));
         setFavorite(!!res.data.favorites.length);
@@ -116,54 +114,8 @@ export default function Product({ id }) {
     getProductById();
   }, []);
 
-  // condition: 1
-  // ​
-  // createdAt: "2023-02-17T12:39:18.302Z"
-  // ​
-  // description: "123"
-  // ​
-  // favorites: Array [ {…} ]
-  // ​​
-  // 0: Object { id: 1, createdAt: "2023-02-17T14:16:13.965Z", updatedAt: "2023-02-17T14:16:13.965Z", … }
-  // ​​
-  // length: 1
-  // ​​
-  // <prototype>: Array []
-  // ​
-  // hasTelegram: false
-  // ​
-  // hasWhatsapp: true
-  // ​
-  // id: 35
-  // ​
-  // images: Array(5) [ "Ni40NTYyMDI1NDg3Mzg2ODgxNjc2NjM3NTU4Mjk2.jpg", "NTYxLjc0MTA0NzkzMzk5NjYxNjc2NjM3NTU4Mjk2.png", "OTczLjg5NDQxMzE5NzI1NzMxNjc2NjM3NTU4Mjk2.png", … ]
-  // ​
-  // isPaidUntil: "2023-02-24T12:39:18.301Z"
-  // ​
-  // isVip: true
-  // ​
-  // likes: 0
-  // ​
-  // location: "Адрес"
-  // ​
-  // name: "Test"
-  // ​
-  // phone: "131"
-  // ​
-  // price: "150"
-  // ​
-  // subcategoryId: 1
-  // ​
-  // updatedAt: "2023-02-17T12:39:18.302Z"
-  // ​
-  // userId: 1
-  // ​
-  // views: 0
-  // ​
-  // wts: true
-
   return (
-    <LayoutLoggedIn>
+    <LayoutLoggedIn title={`ЖКХ Консьерж - ${product?.name || "товар"}`} description='description' keywords='keywords'>
       {priceSuggestion ? (
         <>
           <div

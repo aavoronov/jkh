@@ -28,10 +28,18 @@ import { updateEmail, updateNotifications, updateProfile, updateRole, updatePhon
 import { useRouter } from "next/router";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { toggle } from "../store/notificationSlice";
 import { RotatingLines } from "react-loader-spinner";
 
-export default function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = false }) {
+export default function LayoutLoggedIn({
+  children,
+  menuIsCollapsible = false,
+  noRightMenu = false,
+  title = "ЖКХ Консьерж",
+  description = "description",
+  keywords = "keywords",
+}) {
   const [menuIsOpen, setMenuIsOpen] = useState(true);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -118,7 +126,6 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
     window.addEventListener("orientationchange", doOnOrientationChange);
 
     function doOnOrientationChange() {
-      console.log("changed");
       setMenuIsOpen(false);
     }
   }, []);
@@ -146,7 +153,6 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
               Authorization: getCookie("jkh-token"),
             },
           });
-          console.log(res.data);
           dispatch(updateRole({ role: res.data.role }));
           dispatch(updateEmail({ email: res.data.email }));
           dispatch(updatePhone({ phone: res.data.phone }));
@@ -170,7 +176,6 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
               Authorization: getCookie("jkh-token"),
             },
           });
-          console.log(res.data);
           const amount = 0;
           res.data.data.forEach((item) => (amount = amount + item.amount));
           dispatch(updateNotifications({ notifications: amount }));
@@ -188,7 +193,6 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
-        console.log(res);
         const entityName = res.data.pseudonym ?? res.data.workerProfile?.name;
 
         const phone = res.data.phone ?? "";
@@ -196,8 +200,6 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
 
         const entityPic = res.data.profilePic ?? res.data.workerProfile?.profilePic;
         const updateProfilePic = entityPic === null ? "" : entityPic;
-        console.log(updatePseudonym);
-        console.log(res.data);
         phone && dispatch(updatePhone({ phone: phone }));
         res.data.workerProfile?.balance && dispatch(updateBalance({ balance: res.data.workerProfile.balance }));
         res.data.workerProfile?.address && dispatch(updateAddress({ address: res.data.workerProfile.address }));
@@ -248,12 +250,12 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
       {/* {isLoading && <div style={{ width: 1000, height: 1000, backgroundColor: "tomato", position: "absolute" }}>TEST</div>} */}
 
       <Head>
-        <title>Create Next App</title>
-        <link rel='icon' href='/favicon.ico' />
+        <title>{title}</title>
+        <meta name='keywords' content={keywords} />
+        <meta name='description' content={description} />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
-        {/* <script
-          src='https://api-maps.yandex.ru/2.1/?lang=ru_RU&amp;apikey=2a5c7497-20d8-493c-87a4-21c88a87d455'
-          type='text/javascript'></script> */}
+        <link rel='preload' as='font'></link>
+        <meta charSet='utf-8' />
       </Head>
       <div id={styles.overlay} className={menuIsOpen ? "" : styles.hidden} onClick={onClickHandler}></div>
 
@@ -265,14 +267,9 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, no
         </div>
         <div className={styles.headerButtonsWrap}>
           {!noRightMenu && (
-            <div
-              className={styles.bellWrap}
-              onClick={() => {
-                console.log(height, width);
-                console.log(width < 768);
-              }}>
+            <div className={styles.bellWrap}>
               <Image src={bell} alt='' />
-              {!!notifications && <span className={styles.notificationsNumber}>{notifications}</span>}
+              {!!notifications && <span className={styles.notificationsNumber}>{notifications > 99 ? "99+" : notifications}</span>}
             </div>
           )}
           <div className={styles.userWrap}>

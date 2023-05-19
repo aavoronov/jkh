@@ -1,19 +1,17 @@
-import React, { useState, useRef, useEffect } from "react";
-import styles from "./servicead.module.scss";
+import { Field, Form, Formik } from "formik";
 import Image from "next/image";
-import Link from "next/link";
-import { Swiper, SwiperSlide } from "swiper/react";
+import React, { useRef, useState } from "react";
 import { Navigation } from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import { createComplaint, Types } from "../service/functions";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Types, createComplaint } from "../service/functions";
+import styles from "./servicead.module.scss";
 
-import useWindowDimensions from "./useWindowDimensionsSSR";
-import { toggle } from "../store/notificationSlice";
-import { useDispatch } from "react-redux";
 import { useRouter } from "next/router";
+import { useDispatch } from "react-redux";
+import { toggle } from "../store/notificationSlice";
+import useWindowDimensions from "./useWindowDimensionsSSR";
 
 const ServiceAd = ({ data }) => {
   const navigationPrevRef = useRef(null);

@@ -1,19 +1,17 @@
-import React, { useState, useEffect } from "react";
-import styles from "./modals.module.scss";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import { ErrorMessage, Field, Form, Formik } from "formik";
+import React, { useEffect, useState } from "react";
 import OtpInput from "react-otp-input-rc-17";
+import * as Yup from "yup";
+import styles from "./modals.module.scss";
 
-import { useDropzone } from "react-dropzone";
 import axios from "axios";
 import { setCookie } from "cookies-next";
-import { useDispatch } from "react-redux";
-import { updateRole } from "../store/userSlice";
-import { toggle } from "../store/notificationSlice";
-import { redirect } from "next/dist/server/api-utils";
-import { useRouter } from "next/router";
+import { useDropzone } from "react-dropzone";
 import InputMask from "react-input-mask";
+import { useDispatch } from "react-redux";
 import { getGeocode } from "../service/functions";
+import { toggle } from "../store/notificationSlice";
+import { updateRole } from "../store/userSlice";
 
 const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
   //   const [modalActive, setModalActive] = useState(false);
@@ -81,13 +79,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
       <div className={styles.popup}>
         <CloseBtn />
         <div className={styles.formWrap}>
-          <span
-            className={styles.popupHeading}
-            onClick={() => {
-              console.log(modalToDisplay);
-            }}>
-            Войти
-          </span>
+          <span className={styles.popupHeading}>Войти</span>
           <div className={styles.popupFieldWrap}>
             <Formik
               initialValues={{
@@ -173,13 +165,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
       <div className={styles.popup}>
         <CloseBtn />
         <div className={styles.formWrap}>
-          <span
-            className={styles.popupHeading}
-            onClick={() => {
-              console.log(modalToDisplay);
-            }}>
-            Регистрация
-          </span>
+          <span className={styles.popupHeading}>Регистрация</span>
           <div className={styles.popupFieldWrap}>
             <Formik
               initialValues={{
@@ -251,7 +237,6 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
     const signUpHandler = async (values) => {
       try {
         const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/`, { ...values });
-        console.log(res.data);
         setModalToDisplay("emailConfirmation");
         setCounter(60);
       } catch (e) {
@@ -263,13 +248,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
       <div className={styles.popup}>
         <CloseBtn />
         <div className={styles.formWrap}>
-          <span
-            className={styles.popupHeading}
-            onClick={() => {
-              console.log(modalToDisplay);
-            }}>
-            Регистрация
-          </span>
+          <span className={styles.popupHeading}>Регистрация</span>
           <div className={styles.popupFieldWrap}>
             <Formik
               initialValues={{
@@ -391,7 +370,6 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
     const resetHandler = async (values) => {
       try {
         const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/restore`, { ...values });
-        console.log(res.data);
         setModalToDisplay("passwordReset2");
         setCounter(60);
       } catch (e) {
@@ -450,13 +428,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
       <div className={styles.popup}>
         <CloseBtn />
         <div className={styles.formWrap}>
-          <span
-            className={styles.popupHeading}
-            onClick={() => {
-              console.log(modalToDisplay);
-            }}>
-            Ваш пароль сброшен
-          </span>
+          <span className={styles.popupHeading}>Ваш пароль сброшен</span>
           <div className={styles.popupFieldWrap}>
             <div className={styles.popupFieldWrap}>
               {/* <button
@@ -492,13 +464,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
       <div className={styles.popup}>
         <CloseBtn />
         <div className={styles.formWrap}>
-          <span
-            className={styles.popupHeading}
-            onClick={() => {
-              console.log(modalToDisplay);
-            }}>
-            Сброс пароля
-          </span>
+          <span className={styles.popupHeading}>Сброс пароля</span>
           <div className={styles.popupFieldWrap}>
             <Formik
               initialValues={{
@@ -588,7 +554,6 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
         const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/phone/verification`, { phone: phone });
         // setModalToDisplay("confirmationPhone");
         // setCounter(60);
-        console.log(res.data);
         dispatch(toggle({ text: res.data.otp, type: "info" }));
         return true;
       } catch (e) {
@@ -603,7 +568,6 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
         const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/phone/sign-in`, { phone: phone, otp: otp });
         // setModalToDisplay("confirmationPhone");
         // setCounter(60);
-        console.log(res.data);
         dispatch(updateRole({ role: res.data.user.role }));
         setModalToDisplay("");
         setPopupError(false);
@@ -624,13 +588,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
         <div className={styles.formWrap}>
           {stage === 1 && (
             <>
-              <span
-                className={styles.popupHeading}
-                onClick={() => {
-                  console.log(modalToDisplay);
-                }}>
-                Войти
-              </span>
+              <span className={styles.popupHeading}>Войти</span>
               <div className={styles.popupFieldWrap}>
                 <Formik
                   initialValues={{
@@ -702,13 +660,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
 
           {stage === 2 && (
             <>
-              <span
-                className={styles.popupHeading}
-                onClick={() => {
-                  console.log(modalToDisplay);
-                }}>
-                Введите код авторизации
-              </span>
+              <span className={styles.popupHeading}>Введите код авторизации</span>
               <div className={styles.popupFieldWrap}>
                 <Formik
                   initialValues={{
@@ -726,7 +678,6 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
 
                     // alert("Авторизовались");
                     handleOtpSubmit();
-                    console.log(otp);
                     // setModalToDisplay("");
                     // setPopupError(false);
                   }}>
@@ -795,13 +746,10 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
         creds.append("longitude", data.longitude);
         creds.append("address", data.address);
 
-        console.log(creds);
-
         const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/worker`, creds, {
           "Content-Type": "multipart/form-data",
         });
         setStage((prev) => prev + 1);
-        console.log(res.data);
       } catch (e) {
         dispatch(toggle({ text: e.response.data.message, type: "error" }));
       }
@@ -906,13 +854,6 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
         <div className={styles.popup + " " + styles.partnership}>
           <CloseBtn />
           <div className={styles.formWrap}>
-            {/* <span
-              className={styles.popupHeading}
-              onClick={() => {
-                console.log(modalToDisplay);
-              }}>
-              Как вы хотите использовать сервис?
-            </span> */}
             <span className={styles.partnershipFormHeader}>Регистрация</span>
             <span className={styles.partnershipFormText}>Пожалуйста, укажите все данные, что бы продолжить сотрудничество</span>
             <div className={styles.popupFieldWrap} style={{ display: "flex", flexDirection: "column" }}>
@@ -920,7 +861,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                 <input
                   name='name'
                   type='text'
-                  placeholder='Название организации'
+                  placeholder={orgType === "Для Управляющего по дому" ? "ФИО" : "Название организации"}
                   className={styles.field}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -958,7 +899,9 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                 <input
                   name='address'
                   type='text'
-                  placeholder='Адрес организации'
+                  placeholder={
+                    orgType === "Для Управляющего по дому" ? "Адрес (город, улица, дом)" : "Адрес организации (город, улица, дом)"
+                  }
                   className={styles.field}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
@@ -978,15 +921,13 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
               <div className={styles.popupFieldWrap + " " + styles.column}>
                 <Dropzone files={inn} setFiles={setInn} placeholder='ИНН' />
               </div>
-              <div className={styles.popupFieldWrap + " " + styles.column}>
+              {/* <div className={styles.popupFieldWrap + " " + styles.column}>
                 <Dropzone files={contract} setFiles={setContract} placeholder='Договор' />
               </div>
               <div className={styles.popupFieldWrap + " " + styles.column}>
                 <Dropzone files={snils} setFiles={setSnils} placeholder='СНИЛС' />
-              </div>
-              <span className={styles.fileSize} onClick={() => console.log(stage)}>
-                Размер файла до 10 Мб, скан или pdf
-              </span>
+              </div> */}
+              <span className={styles.fileSize}>Размер файла до 10 Мб, скан или pdf</span>
 
               <div className={styles.popupFieldWrap}>
                 <button
@@ -1014,17 +955,15 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                         longitude,
                         address: geocodedAddress,
                       };
-                      console.log(data);
                       return signUpAsWorker(data, orgType);
                     } catch (e) {
                       dispatch(toggle({ text: e.message, type: "error" }));
                     }
                     // setCounter(60);
                   }}
+                  // && contract.length && snils.length
                   style={
-                    name && phone && email && inn.length && contract.length && snils.length && agree
-                      ? { pointerEvents: "all" }
-                      : { pointerEvents: "none", opacity: 0.6 }
+                    name && phone && email && inn.length && agree ? { pointerEvents: "all" } : { pointerEvents: "none", opacity: 0.6 }
                   }>
                   Продолжить
                 </button>
@@ -1044,7 +983,6 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                     className={agree ? styles.checkbox + " " + styles.checked : styles.checkbox}
                     onClick={() => {
                       setAgree(!agree);
-                      console.log(agree);
                     }}></div>
                   <span className={styles.partnershipEulaText}>
                     Я принимаю <a className={styles.partnershipEulaLink}>условия использования</a> и{" "}
@@ -1086,13 +1024,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
         <div className={styles.popup + " " + styles.partnership2}>
           <CloseBtn />
           <div className={styles.formWrap}>
-            <span
-              className={styles.popupHeading}
-              onClick={() => {
-                console.log(modalToDisplay);
-              }}>
-              Как вы хотите использовать сервис?
-            </span>
+            <span className={styles.popupHeading}>Как вы хотите использовать сервис?</span>
             <div className={styles.popupFieldWrap}>
               <Formik>
                 <Form>
@@ -1114,7 +1046,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                   </div>
 
                   <div className={styles.popupFieldWrap}>
-                    <span className={styles.writeAdminText} onClick={() => console.log(data)}>
+                    <span className={styles.writeAdminText}>
                       Если вы не смогли определиться, к какому разделу относится ваше предложении о сотрудничестве, то напишите
                       администратору
                     </span>

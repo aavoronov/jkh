@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 
-import { useRouter } from "next/router";
-import { useDropzone } from "react-dropzone";
-import LayoutWorker from "../../../components/LayoutWorker";
-import styles from "../workers-newad.module.scss";
-import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { getCookie } from "cookies-next";
+import { useRouter } from "next/router";
+import { useDropzone } from "react-dropzone";
+import { useDispatch, useSelector } from "react-redux";
+import LayoutWorker from "../../../components/LayoutWorker";
 import { toggle } from "../../../store/notificationSlice";
+import styles from "../workers-newad.module.scss";
 
 const displayZones = ["Москва и МО", "Ленинград и ЛО", "Свердловск и СО"];
 
@@ -57,7 +57,6 @@ export default function CreateChatAd(props) {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat-rooms/ad-prices`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
-        console.log(res.data);
         setPrices(res.data);
       } catch (e) {
         console.log(e);
@@ -101,7 +100,6 @@ export default function CreateChatAd(props) {
       }
 
       const pricesItem = prices.find((item) => item.radius === radius);
-      console.log(pricesItem);
       const data = new FormData();
       // data.append('name', name)
       // data.append("name", pseudonym);
@@ -114,8 +112,6 @@ export default function CreateChatAd(props) {
       data.append("chats", pricesItem.ids);
       data.append("price", pricesItem.price);
 
-      console.log(data);
-
       const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/chat-ads`, data, {
         // "Content-Type": "multipart/form-data",
         headers: {
@@ -123,7 +119,6 @@ export default function CreateChatAd(props) {
           Authorization: getCookie("jkh-token"),
         },
       });
-      console.log(res.data);
       dispatch(toggle({ text: "Объявление отправлено на модерацию", type: "success" }));
       router.push("/workers/ads");
     } catch (e) {
@@ -167,7 +162,6 @@ export default function CreateChatAd(props) {
       const newFiles = [...files];
       newFiles.splice(newFiles.indexOf(file), 1);
       setFiles(newFiles);
-      console.log(files);
     };
 
     const removeAll = () => {
@@ -234,7 +228,7 @@ export default function CreateChatAd(props) {
   };
 
   return (
-    <LayoutWorker>
+    <LayoutWorker title='ЖКХ Консьерж - разместить рекламное объявление' description='description' keywords='keywords'>
       <div className={styles.container + " " + styles.whiteBg}>
         <h1 className={styles.pageHeader}>Размещение рекламного объявления</h1>
         <div className={styles.editOrgProfile}>
@@ -368,7 +362,7 @@ export default function CreateChatAd(props) {
                       disabled={item.price === 0}
                       checked={item.radius === radius}
                     />
-                    <label htmlFor={`radius-${index}`} onClick={() => console.log(radius)}>
+                    <label htmlFor={`radius-${index}`}>
                       {item.radius / 1000} км ({item.chats} чатов, {item.users} пользователей)
                     </label>
                     <span className={styles.price}>{item.price} ₽</span>

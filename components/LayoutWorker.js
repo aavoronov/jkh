@@ -11,38 +11,36 @@ import arrowLeft from "/public/img/arrowLeft.png";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
-import styles from "./personal.module.scss";
-import layoutStyles from "./layout.module.scss";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { toggle } from "../store/notificationSlice";
 import { updateAddress, updateProfile } from "../store/userSlice";
+import layoutStyles from "./layout.module.scss";
+import styles from "./personal.module.scss";
 import useWindowDimensions from "./useWindowDimensionsSSR";
 
 import Head from "next/head";
 
-import arrowRight from "/public/img/arrow-right.png";
 import arrow from "/public/img/arrow.png";
 import bell from "/public/img/bell-outlined.svg";
-import cart from "/public/img/icon-cart.png";
-import chat from "/public/img/icon-chat.png";
-import gear from "/public/img/icon-gear.png";
-import list from "/public/img/icon-list.png";
-import location from "/public/img/icon-location.png";
-import stats from "/public/img/icon-stats.png";
-import worker from "/public/img/icon-worker.png";
 import logo from "/public/img/logo-not-main-page.svg";
 import logout from "/public/img/logout.png";
-import logoutGrey from "/public/img/logoutGrey.png";
 import person from "/public/img/person.png";
-import personGrey from "/public/img/personGrey.png";
 import user from "/public/img/user-grey.svg";
 
 import { setCookie } from "cookies-next";
 import { useRouter } from "next/router";
-import { ToastContainer } from "react-toastify";
+
 import { updateBalance, updateEmail, updateNotifications, updatePhone, updateRole } from "../store/userSlice";
 
-function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = false }) {
+function LayoutLoggedIn({
+  children,
+  menuIsCollapsible = false,
+  noRightMenu = false,
+  title = "ЖКХ Консьерж",
+  description = "description",
+  keywords = "keywords",
+}) {
   const [menuIsOpen, setMenuIsOpen] = useState(true);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -129,7 +127,6 @@ function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = fal
     window.addEventListener("orientationchange", doOnOrientationChange);
 
     function doOnOrientationChange() {
-      console.log("changed");
       setMenuIsOpen(false);
     }
   }, []);
@@ -157,7 +154,6 @@ function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = fal
               Authorization: getCookie("jkh-token"),
             },
           });
-          console.log(res.data);
           dispatch(updateRole({ role: res.data.role }));
           dispatch(updateEmail({ email: res.data.email }));
         } catch (e) {
@@ -180,7 +176,6 @@ function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = fal
               Authorization: getCookie("jkh-token"),
             },
           });
-          console.log(res.data);
           const amount = 0;
           res.data.data.forEach((item) => (amount = amount + item.amount));
           dispatch(updateNotifications({ notifications: amount }));
@@ -198,7 +193,6 @@ function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = fal
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
-        console.log(res);
         const entityName = res.data.pseudonym ?? res.data.workerProfile?.name;
 
         const phone = res.data.phone ?? "";
@@ -206,8 +200,6 @@ function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = fal
 
         const entityPic = res.data.profilePic ?? res.data.workerProfile?.profilePic;
         const updateProfilePic = entityPic === null ? "" : entityPic;
-        console.log(updatePseudonym);
-        console.log(res.data);
         phone && dispatch(updatePhone({ phone: phone }));
         res.data.workerProfile?.balance && dispatch(updateBalance({ balance: res.data.workerProfile.balance }));
         res.data.workerProfile?.address && dispatch(updateAddress({ address: res.data.workerProfile.address }));
@@ -258,12 +250,12 @@ function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = fal
       {/* {isLoading && <div style={{ width: 1000, height: 1000, backgroundColor: "tomato", position: "absolute" }}>TEST</div>} */}
 
       <Head>
-        <title>Create Next App</title>
-        <link rel='icon' href='/favicon.ico' />
+        <title>{title}</title>
+        <meta name='keywords' content={keywords} />
+        <meta name='description' content={description} />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
-        {/* <script
-          src='https://api-maps.yandex.ru/2.1/?lang=ru_RU&amp;apikey=2a5c7497-20d8-493c-87a4-21c88a87d455'
-          type='text/javascript'></script> */}
+        <link rel='preload' as='font'></link>
+        <meta charSet='utf-8' />
       </Head>
       <div id={layoutStyles.overlay} className={menuIsOpen ? "" : layoutStyles.hidden} onClick={onClickHandler}></div>
 
@@ -275,12 +267,7 @@ function LayoutLoggedIn({ children, menuIsCollapsible = false, noRightMenu = fal
         </div>
         <div className={layoutStyles.headerButtonsWrap}>
           {!noRightMenu && (
-            <div
-              className={layoutStyles.bellWrap}
-              onClick={() => {
-                console.log(height, width);
-                console.log(width < 768);
-              }}>
+            <div className={layoutStyles.bellWrap}>
               <Image src={bell} alt='' />
               {!!notifications && <span className={layoutStyles.notificationsNumber}>{notifications}</span>}
             </div>
@@ -390,7 +377,7 @@ export default function LayoutWorker({ children, withProducts }) {
   }, [width]);
 
   return (
-    <LayoutLoggedIn noRightMenu>
+    <LayoutLoggedIn noRightMenu title='ЖКХ Консьерж - личный кабинет' description='description' keywords='keywords'>
       {width <= 768 && leftMenuIsOpen && (
         <div
           id={styles.overlay}
@@ -480,7 +467,7 @@ export default function LayoutWorker({ children, withProducts }) {
             <div className={styles.leftMenuItem}>Голосования, опросы</div>
           </Link>
         )}
-        {(role === "stores" || role === "business") && (
+        {(role === "stores" || role === "business" || role === "admakers") && (
           <Link href='/workers/ads'>
             <div className={styles.leftMenuItem}>Рекламные объявления</div>
           </Link>
@@ -507,7 +494,7 @@ export default function LayoutWorker({ children, withProducts }) {
           <div className={styles.leftMenuItem}>Домовые чаты</div>
         </Link> */}
         {/* <AdItem buttonText='подключить сервис' buttonLink='#' image={"/img/payAd.png"} width={245} height={342} /> */}
-        {role === "admakers" && (
+        {(role === "admakers" || role === "uk" || role === "upravdom") && (
           <>
             <span className={styles.orderAdText}>
               Вы можете разместить рекламу на площадке нашего приложения, для этого нужно оставить заявку

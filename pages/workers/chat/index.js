@@ -25,6 +25,7 @@ import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 
 import LayoutWorker from "../../../components/LayoutWorker";
+import { banRoots, banWords } from "../../../service/ban-words";
 
 const manager = new Manager(`${process.env.NEXT_PUBLIC_WS_ADDRESS}`, {
   autoConnect: false,
@@ -33,7 +34,6 @@ const manager = new Manager(`${process.env.NEXT_PUBLIC_WS_ADDRESS}`, {
 const socket = manager.socket("/chat"); // main namespace
 
 socket.connect();
-console.log("connect");
 
 const Dropzone = ({ files, filename, setFilename, setFiles, chatTextValue, setChatTextValue, handleKeyPress }) => {
   const [isDraggedOver, setIsDraggedOver] = useState(false);
@@ -79,7 +79,6 @@ const Dropzone = ({ files, filename, setFilename, setFiles, chatTextValue, setCh
     const newFiles = [...files];
     newFiles.splice(newFiles.indexOf(file), 1);
     setFiles(newFiles);
-    console.log(files);
   };
 
   const removeAll = () => {
@@ -203,8 +202,6 @@ export default function Chat() {
           },
         });
 
-        console.log(res.data);
-
         const fetchedMessages = res.data.data.map((item) => {
           const serverDate = item.createdAt;
           const localDate = new Date(serverDate);
@@ -280,10 +277,7 @@ export default function Chat() {
 
   const handleNewMessage = (data) => {
     if (Array.isArray(data.roomId)) {
-      console.log(data.roomId);
-      console.log(myChats.map((item) => item.id));
       const filteredArray = data.roomId.filter((value) => myChats.map((item) => item.id).includes(value));
-      console.log(filteredArray);
       if (!filteredArray.length) return;
       // if (data.roomId.includes())
     }
@@ -360,7 +354,7 @@ export default function Chat() {
 
       socket.on("pong", () => {
         setLastPong(new Date().toISOString());
-        console.log("pong!");
+        // console.log("pong!");
       });
 
       // socket.on(
@@ -373,7 +367,7 @@ export default function Chat() {
 
       socket.on("message", (data) => {
         handleNewMessage(data);
-        console.log("new msg");
+        // console.log("new msg");
       });
 
       socket.emit(
@@ -409,27 +403,31 @@ export default function Chat() {
   }, [email, currentChatId]);
 
   const sendMessage = async (payload) => {
-    if (!!files.length) payload = { ...payload, file: files[0] };
-    socket.emit("message", payload);
+    try {
+      const message = payload.text.toLowerCase();
 
-    // try {
-    //   const msgFormData = new FormData();
-    //   msgFormData.append("sender", payload.email);
-    //   msgFormData.append("message", payload.text);
-    //   msgFormData.append("roomId", payload.roomId);
-    //   !!files.length && msgFormData.append("file", files[0], filename);
-    //   console.log(JSON.stringify(msgFormData));
+      banRoots.forEach((item) => {
+        if (message.includes(item)) {
+          throw new Error("Ваше сообщение содержит неприемлемое слово");
+        }
+      });
 
-    //   const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/chat`, msgFormData, {
-    //     headers: { Authorization: getCookie("jkh-token"), "Content-Type": !files.length ? "application/json" : "multipart/form-data" },
-    //   });
-    //   console.log(res);
-    setChatTextValue("");
-    setFiles([]);
-    setFilename("");
-    // } catch (e) {
-    //   console.log(e);
-    // }
+      banWords.forEach((item) => {
+        if (message.includes(item)) {
+          throw new Error("Ваше сообщение содержит неприемлемое слово");
+        }
+      });
+
+      if (!!files.length) payload = { ...payload, file: files[0] };
+      socket.emit("message", payload);
+
+      setChatTextValue("");
+      setFiles([]);
+      setFilename("");
+    } catch (e) {
+      // console.log("e", e);
+      dispatch(toggle({ text: e.message, type: "error" }));
+    }
   };
 
   // useEffect(() => {
@@ -650,7 +648,6 @@ export default function Chat() {
         }
         getChatUsers();
       });
-      console.log(users);
       setChatUsers(users);
     } else {
       setChatUsers([]);
@@ -658,7 +655,7 @@ export default function Chat() {
   }, [myChats]);
 
   return (
-    <LayoutWorker>
+    <LayoutWorker title='ЖКХ Консьерж - домовые чаты' description='description' keywords='keywords'>
       <div className={styles.container}>
         {width < 901 ? (
           <button

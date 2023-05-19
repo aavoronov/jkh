@@ -1,36 +1,25 @@
-import React, { useEffect, useState, useRef } from "react";
-import Image from "next/image";
-import { Field, Form, Formik, ErrorMessage } from "formik";
 import ProgressBar from "@ramonak/react-progress-bar";
-import * as Yup from "yup";
+import { Field, Form, Formik } from "formik";
+import React, { useEffect, useRef, useState } from "react";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
-import { Carousel } from "react-responsive-carousel";
-import { Rating } from "react-simple-star-rating";
-import { RotatingLines } from "react-loader-spinner";
 
 import LayoutLoggedIn from "../../components/LayoutLoggedIn";
-import LayoutMap from "../../components/LayoutMap";
-import AdItem from "../../components/AdItem";
-import ServiceAd from "../../components/ServiceAd";
 // import DropdownList from "../components/DropdownList";
-import arrowLeft from "/public/img/arrowLeft.png";
-import ProductCard from "../../components/ProductCard";
 
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Thumbs } from "swiper";
+import { Navigation } from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/thumbs";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 import styles from "./polls.module.scss";
-import { objectList } from "../../components/data";
 
-import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 import { useDispatch } from "react-redux";
-import { toggle } from "../../store/notificationSlice";
+import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 import { Types, createComplaint } from "../../service/functions";
+import { toggle } from "../../store/notificationSlice";
 
 const Poll = ({ item, setComplaintActive }) => {
   const PollOption = ({ item, votesTotal, isMultipleChoice, selected, setSelected, increment = false }) => {
@@ -48,10 +37,8 @@ const Poll = ({ item, setComplaintActive }) => {
           const newArray = [...selected, value];
           setSelected(newArray);
         }
-        console.log("many");
       } else {
         setSelected([value]);
-        console.log("one");
       }
     };
 
@@ -117,7 +104,6 @@ const Poll = ({ item, setComplaintActive }) => {
           throw new Error("Выберите вариант ответа");
         }
       }
-      console.log(selected);
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/polls/reply/`,
         { optionId: selected },
@@ -125,7 +111,6 @@ const Poll = ({ item, setComplaintActive }) => {
           headers: { Authorization: getCookie("jkh-token") },
         }
       );
-      console.log(res.data);
       // setPollsData(res.data);
       dispatch(toggle({ text: "Спасибо! Ваш ответ учтен", type: "success" }));
       selected.forEach((item) => {
@@ -160,7 +145,6 @@ const Poll = ({ item, setComplaintActive }) => {
         }}
         onSubmit={(values) => {
           // alert(JSON.stringify(values, null, 2));
-          console.log(item.id);
 
           submitReply(selected);
         }}>
@@ -186,9 +170,7 @@ const Poll = ({ item, setComplaintActive }) => {
           </Form>
         )}
       </Formik>
-      <div className={styles.votesTotal} onClick={() => console.log(selected)}>
-        {votesTotal} голосов
-      </div>
+      <div className={styles.votesTotal}>{votesTotal} голосов</div>
 
       {/* <div className={styles.option}>
             <ProgressBar
@@ -218,7 +200,6 @@ const Poll = ({ item, setComplaintActive }) => {
             className={styles.optionsItem}
             onClick={() => {
               setComplaintActive(true);
-              console.log(complaintActive);
             }}>
             Пожаловаться
           </span>
@@ -236,7 +217,6 @@ const Poll = ({ item, setComplaintActive }) => {
 export default function Polls(props) {
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(null);
 
-  const [dropdownValue, setDropdownValue] = useState(objectList[0]);
   const [complaintActive, setComplaintActive] = useState(false);
   const [complaintError, setComplaintError] = useState(false);
 
@@ -269,7 +249,6 @@ export default function Polls(props) {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
-        console.log(res.data);
         setFilterDropdownValue(res.data[0].estateObject.address);
         setObjects(res.data);
       } catch (e) {
@@ -283,7 +262,6 @@ export default function Polls(props) {
     // console.log(objects[0].estateObject.roomId);
     if (!!objects.length) {
       const chatId = objects.find((item) => item.estateObject.address === filterDropdownValue).estateObject.roomId;
-      console.log(chatId);
       getMyPollsAsUserPerChat(chatId);
     }
   }, [objects, filterDropdownValue]);
@@ -293,7 +271,6 @@ export default function Polls(props) {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/polls/${chatId}`, {
         headers: { Authorization: getCookie("jkh-token") },
       });
-      console.log(res.data);
       setPollsData(res.data);
     } catch (e) {
       console.log(e);
@@ -338,7 +315,7 @@ export default function Polls(props) {
   };
 
   return (
-    <LayoutLoggedIn>
+    <LayoutLoggedIn title='ЖКХ Консьерж - голосования и опросы' description='description' keywords='keywords'>
       {complaintActive ? (
         <>
           <div
@@ -464,8 +441,8 @@ export default function Polls(props) {
             }
           }}
           rewind={true}
-          onSlideChange={() => console.log("slide change")}
-          onSwiper={(swiper) => console.log(swiper)}
+          // onSlideChange={() => console.log("slide change")}
+          // onSwiper={(swiper) => console.log(swiper)}
           // navigation={swiperNavigation}
         >
           {!!pollsData.length

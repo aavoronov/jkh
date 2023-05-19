@@ -18,13 +18,13 @@ import styles from "./map.module.scss";
 
 import axios from "axios";
 import { getCookie } from "cookies-next";
+import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
+import { createComplaint, Types } from "../../service/functions";
 import { loading } from "../../store/loaderSlice";
 import { toggle } from "../../store/notificationSlice";
 import allPlaces from "/public/img/allPlaces.png";
 import arrowLeft from "/public/img/arrowLeft.png";
-import { createComplaint, Types } from "../../service/functions";
-import { useRouter } from "next/router";
 
 const zoomOptions = {
   position: { right: 30, top: 50 },
@@ -222,12 +222,10 @@ export default function InteractiveMap(props) {
     async function getEstateObjects() {
       const routerObjectId = router.query.id;
 
-      console.log("routerObjectId", routerObjectId);
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
-        console.log(res.data);
         const prepareData = () => {
           let data = [];
           res.data.forEach((item) => {
@@ -246,13 +244,9 @@ export default function InteractiveMap(props) {
         let filterValue = null;
 
         if (res.data.length) {
-          console.log("1");
           if (!!routerObjectId) {
-            console.log("2");
             const object = res.data.find((item) => item.estateObject.id === +routerObjectId);
             if (!!object) {
-              console.log("object123", object);
-              console.log("3");
               mapStateCenter = [object.estateObject.point.coordinates[1], object.estateObject.point.coordinates[0]];
               filterValue = object.estateObject.address.split(",").slice(-2).join().trim() + ", " + object.estateObject.apartment;
             }
@@ -583,7 +577,6 @@ export default function InteractiveMap(props) {
   const ReviewThread = ({ item }) => {
     const [isReplyActive, setIsReplyActive] = useState(false);
     const date = new Date(item.createdAt);
-    console.log("item", item);
     return (
       <div className={styles.reviewThread}>
         <div className={styles.review}>
@@ -752,14 +745,18 @@ export default function InteractiveMap(props) {
   useEffect(() => {
     if (estateObjects.length && router.query.id) {
       const object = estateObjects.find((item) => item.id === +router.query.id);
-      console.log("estateObjects", estateObjects);
-      console.log("object", object.address);
       setDropdownValue(object.address);
     }
   }, [estateObjects, router.query.id]);
 
   return (
-    <LayoutMap menuIsCollapsible={true} menuIsOpen={menuIsOpen} setMenuIsOpen={setMenuIsOpen}>
+    <LayoutMap
+      menuIsCollapsible={true}
+      menuIsOpen={menuIsOpen}
+      setMenuIsOpen={setMenuIsOpen}
+      title='ЖКХ Консьерж - интерактивная карта'
+      description='description'
+      keywords='keywords'>
       {complaintActive
         ? (() => {
             const isMap = complaintActive === "map";
@@ -786,7 +783,6 @@ export default function InteractiveMap(props) {
                     <div className={styles.objectWrap}>
                       <div className={styles.imageWrap}>
                         <img
-                          onClick={() => console.log(objectInfoActive.photos)}
                           src={
                             objectInfoActive.photos[0] === "/img/no-image.jpg"
                               ? objectInfoActive.photos[0]
@@ -1296,7 +1292,7 @@ export default function InteractiveMap(props) {
                 </div>
                 <div className={styles.fieldWrap}>
                   <label htmlFor='phoneNumber' className={styles.fieldName}>
-                    Стационарный телефон
+                    Городской телефон
                   </label>
                   <div className={styles.phoneFieldWrap}>
                     <InputMask

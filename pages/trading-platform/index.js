@@ -13,12 +13,12 @@ import styles from "./tradingplatform.module.scss";
 
 import axios from "axios";
 import { getCookie } from "cookies-next";
+import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
 import Pagination from "../../components/Pagination";
 import useWindowDimensions from "../../components/useWindowDimensionsSSR";
 import { loading } from "../../store/loaderSlice";
 import { toggle } from "../../store/notificationSlice";
-import { useRouter } from "next/router";
 
 const SubcategoryItem = ({ name, selectedSubcategory, setSelectedSubcategory }) => {
   const [listIsShown, setListIsShown] = useState(false);
@@ -141,7 +141,6 @@ export default function TradingPlatform(props) {
         searchQuery && query.addParam("searchQuery", searchQuery);
       }
 
-      console.log(query.serialize());
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trading-platform?${query.serialize()}`, {
         headers: {
           Authorization: getCookie("jkh-token"),
@@ -184,7 +183,6 @@ export default function TradingPlatform(props) {
             Authorization: getCookie("jkh-token"),
           },
         });
-        console.log(res.data);
         setCategories(res.data);
       } catch (e) {
         console.log(e);
@@ -244,7 +242,7 @@ export default function TradingPlatform(props) {
   }, [width]);
 
   return (
-    <LayoutLoggedIn>
+    <LayoutLoggedIn title='ЖКХ Консьерж - торговая площадка' description='description' keywords='keywords'>
       {width <= 768 && leftMenuIsOpen && (
         <div
           id={styles.overlay}

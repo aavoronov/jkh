@@ -1,19 +1,17 @@
-import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import styles from "./personal-sections.module.scss";
+import React, { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import styles from "./personal-sections.module.scss";
 
-import LayoutPersonal from "../../components/LayoutPersonal";
-import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { getCookie, setCookie } from "cookies-next";
-import { updatePhone, updateProfile, updateRole } from "../../store/userSlice";
-import { toggle } from "../../store/notificationSlice";
 import { useRouter } from "next/router";
 import InputMask from "react-input-mask";
+import { useDispatch, useSelector } from "react-redux";
+import LayoutPersonal from "../../components/LayoutPersonal";
+import { toggle } from "../../store/notificationSlice";
+import { updatePhone, updateProfile, updateRole } from "../../store/userSlice";
 
 export default function Profile({}) {
   // const profileData = {
@@ -51,13 +49,10 @@ export default function Profile({}) {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
-        console.log(res);
 
         const updatePseudonym = res.data.pseudonym === null ? "" : res.data.pseudonym;
         const updateProfilePic = res.data.profilePic === null ? "" : res.data.profilePic;
-        console.log(updatePseudonym);
         dispatch(updateProfile({ pseudonym: updatePseudonym, color: res.data.color, profilePic: updateProfilePic }));
-        console.log(nicknameLocal);
       } catch (e) {
         console.log(e);
       }
@@ -71,7 +66,6 @@ export default function Profile({}) {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
-        console.log(res);
         setObjects(res.data);
       } catch (e) {
         console.log(e);
@@ -85,7 +79,6 @@ export default function Profile({}) {
       const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/estate-objects/${id}`, {
         headers: { Authorization: getCookie("jkh-token") },
       });
-      console.log(res.data);
       // dispatch(updateProfile({ pseudonym: nicknameLocal }));
       dispatch(toggle({ text: "Объект успешно удален", type: "success" }));
       const newObjects = objects.filter((item) => item.id !== id);
@@ -151,7 +144,6 @@ export default function Profile({}) {
       const newFiles = [...files];
       newFiles.splice(newFiles.indexOf(file), 1);
       setFiles(newFiles);
-      console.log(files);
     };
 
     const removeAll = () => {
@@ -231,11 +223,9 @@ export default function Profile({}) {
           ? profileFormData.append("file", files[0], filename)
           : profileFormData.append("filename", files[0])
         : null;
-      console.log(profileFormData);
       const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/update`, profileFormData, {
         headers: { Authorization: getCookie("jkh-token"), "Content-Type": !files.length ? "application/json" : "multipart/form-data" },
       });
-      console.log(res.data);
       dispatch(updateProfile({ pseudonym: nicknameLocal, color: res.data.color, profilePic: res.data.profilePic }));
       dispatch(toggle({ text: "Профиль успешно обновлен", type: "success" }));
       setOldPassword("");
@@ -260,7 +250,6 @@ export default function Profile({}) {
           headers: { Authorization: getCookie("jkh-token") },
         }
       );
-      console.log(res.data);
       // dispatch(updateProfile({ pseudonym: nicknameLocal }));
       dispatch(toggle({ text: "Адрес электронной почты успешно обновлен. Проверьте почту", type: "success" }));
       dispatch(updateRole({ role: "" }));
@@ -284,7 +273,6 @@ export default function Profile({}) {
           headers: { Authorization: getCookie("jkh-token") },
         }
       );
-      console.log(res.data);
       dispatch(updatePhone({ phone: phoneChange }));
       dispatch(toggle({ text: "Номер телефона успешно обновлен", type: "success" }));
       setPhoneChange("");
@@ -300,7 +288,6 @@ export default function Profile({}) {
       const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/users/delete`, {
         headers: { Authorization: getCookie("jkh-token") },
       });
-      console.log(res.data);
       // dispatch(updateProfile({ pseudonym: nicknameLocal }));
       dispatch(toggle({ text: "Ваш аккаунт успешно удален", type: "success" }));
       dispatch(updateRole({ role: "" }));
@@ -312,7 +299,7 @@ export default function Profile({}) {
   };
 
   return (
-    <LayoutPersonal>
+    <LayoutPersonal title='ЖКХ Консьерж - профиль' description='description' keywords='keywords'>
       <h1 className={styles.pageHeading + " " + styles.profile}>Мой профиль</h1>
       <div className={styles.personalSection}>
         <span className={styles.sectionHeader}>Личные данные</span>
@@ -338,9 +325,7 @@ export default function Profile({}) {
               // console.log(e.target.value);
             }}
           />
-          <span className={styles.headsUp} onClick={() => console.log(files)}>
-            Вы можете ввести ФИО или сохранить анонимность, используя псевдоним
-          </span>
+          <span className={styles.headsUp}>Вы можете ввести ФИО или сохранить анонимность, используя псевдоним</span>
         </div>
 
         <div className={styles.fieldWrap}>
@@ -356,7 +341,7 @@ export default function Profile({}) {
             value={email}
             onChange={(e) => {
               // setNickname(e.target.value);
-              console.log(e.target.value);
+              // console.log(e.target.value);
             }}
           />
         </div>
@@ -541,7 +526,6 @@ export default function Profile({}) {
           objects.map((item, index) => {
             const addressArray = item.estateObject.address.split(", ");
 
-            console.log(item.estateObject);
             return (
               <div className={styles.object} key={index}>
                 <div className={styles.iconWrap}>

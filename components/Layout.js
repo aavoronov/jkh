@@ -9,11 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { toggle } from "../store/notificationSlice";
 import { updateRole } from "../store/userSlice";
 
-export default function Layout({ children }) {
-  useEffect(() => {
-    console.log(getCookie("jkh-token"));
-  }, []);
-
+export default function Layout({ children, title = "ЖКХ Консьерж", description = "description", keywords = "keywords" }) {
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -25,7 +21,6 @@ export default function Layout({ children }) {
               Authorization: getCookie("jkh-token"),
             },
           });
-          console.log(res.data);
           dispatch(updateRole({ role: res.data.role }));
         } catch (e) {
           console.log(e.response.data);
@@ -86,10 +81,14 @@ export default function Layout({ children }) {
         draggable
         pauseOnHover
       />
+
       <Head>
-        <title>Create Next App</title>
-        <link rel='icon' href='/favicon.ico' />
+        <title>{title}</title>
+        <meta name='keywords' content={keywords} />
+        <meta name='description' content={description} />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
+        <link rel='preload' as='font'></link>
+        <meta charSet='utf-8' />
       </Head>
 
       {children}

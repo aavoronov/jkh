@@ -73,7 +73,6 @@ export default function WorkerProfile(props) {
       const newFiles = [...files];
       newFiles.splice(newFiles.indexOf(file), 1);
       setFiles(newFiles);
-      console.log(files);
     };
 
     const removeAll = () => {
@@ -153,11 +152,9 @@ export default function WorkerProfile(props) {
           ? profileFormData.append("file", files[0], filename)
           : profileFormData.append("filename", files[0])
         : null;
-      console.log(profileFormData);
       const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/update`, profileFormData, {
         headers: { Authorization: getCookie("jkh-token"), "Content-Type": "multipart/form-data" },
       });
-      console.log(res.data);
       dispatch(updateProfile({ pseudonym: orgName, color: res.data.color, profilePic: res.data.profilePic }));
       dispatch(toggle({ text: "Профиль успешно обновлен", type: "success" }));
       setOldPassword("");
@@ -172,7 +169,7 @@ export default function WorkerProfile(props) {
   const [secure, setSecure] = useState(true);
 
   return (
-    <LayoutWorker>
+    <LayoutWorker title='ЖКХ Консьерж - редактирование профиля' description='description' keywords='keywords'>
       <div className={styles.container + " " + styles.whiteBg}>
         <h1 className={styles.pageHeader}>Рабочий кабинет</h1>
         <div className={styles.editOrgProfile}>
@@ -209,7 +206,6 @@ export default function WorkerProfile(props) {
                 value={orgName}
                 onChange={(e) => {
                   setOrgName(e.target.value);
-                  console.log(e.target.value);
                 }}
               />
             </div>

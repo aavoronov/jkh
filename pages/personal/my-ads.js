@@ -1,17 +1,14 @@
-import React, { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import styles from "./personal-sections.module.scss";
+import React, { useEffect, useState } from "react";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
+import styles from "./personal-sections.module.scss";
 
-import LayoutPersonal from "../../components/LayoutPersonal";
-import ProductCard from "../../components/ProductCard";
-import { getCookie } from "cookies-next";
 import axios from "axios";
-import Pagination from "../../components/Pagination";
+import { getCookie } from "cookies-next";
 import { useDispatch } from "react-redux";
+import LayoutPersonal from "../../components/LayoutPersonal";
+import Pagination from "../../components/Pagination";
+import ProductCard from "../../components/ProductCard";
 import { loading } from "../../store/loaderSlice";
 
 export default function MyAds({}) {
@@ -24,13 +21,11 @@ export default function MyAds({}) {
   async function getMyProducts(page) {
     try {
       dispatch(loading({ visible: true }));
-      console.log(page);
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trading-platform/my?page=${page}`, {
         headers: {
           Authorization: getCookie("jkh-token"),
         },
       });
-      console.log(res.data);
       setProducts(res.data.products);
       setPageCount(res.data.count);
     } catch (e) {
@@ -42,10 +37,8 @@ export default function MyAds({}) {
   useEffect(() => getMyProducts(page), []);
 
   return (
-    <LayoutPersonal withProducts>
-      <h1 className={styles.pageHeading + " " + styles.withProducts} onClick={() => console.log(page)}>
-        Мои объявления
-      </h1>
+    <LayoutPersonal withProducts title='ЖКХ Консьерж - мои объявления' description='description' keywords='keywords'>
+      <h1 className={styles.pageHeading + " " + styles.withProducts}>Мои объявления</h1>
       <div className={styles.productsWrap}>
         {products.length ? (
           products.map((item) => <ProductCard item={item} key={item.id} isOnMyAdsPage refreshFunction={() => getMyProducts(page)} />)

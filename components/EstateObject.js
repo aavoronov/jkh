@@ -15,9 +15,6 @@ import { getCookie } from "cookies-next";
 import { useRouter } from "next/router";
 
 export default function EstateObject({ data, account }) {
-  console.log(data);
-  console.log(account);
-
   const [objectData, setObjectData] = useState(null);
   const [debtValue, setDebtValue] = useState(0);
   const [error, setError] = useState(null);
@@ -57,7 +54,6 @@ export default function EstateObject({ data, account }) {
             Authorization: getCookie("jkh-token"),
           },
         });
-        console.log(res.data);
         setObjectData(res.data);
         // setDebtValue(res.debt);
       } catch (e) {
@@ -127,8 +123,6 @@ export default function EstateObject({ data, account }) {
   const addressSplit = data.address.split(",");
   const name = addressSplit.slice(-2).join().trim();
   const address = addressSplit.slice(0, addressSplit.length - 2).join();
-  console.log(name);
-  console.log(address);
 
   const TabBlock = () => {
     return (
@@ -183,7 +177,7 @@ export default function EstateObject({ data, account }) {
                 {error && <span style={{ marginTop: 10 }}>{error.text}</span>}
                 {!error && !!objectData?.sum && (
                   <div className={styles.objectMonetaryStuff}>
-                    <span className={styles.objectDebtBtn} onClick={() => console.log(objectData)}>
+                    <span className={styles.objectDebtBtn}>
                       {objectData?.sum < 0 ? "Переплата" : objectData?.sum > 0 ? "К оплате" : "Задолженности нет"}
                     </span>
                     <button className={styles.debtBtnIcon}></button>

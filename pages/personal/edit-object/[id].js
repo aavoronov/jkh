@@ -6,9 +6,9 @@ import axios from "axios";
 import { getCookie } from "cookies-next";
 import { useDispatch, useSelector } from "react-redux";
 import LayoutPersonal from "../../../components/LayoutPersonal";
+import { getGeocode } from "../../../service/functions";
 import { loading } from "../../../store/loaderSlice";
 import { toggle } from "../../../store/notificationSlice";
-import { getGeocode } from "../../../service/functions";
 
 export default function Profile({ id }) {
   const profileData = {
@@ -112,7 +112,7 @@ export default function Profile({ id }) {
   // }, []);
 
   return (
-    <LayoutPersonal>
+    <LayoutPersonal title='ЖКХ Консьерж - редактировать адрес' description='description' keywords='keywords'>
       <h1 className={styles.pageHeading + " " + styles.profile}>Редактирование адреса</h1>
 
       <div className={styles.personalSection}>

@@ -13,7 +13,7 @@ export default function AllServices(props) {
   const [categoriesVisible, setCategoriesVisible] = useState(true);
   const { width, height } = useWindowDimensions();
   return (
-    <LayoutLoggedIn>
+    <LayoutLoggedIn title='ЖКХ Консьерж - все услуги' description='description' keywords='keywords'>
       <div className={styles.container}>
         <Link href='./service-inner'>
           <div className={styles.backBtn}></div>

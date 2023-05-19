@@ -1,16 +1,15 @@
-import React, { useEffect, useState } from "react";
-import styles from "./productcard.module.scss";
-import Image from "next/image";
-import Link from "next/link";
-import { Carousel } from "react-responsive-carousel";
-import useWindowDimensions from "./useWindowDimensionsSSR";
 import axios from "axios";
-import { useDispatch } from "react-redux";
-import { loading } from "../store/loaderSlice";
 import { getCookie } from "cookies-next";
-import { toggle } from "../store/notificationSlice";
+import Link from "next/link";
 import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { Carousel } from "react-responsive-carousel";
 import { currentDatetime } from "../service/functions";
+import { loading } from "../store/loaderSlice";
+import { toggle } from "../store/notificationSlice";
+import styles from "./productcard.module.scss";
+import useWindowDimensions from "./useWindowDimensionsSSR";
 
 const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isPaidAd = false, refreshFunction }) => {
   const [favorite, setFavorite] = useState(false);
@@ -42,7 +41,6 @@ const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isP
           Authorization: getCookie("jkh-token"),
         },
       });
-      console.log(res.data);
       setFavorite((prev) => !prev);
       isOnMyFavesPage && refreshFunction();
     } catch (e) {
@@ -59,7 +57,6 @@ const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isP
           Authorization: getCookie("jkh-token"),
         },
       });
-      console.log(res.data);
       setFavorite((prev) => !prev);
       dispatch(toggle({ text: "Объявление успешно удалено", type: "success" }));
       refreshFunction();

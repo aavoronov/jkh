@@ -1,18 +1,14 @@
-import React, { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 import { useRouter } from "next/router";
-import Link from "next/link";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import styles from "./personal-sections.module.scss";
+import React, { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import styles from "./personal-sections.module.scss";
 
-import LayoutPersonal from "../../components/LayoutPersonal";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 import { useDispatch } from "react-redux";
-import { toggle } from "../../store/notificationSlice";
+import LayoutPersonal from "../../components/LayoutPersonal";
 import { getGeocode } from "../../service/functions";
+import { toggle } from "../../store/notificationSlice";
 
 export default function createService({}) {
   const profileData = {
@@ -54,7 +50,6 @@ export default function createService({}) {
           },
         });
         setCategories(res.data);
-        console.log(res.data);
       } catch (e) {
         console.log(e);
       }
@@ -78,11 +73,9 @@ export default function createService({}) {
       if (!description) toggleWarning("Заполните описание");
 
       const { geocodedAddress, latitude, longitude, precision } = await getGeocode(address);
-      console.log("precision", precision);
       if (precision !== "exact") toggleWarning("Введенный адрес не найден. Проверьте правильность введенного адреса");
 
       const data = new FormData();
-      console.log("geocodedAddress", geocodedAddress);
       data.append("name", name);
       data.append("subcategory", selectedSubcategoryId);
       data.append("mainImage", personalPhoto[0]);
@@ -102,7 +95,6 @@ export default function createService({}) {
       data.append("workTime", workTime);
       data.append("price", price);
       data.append("description", description);
-      console.log(data);
 
       const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/services`, data, {
         // "Content-Type": "multipart/form-data",
@@ -111,7 +103,6 @@ export default function createService({}) {
           Authorization: getCookie("jkh-token"),
         },
       });
-      console.log(res.data);
       dispatch(toggle({ text: "Объявление успешно создано", type: "success" }));
     } catch (e) {
       // console.log(e);
@@ -173,7 +164,6 @@ export default function createService({}) {
                 // setListIsShown(!listIsShown);
                 setChosenCategory(chosenCategory ? null : name);
                 setSubcategories([]);
-                console.log(listIsShown);
               }}>
               {name}
             </span>
@@ -222,7 +212,6 @@ export default function createService({}) {
       const newFiles = [...files];
       newFiles.splice(newFiles.indexOf(file), 1);
       setFiles(newFiles);
-      console.log(files);
     };
 
     const removeAll = () => {
@@ -294,7 +283,7 @@ export default function createService({}) {
   };
 
   return (
-    <LayoutPersonal>
+    <LayoutPersonal title='ЖКХ Консьерж - разместить объявление' description='description' keywords='keywords'>
       <h1 className={styles.pageHeading + " " + styles.profile}>Размещение объявления по услуге</h1>
       {block1 ? (
         <div className={styles.createServiceWrap}>

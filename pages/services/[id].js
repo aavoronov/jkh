@@ -1,31 +1,27 @@
-import React, { useEffect, useState, useRef } from "react";
+import { Field, Form, Formik } from "formik";
 import Image from "next/image";
-import Link from "next/link";
-import { Field, Form, Formik, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import React, { useEffect, useRef, useState } from "react";
 import { Rating } from "react-simple-star-rating";
-import { RotatingLines } from "react-loader-spinner";
-import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
+import { Swiper, SwiperSlide } from "swiper/react";
 
-import LayoutLoggedIn from "../../components/LayoutLoggedIn";
 import AdItem from "../../components/AdItem";
-import ServiceAd from "../../components/ServiceAd";
+import LayoutLoggedIn from "../../components/LayoutLoggedIn";
 // import DropdownList from "../components/DropdownList";
 import arrowLeft from "/public/img/arrowLeft.png";
 
-import styles from "./serviceinner.module.scss";
-import useWindowDimensions from "../../components/useWindowDimensionsSSR";
-import { createComplaint, Types } from "../../service/functions";
-import { toggle } from "../../store/notificationSlice";
-import { useDispatch } from "react-redux";
 import axios from "axios";
 import { getCookie } from "cookies-next";
-import { loading } from "../../store/loaderSlice";
-import Pagination from "../../components/Pagination";
 import { useRouter } from "next/router";
+import { useDispatch } from "react-redux";
+import Pagination from "../../components/Pagination";
+import useWindowDimensions from "../../components/useWindowDimensionsSSR";
+import { createComplaint, Types } from "../../service/functions";
+import { loading } from "../../store/loaderSlice";
+import { toggle } from "../../store/notificationSlice";
+import styles from "./serviceinner.module.scss";
 
 // SwiperCore.use([Navigation]);
 
@@ -385,7 +381,6 @@ export default function ServiceInner({ id }) {
       });
       // const { service } = ;
       // setPoints(res.data);
-      console.log(res.data);
       // setReviews(reviews);
       setService(res.data);
 
@@ -406,7 +401,6 @@ export default function ServiceInner({ id }) {
       });
       const { reviews, rating, count } = res.data;
       // setPoints(res.data);
-      console.log(res.data);
 
       setPageCount(count);
       setReviews(reviews);
@@ -445,7 +439,7 @@ export default function ServiceInner({ id }) {
   };
 
   return (
-    <LayoutLoggedIn>
+    <LayoutLoggedIn title={`ЖКХ Консьерж - ${service?.name || "услуга"}`} description='description' keywords='keywords'>
       {width <= 768 && leftMenuIsOpen && (
         <div
           id={styles.overlay}
@@ -694,13 +688,7 @@ export default function ServiceInner({ id }) {
                 </div>
                 <div className={styles.rating}>
                   <div>
-                    <Image
-                      src='/img/star6.svg'
-                      width={25}
-                      height={25}
-                      className={service.rating ? "" : styles.starGrey}
-                      onClick={() => console.log(service)}
-                    />
+                    <Image src='/img/star6.svg' width={25} height={25} className={service.rating ? "" : styles.starGrey} />
                   </div>
                   <div className={styles.ratingNumbers}>
                     {service.rating ? (
@@ -756,7 +744,7 @@ export default function ServiceInner({ id }) {
             {width < 900 ? <ServiceDetails /> : null}
           </div>
         ) : (
-          <div onClick={() => console.log(Object.keys(service))} style={{ position: "absolute", top: 20, textAlign: "center" }}>
+          <div style={{ position: "absolute", top: 20, textAlign: "center" }}>
             Услуга не найдена. Проверьте правильность введенного адреса
           </div>
         )}

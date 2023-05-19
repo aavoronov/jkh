@@ -33,7 +33,6 @@ export default function Utilities(props) {
           headers: { Authorization: getCookie("jkh-token") },
         });
         setEstateObjects(res.data);
-        console.log(res.data);
       } catch (e) {
         console.log(e);
       }
@@ -42,7 +41,7 @@ export default function Utilities(props) {
   }, []);
 
   return (
-    <LayoutLoggedIn>
+    <LayoutLoggedIn title='ЖКХ Консьерж - платежи ЖКХ' description='description' keywords='keywords'>
       {estateObjects.length ? (
         estateObjects.map((i, index) => <EstateObject data={i.estateObject} account={i.account} key={i.id} />)
       ) : (

@@ -6,8 +6,8 @@ import axios from "axios";
 import { getCookie } from "cookies-next";
 import { useDispatch, useSelector } from "react-redux";
 import LayoutPersonal from "../../components/LayoutPersonal";
-import { toggle } from "../../store/notificationSlice";
 import { getGeocode } from "../../service/functions";
+import { toggle } from "../../store/notificationSlice";
 
 export default function Profile({}) {
   const [address, setAddress] = useState("");
@@ -24,7 +24,7 @@ export default function Profile({}) {
   const createEstateObject = async () => {
     try {
       const { geocodedAddress, latitude, longitude, precision } = await getGeocode(address + " " + house);
-      console.log(address, precision);
+      // console.log(address, precision);
       if (precision !== "exact") {
         throw new Error("Введенный адрес не найден. Проверьте правильность введенного адреса");
       }
@@ -35,7 +35,6 @@ export default function Profile({}) {
           headers: { Authorization: getCookie("jkh-token") },
         }
       );
-      console.log(res.data);
       // dispatch(updateProfile({ pseudonym: nicknameLocal }));
       dispatch(toggle({ text: "Объект успешно зарегистрирован", type: "success" }));
       // dispatch(updateRole(""));
@@ -48,7 +47,7 @@ export default function Profile({}) {
   };
 
   return (
-    <LayoutPersonal>
+    <LayoutPersonal title='ЖКХ Консьерж - добавить объект недвижимости' description='description' keywords='keywords'>
       <h1 className={styles.pageHeading + " " + styles.profile}>Добавление нового адреса</h1>
       <div className={styles.personalSection}>
         <div className={styles.fieldWrap}>

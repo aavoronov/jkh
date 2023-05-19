@@ -1,9 +1,9 @@
+import Image from "next/image";
 import React from "react";
 import styles from "./adItem.module.scss";
-import Image from "next/image";
 
-import appstoreBtn from "/public/img/appstoreBtn.png";
 import appgalleryBtn from "/public/img/appgalleryBtn.png";
+import appstoreBtn from "/public/img/appstoreBtn.png";
 import googleBtn from "/public/img/googleBtn.png";
 
 export default function AdItem({ appButtons = false, buttonText = "", bannerLink = "", buttonLink = "", image, width, height }) {

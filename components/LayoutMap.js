@@ -1,38 +1,45 @@
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import Head from "next/head";
-import Layout from "./Layout";
-import styles from "./layout.module.scss";
 import Image from "next/image";
+import Link from "next/link";
+import React, { useEffect, useState } from "react";
+import styles from "./layout.module.scss";
 
-import logo from "/public/img/logo-not-main-page.svg";
-import bell from "/public/img/bell-outlined.svg";
-import user from "/public/img/user-grey.svg";
+import arrowRight from "/public/img/arrow-right.png";
 import arrow from "/public/img/arrow.png";
+import bell from "/public/img/bell-outlined.svg";
+import cart from "/public/img/icon-cart.png";
+import chat from "/public/img/icon-chat.png";
 import gear from "/public/img/icon-gear.png";
 import list from "/public/img/icon-list.png";
-import chat from "/public/img/icon-chat.png";
-import worker from "/public/img/icon-worker.png";
 import location from "/public/img/icon-location.png";
 import stats from "/public/img/icon-stats.png";
-import cart from "/public/img/icon-cart.png";
-import arrowRight from "/public/img/arrow-right.png";
-import person from "/public/img/person.png";
+import worker from "/public/img/icon-worker.png";
+import logo from "/public/img/logo-not-main-page.svg";
 import logout from "/public/img/logout.png";
-import personGrey from "/public/img/personGrey.png";
 import logoutGrey from "/public/img/logoutGrey.png";
+import person from "/public/img/person.png";
+import personGrey from "/public/img/personGrey.png";
+import user from "/public/img/user-grey.svg";
 
-import useWindowDimensions from "./useWindowDimensionsSSR";
-import { useDispatch, useSelector } from "react-redux";
-import { getCookie, setCookie } from "cookies-next";
-import { updateNotifications, updateProfile, updateRole } from "../store/userSlice";
-import { RotatingLines } from "react-loader-spinner";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
-import { toggle } from "../store/notificationSlice";
+import { getCookie, setCookie } from "cookies-next";
 import { useRouter } from "next/router";
+import { RotatingLines } from "react-loader-spinner";
+import { useDispatch, useSelector } from "react-redux";
+import { ToastContainer, toast } from "react-toastify";
+import { toggle } from "../store/notificationSlice";
+import { updateNotifications, updateProfile, updateRole } from "../store/userSlice";
+import useWindowDimensions from "./useWindowDimensionsSSR";
 
-export default function LayoutLoggedIn({ children, menuIsCollapsible = false, menuIsOpen, setMenuIsOpen }) {
+export default function LayoutLoggedIn({
+  children,
+  menuIsCollapsible = false,
+  menuIsOpen,
+  setMenuIsOpen,
+  title = "ЖКХ Консьерж",
+  description = "description",
+  keywords = "keywords",
+}) {
   // const [menuIsOpen, setMenuIsOpen] = useState(true);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -47,11 +54,9 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
           headers: { Authorization: getCookie("jkh-token") },
         });
-        console.log(res);
 
         const updatePseudonym = res.data.pseudonym === null ? "" : res.data.pseudonym;
         const updateProfilePic = res.data.profilePic === null ? "" : res.data.profilePic;
-        console.log(updatePseudonym);
         dispatch(updateProfile({ pseudonym: updatePseudonym, color: res.data.color, profilePic: updateProfilePic }));
         // console.log(nicknameLocal);
       } catch (e) {
@@ -126,7 +131,6 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
     window.addEventListener("orientationchange", doOnOrientationChange);
 
     function doOnOrientationChange() {
-      console.log("changed");
       setMenuIsOpen(false);
     }
   }, []);
@@ -140,7 +144,6 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
               Authorization: getCookie("jkh-token"),
             },
           });
-          console.log(res.data);
           const amount = 0;
           res.data.data.forEach((item) => (amount = amount + item.amount));
           dispatch(updateNotifications({ notifications: amount }));
@@ -185,13 +188,17 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
         </div>
       ) : null}
       <Head>
-        <title>Create Next App</title>
-        <link rel='icon' href='/favicon.ico' />
+        <title>{title}</title>
+        <meta name='keywords' content={keywords} />
+        <meta name='description' content={description} />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
+        <link rel='preload' as='font'></link>
+        <meta charSet='utf-8' />
         <script
           src='https://api-maps.yandex.ru/2.1/?lang=ru_RU&amp;apikey=2a5c7497-20d8-493c-87a4-21c88a87d455'
           type='text/javascript'></script>
       </Head>
+
       <div id={styles.overlay} className={menuIsOpen ? "" : styles.hidden} onClick={onClickHandler}></div>
 
       <div className={styles.header + " " + styles.gradient}>
@@ -201,14 +208,9 @@ export default function LayoutLoggedIn({ children, menuIsCollapsible = false, me
           </Link>
         </div>
         <div className={styles.headerButtonsWrap}>
-          <div
-            className={styles.bellWrap}
-            onClick={() => {
-              console.log(height, width);
-              console.log(width < 768);
-            }}>
+          <div className={styles.bellWrap}>
             <Image src={bell} alt='' />
-            <span className={styles.notificationsNumber}>{notifications}</span>
+            <span className={styles.notificationsNumber}>{notifications > 99 ? "99+" : notifications}</span>
           </div>
           <div className={styles.userWrap}>
             <div className={styles.userNameWrap}>

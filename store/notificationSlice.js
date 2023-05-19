@@ -10,8 +10,6 @@ const notificationSlice = createSlice({
     toggle(state, action) {
       state.text = action.payload.text;
       state.type = action.payload.type;
-      console.log(state);
-      console.log(action);
     },
   },
 });

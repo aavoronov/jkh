@@ -205,7 +205,7 @@ export default function AddChat() {
   }
 
   return (
-    <LayoutWorker>
+    <LayoutWorker title='ЖКХ Консьерж - регистрация в чате' description='description' keywords='keywords'>
       <div className={styles.container}>
         <div className={styles.entireThingWrap}>
           <h1 className={styles.pageHeader}>Регистрация в чате</h1>

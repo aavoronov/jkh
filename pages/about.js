@@ -1,19 +1,16 @@
-import aboutIcon from "/public/img/about.png";
-import logo from "/public/img/logo.svg";
-import bell from "/public/img/bell.svg";
-import personal from "/public/img/personal.svg";
 import React, { useEffect, useState } from "react";
+import bell from "/public/img/bell.svg";
+import logo from "/public/img/logo.svg";
+import personal from "/public/img/personal.svg";
 // import { Link } from "react-router-dom";
-import styles from "./about.module.scss";
 import Image from "next/image";
 import Link from "next/link";
-import Layout from "../components/Layout";
 import AdItem from "../components/AdItem";
+import Layout from "../components/Layout";
+import styles from "./about.module.scss";
 
-import ModalsLayer from "../components/Modals";
 import { useDispatch } from "react-redux";
-import { updateToken } from "../store/userSlice";
-import { getCookie } from "cookies-next";
+import ModalsLayer from "../components/Modals";
 
 function Home() {
   const BurgerMenuBtn = () => {
@@ -55,13 +52,12 @@ function Home() {
     window.addEventListener("orientationchange", doOnOrientationChange);
 
     function doOnOrientationChange() {
-      console.log("changed");
       setMenuIsOpen(false);
     }
   }, []);
 
   return (
-    <Layout>
+    <Layout title='ЖКХ Консьерж - о компании' description='description' keywords='keywords'>
       <style jsx global>{`
         body {
           background-color: #f5f5f5;

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import AdItem from "./AdItem";
 import LayoutLoggedIn from "./LayoutLoggedIn";
@@ -24,7 +24,7 @@ export default function LayoutPersonal({ children, withProducts }) {
   }, [width]);
 
   return (
-    <LayoutLoggedIn>
+    <LayoutLoggedIn title='ЖКХ Консьерж - личный кабинет' description='description' keywords='keywords'>
       {width <= 768 && leftMenuIsOpen && (
         <div
           id={styles.overlay}

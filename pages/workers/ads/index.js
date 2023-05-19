@@ -4,10 +4,10 @@ import axios from "axios";
 import { getCookie } from "cookies-next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import LayoutWorker from "../../../components/LayoutWorker";
-import styles from "../workers.module.scss";
 import { useDispatch, useSelector } from "react-redux";
+import LayoutWorker from "../../../components/LayoutWorker";
 import { toggle } from "../../../store/notificationSlice";
+import styles from "../workers.module.scss";
 
 export default function WorkerPolls(props) {
   const router = useRouter();
@@ -25,7 +25,6 @@ export default function WorkerPolls(props) {
   async function getMyChatAds() {
     try {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat-ads`, { headers: { Authorization: getCookie("jkh-token") } });
-      console.log(res.data);
       setChatAds(res.data);
     } catch (e) {
       console.log(e);
@@ -41,7 +40,6 @@ export default function WorkerPolls(props) {
       const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/chat-ads/${id}`, {
         headers: { Authorization: getCookie("jkh-token") },
       });
-      console.log(res.data);
       setChatAds((prev) => prev.filter((item) => item.id !== id));
       dispatch(toggle({ text: "Объявление успешно удалено", type: "success" }));
     } catch (e) {
@@ -58,7 +56,6 @@ export default function WorkerPolls(props) {
           headers: { Authorization: getCookie("jkh-token") },
         }
       );
-      console.log(res.data);
       // setChatAds((prev) => prev.filter((item) => item.id !== id));
       dispatch(toggle({ text: "Объявление оплачено", type: "success" }));
       getMyChatAds();
@@ -68,7 +65,7 @@ export default function WorkerPolls(props) {
   }
 
   return (
-    <LayoutWorker>
+    <LayoutWorker title='ЖКХ Консьерж - рекламные объявления' description='description' keywords='keywords'>
       <div className={styles.container}>
         <h1 className={styles.pageHeader}>Рекламные объявления</h1>
 

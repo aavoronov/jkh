@@ -54,7 +54,6 @@ export default function Services(props) {
         setEstateObjects(res.data);
         setActiveObject(res.data[0].estateObject.address + ", " + res.data[0].estateObject.apartment);
         setActiveObjectCoords(res.data[0].estateObject.point.coordinates);
-        console.log(res.data);
       } catch (e) {
         console.log(e);
       }
@@ -133,13 +132,11 @@ export default function Services(props) {
       //estate object
       //searchQuery
 
-      console.log(query.serialize());
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/services?${query.serialize()}`, {
         headers: {
           Authorization: getCookie("jkh-token"),
         },
       });
-      console.log(res.data);
       setServices(res.data.services);
       setPageCount(res.data.count);
     } catch (e) {
@@ -180,7 +177,6 @@ export default function Services(props) {
           },
         });
         setCategories(res.data);
-        console.log(res.data);
         // console.log(["Все категории", ...res.data.map((item) => item.category)]);
       } catch (e) {
         console.log(e);
@@ -198,7 +194,7 @@ export default function Services(props) {
   }, [width]);
 
   return (
-    <LayoutLoggedIn>
+    <LayoutLoggedIn title='ЖКХ Консьерж - услуги мастеров' description='description' keywords='keywords'>
       {width <= 768 && leftMenuIsOpen && (
         <div
           id={styles.overlay}
@@ -398,8 +394,6 @@ export default function Services(props) {
             className={styles.cancelBtn}
             onClick={() => {
               resetFilters();
-              // console.log(selectedCategory);
-              // console.log(selectedSubcategory);
             }}>
             Сбросить фильтр
           </span>
