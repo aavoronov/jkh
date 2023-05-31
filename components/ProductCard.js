@@ -81,7 +81,6 @@ const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isP
                 width: "100%",
               }}>
               <div className={styles.imageWrap}>
-                {/* <Image src='/img/temp/broshurator.png' layout='fill' /> */}
                 <Carousel
                   className={styles.slider}
                   dynamicHeight={true}
@@ -140,10 +139,6 @@ const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isP
                       height={width > 1050 || width < 421 ? 177 : 120}
                     />
                   )}
-                  {/* <img src='/img/temp/broshurator.png' layout='fill' className={styles.slide} />
-                    <img src='/img/temp/image 1854.png' layout='fill' className={styles.slide} />
-                    <img src='/img/temp/image 18545.png' layout='fill' className={styles.slide} />
-                    <img src='/img/temp/image 18546.png' layout='fill' className={styles.slide} /> */}
                 </Carousel>
 
                 {isPaidAd ? <span className={styles.isPaidAd}>Реклама</span> : null}

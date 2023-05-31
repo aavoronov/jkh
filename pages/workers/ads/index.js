@@ -90,7 +90,6 @@ export default function WorkerPolls(props) {
                         style={{ maxWidth: "100%", maxHeight: 500 }}
                         // height='100%'
                       />
-                      {/* <Image src='/img/temp/chatPic.png' width='100%' height='100%' layout='responsive' className={styles.chatPic} /> */}
                     </div>
                     <span className={styles.messageText}>{item.description}</span>
                     <div className={styles.partnerTimeWrap}>

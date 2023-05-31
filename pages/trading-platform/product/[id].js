@@ -297,9 +297,6 @@ export default function Product({ id }) {
                   </SwiperSlide>
                 )}
 
-                {/* <SwiperSlide className={styles.slide}>
-                  <img src='/img/temp/iphone.png' style={{ verticalAlign: "top" }} className={styles.slideImage} />
-                </SwiperSlide> */}
                 <span
                   className={styles.arrowNext}
                   // onClick={onClickHandler}

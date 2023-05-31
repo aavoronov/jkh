@@ -562,8 +562,6 @@ export default function Chat() {
           {!!file && (
             <div className={styles.chatPicWrap}>
               <img src={file} layout='responsive' style={{ maxWidth: "100%", maxHeight: 500 }} />
-
-              {/* <Image src='/img/temp/chatPic.png' width='100%' height='100%' layout='responsive' className={styles.chatPic} /> */}
             </div>
           )}
           {/* <img

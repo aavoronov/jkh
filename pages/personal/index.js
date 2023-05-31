@@ -14,11 +14,6 @@ import { toggle } from "../../store/notificationSlice";
 import { updatePhone, updateProfile, updateRole } from "../../store/userSlice";
 
 export default function Profile({}) {
-  // const profileData = {
-  //   photo: "/img/temp/adProfilePic.png",
-  //   nickname: "Александр Константинович",
-  // };
-
   const [files, setFiles] = useState([]);
   const [filename, setFilename] = useState("");
 

@@ -11,11 +11,6 @@ import { getGeocode } from "../../service/functions";
 import { toggle } from "../../store/notificationSlice";
 
 export default function createService({}) {
-  const profileData = {
-    photo: "/img/temp/adProfilePic.png",
-    nickname: "Александр Константинович",
-  };
-
   const [categories, setCategories] = useState([]);
   const [block1, setBlock1] = useState(true);
   const [chosenCategory, setChosenCategory] = useState(null);

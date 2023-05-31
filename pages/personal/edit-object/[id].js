@@ -11,11 +11,6 @@ import { loading } from "../../../store/loaderSlice";
 import { toggle } from "../../../store/notificationSlice";
 
 export default function Profile({ id }) {
-  const profileData = {
-    photo: "/img/temp/adProfilePic.png",
-    nickname: "Александр Константинович",
-  };
-
   const [files, setFiles] = useState([]);
   const [nickname, setNickname] = useState(profileData.nickname);
   const [objectId, setObjectId] = useState("");
