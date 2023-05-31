@@ -10,9 +10,164 @@ import workerBtnIcon from "../public/img/workerBtnIcon.png";
 import objectIcon from "../public/img/objectIcon.png";
 import estateInfoIcon from "../public/img/estateInfoIcon.png";
 import servicesBlockIcon from "../public/img/servicesBlockIcon.png";
+import paymentHistoryIcon from "../public/img/paymentHistoryIcon.png";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 import { useRouter } from "next/router";
+
+const ReadingsItem = ({ name, isLast, disabled }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [readings, setReadings] = useState("");
+
+  {
+    return (
+      <div
+        style={
+          isLast
+            ? { display: "flex", flexDirection: "column", marginBottom: 0, paddingBottom: 0, borderWidth: 0 }
+            : {
+                display: "flex",
+                flexDirection: "column",
+                borderBottomWidth: 1,
+                borderBottomColor: "#c4c6d6",
+                borderBottomStyle: "solid",
+                marginBottom: 15,
+                paddingBottom: 15,
+              }
+        }>
+        <div className={styles.readingsItem}>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <div className={styles.historyIcon}>
+              <Image src={paymentHistoryIcon} />
+            </div>
+            <span className={styles.readingsItemName}>{name}</span>
+          </div>
+          {/* <span>test</span> */}
+          <span
+            onClick={() => !disabled && setExpanded((prev) => !prev)}
+            className={disabled ? styles.historyBtn + " " + styles.inactive : styles.historyBtn}
+            style={{ width: 100 }}>
+            {expanded ? "Отменить" : "Передать"}
+          </span>
+        </div>
+        {!!expanded && (
+          <div style={{ overflowX: "auto" }} className={styles.scrollable}>
+            <table className={styles.readingsTable}>
+              {/* <caption className={styles.blockSubtitle}>Общая информация об объекте:</caption> */}
+              <colgroup style={{ width: "100%" }}>
+                <col span='1' style={{ width: "25%" }} />
+                <col span='1' style={{ width: "25%" }} />
+                <col span='1' style={{ width: "25%" }} />
+                <col span='1' style={{ width: "25%" }} />
+              </colgroup>
+              <tbody>
+                <tr>
+                  <th>№ счетчика</th>
+                  <th>Предыдущие показания</th>
+                  <th>Текущие показания</th>
+                  <th></th>
+                </tr>
+                <tr>
+                  <td>63545-86-99</td>
+                  <td>156</td>
+                  <td>
+                    <input
+                      className={styles.readingsInput}
+                      type='text'
+                      value={readings}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if ((!isNaN(value) && value > 0) || value === "") {
+                          setReadings(value);
+                        }
+                      }}
+                    />
+                  </td>
+                  <td>
+                    <div style={{ width: "100%", display: "flex", justifyContent: "end" }}>
+                      <span
+                        // onClick={() => setExpanded((prev) => !prev)}
+                        className={disabled ? styles.historyBtn + " " + styles.inactive : styles.historyBtn}
+                        style={{ width: 100 }}>
+                        Передать
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+  }
+};
+
+const HistoryRecord = ({ name, sum, status }) => {
+  return (
+    <tr>
+      <td className={styles.historyName}>{name}</td>
+      <td className={styles.historySum}>{sum.toLocaleString()} ₽</td>
+      <td className={styles.historyStatus} style={{ padding: 5 }}>
+        {status}
+      </td>
+    </tr>
+  );
+};
+
+const HistoryItem = ({ name }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  const isLast = false;
+  const disabled = false;
+
+  {
+    return (
+      <div
+        style={
+          isLast
+            ? { display: "flex", flexDirection: "column", marginBottom: 0, paddingBottom: 0, borderWidth: 0 }
+            : {
+                display: "flex",
+                flexDirection: "column",
+                borderBottomWidth: 1,
+                borderBottomColor: "#c4c6d6",
+                borderBottomStyle: "solid",
+                marginBottom: 15,
+                paddingBottom: 15,
+              }
+        }
+        onClick={() => !disabled && setExpanded((prev) => !prev)}>
+        <div className={styles.readingsItem}>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <div className={styles.historyIcon}>
+              <Image src={paymentHistoryIcon} />
+            </div>
+            <span className={styles.readingsItemName}>{name}</span>
+          </div>
+          {/* <span>test</span> */}
+        </div>
+        {!!expanded && (
+          <div style={{ overflowX: "auto", width: "90%" }}>
+            <table className={styles.historyTable}>
+              <colgroup style={{ width: "100%" }}>
+                <col span='1' style={{ width: "60%" }} />
+                <col span='1' style={{ width: "20%" }} />
+                <col span='1' style={{ width: "20%" }} />
+              </colgroup>
+              <tbody>
+                <HistoryRecord name={"Горводоканал"} sum={1000} status={"Исполнен"} />
+                <HistoryRecord name={"Ук Бриз"} sum={1000} status={"Исполнен"} />
+                <HistoryRecord name={"Чистый город"} sum={1000} status={"Исполнен"} />
+                <HistoryRecord name={"Горводоканал"} sum={1000} status={"Исполнен"} />
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+  }
+};
 
 export default function EstateObject({ data, account }) {
   const [objectData, setObjectData] = useState(null);
@@ -289,20 +444,20 @@ export default function EstateObject({ data, account }) {
             </div>
           </div>
         </div>
-        {(!error?.type || error.type === "warn") && (
-          <div className={styles.objectOptionsWrap}>
-            {/* <div className={styles.objectOptionsBtn + " " + styles.threeDotsBtn}></div> */}
-            <div
-              className={
-                objectIsExpanded
-                  ? styles.upsideDown + " " + styles.objectOptionsBtn + " " + styles.expandBtn
-                  : styles.objectOptionsBtn + " " + styles.expandBtn
-              }
-              onClick={() => {
-                setObjectIsExpanded(!objectIsExpanded);
-              }}></div>
-          </div>
-        )}
+        {/* {(!error?.type || error.type === "warn") && ( */}
+        <div className={styles.objectOptionsWrap}>
+          {/* <div className={styles.objectOptionsBtn + " " + styles.threeDotsBtn}></div> */}
+          <div
+            className={
+              objectIsExpanded
+                ? styles.upsideDown + " " + styles.objectOptionsBtn + " " + styles.expandBtn
+                : styles.objectOptionsBtn + " " + styles.expandBtn
+            }
+            onClick={() => {
+              setObjectIsExpanded(!objectIsExpanded);
+            }}></div>
+        </div>
+        {/* )} */}
       </div>
 
       <div className={objectIsExpanded ? styles.objectSecondHalf : styles.objectSecondHalf + " " + styles.hidden}>
@@ -411,9 +566,27 @@ export default function EstateObject({ data, account }) {
               <span>здесь какая-то логика в зависимости от выбранного временного отрезка: это {activeTimelapseTab}</span>
             </>
           ) : activeTab == 2 ? (
-            <div>Передача показаний</div>
+            <div style={{ maxHeight: 350, overflowY: "auto" }} className={styles.scrollable}>
+              <ReadingsItem name='Горячая вода' />
+              <ReadingsItem name='Холодная вода' />
+              <ReadingsItem name='Электроэнергия' isLast disabled />
+            </div>
           ) : (
-            <div>История платежей</div>
+            // <div>История платежей</div>
+            <div style={{ maxHeight: 350, overflowY: "auto" }} className={styles.scrollable}>
+              <HistoryItem name='Апрель 2022' />
+              <HistoryItem name='Март 2022' />
+              <HistoryItem name='Февраль 2022' />
+              <HistoryItem name='Январь 2022' />
+              <HistoryItem name='Апрель 2022' />
+              <HistoryItem name='Март 2022' />
+              <HistoryItem name='Февраль 2022' />
+              <HistoryItem name='Январь 2022' />
+              <HistoryItem name='Апрель 2022' />
+              <HistoryItem name='Март 2022' />
+              <HistoryItem name='Февраль 2022' />
+              <HistoryItem name='Январь 2022' />
+            </div>
           )}
         </div>
       </div>

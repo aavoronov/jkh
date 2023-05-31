@@ -101,6 +101,13 @@
   .mainContainer {
     padding: 0 15px;
   }
+  .bucket {
+    display: none;
+  }
+
+  .e404wrap {
+    width: 100% !important;
+  }
 }
 
 .hidden {
@@ -111,6 +118,7 @@
   display: flex;
   flex-direction: row;
   margin-top: 12px;
+  justify-content: space-between;
 }
 
 .header__button {

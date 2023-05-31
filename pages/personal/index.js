@@ -136,7 +136,7 @@ export default function Profile({}) {
       },
       maxFiles: 1,
       maxSize: 3000000,
-      multiple: true,
+      multiple: false,
     });
     // const { getRootProps, getInputProps } = useDropzone({ maxFiles: 10, maxSize: 3000000, multiple: true, onDrop });
 

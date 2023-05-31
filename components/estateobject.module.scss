@@ -378,6 +378,97 @@
   }
 }
 
+.scrollable {
+  overflow-x: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: #67666b #f1f1f1;
+  /* width */
+  &::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: #67666b;
+  }
+
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: #67666b;
+  }
+}
+
+.readingsTable {
+  width: 100%;
+  & th {
+    color: #254a63;
+    text-transform: uppercase;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 20px;
+  }
+  & td {
+    text-align: center;
+    // width: 91px;
+  }
+  & tr {
+    height: 20px;
+  }
+  & * {
+    font-size: 12px;
+    line-height: 14px;
+    color: #1c1c1c;
+  }
+}
+
+.readingsInput {
+  border: 1px solid #c4c6d6;
+  border-radius: 5px;
+  width: 80px;
+  height: 30px;
+}
+
+.historyTable {
+  width: 100%;
+  & caption {
+    text-align: left;
+    padding-bottom: 18px;
+  }
+  & td:last-child {
+    text-align: right;
+    // width: 91px;
+  }
+  & tr {
+    height: 20px;
+  }
+  & * {
+    font-size: 12px;
+    line-height: 14px;
+    color: #1c1c1c;
+  }
+}
+
+.historyName {
+  font-size: 16px;
+}
+
+.historySum {
+  font-size: 16px;
+  color: #1c1c1c;
+  font-weight: 500;
+}
+
+.historyStatus {
+  font-size: 16px;
+  color: #9c9da7;
+}
+
 .servicesWrap {
   display: flex;
   flex-direction: row;
@@ -451,6 +542,42 @@
       border-top: 25px solid #e2e3eb;
       // e2e3eb
     }
+  }
+}
+
+.readingsItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.readingsItemName {
+  font-size: 16px;
+  color: #254a63;
+  font-weight: 500;
+}
+
+.historyIcon {
+  margin-right: 10px;
+}
+
+.historyBtn {
+  background-color: #ff8c00;
+  display: block;
+  text-align: center;
+  width: 115px;
+  // min-width: 306px;
+  padding: 8px 0;
+  // margin-left: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  color: white;
+  cursor: pointer;
+
+  &.inactive {
+    opacity: 0.4;
+    cursor: auto;
   }
 }
 

@@ -266,6 +266,8 @@ export default function WorkerProfile(props) {
           </div>
         )}
 
+        <div className='w-test'></div>
+
         <div className={styles.transactionsWrap}>
           <div className={styles.sectionHeaderWrap}>
             <span className={styles.blockHeader}>Транзакции</span>

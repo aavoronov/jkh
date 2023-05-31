@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { RotatingLines } from "react-loader-spinner";
-
 // import LayoutLoggedIn from "./LayoutLoggedIn";
 // import DropdownList from "../components/DropdownList";
 import arrowLeft from "/public/img/arrowLeft.png";
@@ -32,6 +31,7 @@ import { setCookie } from "cookies-next";
 import { useRouter } from "next/router";
 
 import { updateBalance, updateEmail, updateNotifications, updatePhone, updateRole } from "../store/userSlice";
+import dynamic from "next/dynamic";
 
 function LayoutLoggedIn({
   children,
@@ -71,6 +71,10 @@ function LayoutLoggedIn({
       // router.replace("/");
     }
   }, [role]);
+
+  // useEffect(() => {
+  //   console.log("addTwoNumbers(1,10)", addTwoNumbers(1, 10));
+  // });
 
   const { height, width } = useWindowDimensions();
 
@@ -467,11 +471,10 @@ export default function LayoutWorker({ children, withProducts }) {
             <div className={styles.leftMenuItem}>Голосования, опросы</div>
           </Link>
         )}
-        {(role === "stores" || role === "business" || role === "admakers") && (
-          <Link href='/workers/ads'>
-            <div className={styles.leftMenuItem}>Рекламные объявления</div>
-          </Link>
-        )}
+
+        <Link href='/workers/ads'>
+          <div className={styles.leftMenuItem}>Рекламные объявления</div>
+        </Link>
 
         {(role === "uk" || role === "upravdom") && (
           <Link href='/workers/chat'>
@@ -508,6 +511,7 @@ export default function LayoutWorker({ children, withProducts }) {
             </button>
           </>
         )}
+        <div className='w-wrap'></div>
       </aside>
       <div className={styles.containerWorker}>
         {width <= 768 ? (
