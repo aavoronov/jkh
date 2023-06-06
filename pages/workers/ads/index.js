@@ -14,13 +14,13 @@ export default function WorkerPolls(props) {
   const [chatAds, setChatAds] = useState([]);
   const dispatch = useDispatch();
 
-  const role = useSelector((state) => state.user.role);
+  // const role = useSelector((state) => state.user.role);
 
-  useEffect(() => {
-    if (role === "uk" || role === "upravdom") {
-      router.replace("/workers");
-    }
-  }, [role]);
+  // useEffect(() => {
+  //   if (role === "uk" || role === "upravdom") {
+  //     router.replace("/workers");
+  //   }
+  // }, [role]);
 
   async function getMyChatAds() {
     try {

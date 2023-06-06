@@ -182,33 +182,33 @@ export default function EstateObject({ data, account }) {
   useEffect(() => {
     async function getData() {
       try {
-        // const acct = await axios.get(
-        //   `${process.env.NEXT_PUBLIC_RIAS_URL}accounts?number=${account}&fields=id,number&access-token=d53edeb9a638915b534e`,
-        //   {
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //       // Accept: "application/json",
-        //       // "Access-Control-Allow-Origin": `${process.env.NEXT_PUBLIC_CLIENT_URL}`,
-        //     },
-        //   }
-        // );
-        // console.log(acct.data);
-        // const res = await axios.get(
-        //   `${process.env.NEXT_PUBLIC_RIAS_URL}payment-documents?access-token=${process.env.NEXT_PUBLIC_RIAS_TOKEN}&account_id=${acct.data.id}&fields=total_payable_by_pd_with_debt_and_advance,account_id,sync_date,period_year,period_month`,
-        //   // "http://api.sit2.rucode.org/v2.0/payment-documents?access-token=d53edeb9a638915b534e&fields=total_payable_by_pd_with_debt_and_advance,account_id,sync_date,period_year,period_month",
-        // {
+        const acct = await axios.get(
+          `${process.env.NEXT_PUBLIC_RIAS_URL}accounts?number=${account}&fields=id,number&access-token=${process.env.NEXT_PUBLIC_RIAS_TOKEN}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              // Accept: "application/json",
+              // "Access-Control-Allow-Origin": `${process.env.NEXT_PUBLIC_CLIENT_URL}`,
+            },
+          }
+        );
+        console.log(acct.data);
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_RIAS_URL}payment-documents?access-token=${process.env.NEXT_PUBLIC_RIAS_TOKEN}&account_id=${acct.data.id}&fields=total_payable_by_pd_with_debt_and_advance,account_id,sync_date,period_year,period_month`,
+          // "http://api.sit2.rucode.org/v2.0/payment-documents?access-token=d53edeb9a638915b534e&fields=total_payable_by_pd_with_debt_and_advance,account_id,sync_date,period_year,period_month",
+          {
+            headers: {
+              "Content-Type": "application/json",
+              // Accept: "application/json",
+              // "Access-Control-Allow-Origin": `${process.env.NEXT_PUBLIC_CLIENT_URL}`,
+            },
+          }
+        );
+        // const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/utilities/${account}`, {
         //   headers: {
-        //     "Content-Type": "application/json",
-        //     // Accept: "application/json",
-        //     // "Access-Control-Allow-Origin": `${process.env.NEXT_PUBLIC_CLIENT_URL}`,
+        //     Authorization: getCookie("jkh-token"),
         //   },
-        // }
-        // );
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/utilities/${account}`, {
-          headers: {
-            Authorization: getCookie("jkh-token"),
-          },
-        });
+        // });
         setObjectData(res.data);
         // setDebtValue(res.debt);
       } catch (e) {

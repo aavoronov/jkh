@@ -1041,7 +1041,18 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                         setStage((prev) => prev + 1);
                       }}
                       style={orgType ? { pointerEvents: "all" } : { pointerEvents: "none", opacity: 0.6 }}>
-                      Подтвердить
+                      Зарегистрироваться
+                    </button>
+
+                    <button
+                      type='submit'
+                      className={styles.submitBtn}
+                      onClick={() => {
+                        setModalToDisplay("authByLogin");
+                        // setStage((prev) => prev + 1);
+                      }}
+                      style={orgType ? { pointerEvents: "all" } : { pointerEvents: "none", opacity: 0.6 }}>
+                      Войти
                     </button>
                   </div>
 
