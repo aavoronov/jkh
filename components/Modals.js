@@ -1050,8 +1050,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                       onClick={() => {
                         setModalToDisplay("authByLogin");
                         // setStage((prev) => prev + 1);
-                      }}
-                      style={orgType ? { pointerEvents: "all" } : { pointerEvents: "none", opacity: 0.6 }}>
+                      }}>
                       Войти
                     </button>
                   </div>
