@@ -1032,7 +1032,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                     return <OrgTypeBtn name={item.name} id={item.id} key={item.id} />;
                   })}
 
-                  <div className={styles.popupFieldWrap}>
+                  <div className={styles.popupFieldWrap} style={{ flexDirection: "column" }}>
                     <button
                       type='submit'
                       className={styles.submitBtn}
