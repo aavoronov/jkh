@@ -156,6 +156,7 @@ function LayoutLoggedIn({
           const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/reauth`, {
             headers: {
               Authorization: getCookie("jkh-token"),
+              "X-Role": role,
             },
           });
           dispatch(updateRole({ role: res.data.role }));
@@ -196,6 +197,7 @@ function LayoutLoggedIn({
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
           headers: { Authorization: getCookie("jkh-token") },
+          "X-Role": role,
         });
         const entityName = res.data.pseudonym ?? res.data.workerProfile?.name;
 
@@ -364,7 +366,114 @@ function LayoutLoggedIn({
   );
 }
 
-export default function LayoutWorker({ children, withProducts }) {
+const LeftMenu = ({ role }) => {
+  return (
+    <>
+      <Link href='/workers'>
+        <div className={styles.leftMenuItem}>Рабочий кабинет</div>
+      </Link>
+
+      {role === "business" && (
+        <>
+          <Link href='/workers/company-services'>
+            <div className={styles.leftMenuItem}>Услуги компании</div>
+          </Link>
+          <Link href='/workers/ads'>
+            <div className={styles.leftMenuItem}>Рекламные объявления чаты</div>
+          </Link>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Рекламные объявления сайты</div>
+          </Link>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Тендеры</div>
+          </Link>
+        </>
+      )}
+
+      {role === "admakers" && (
+        <>
+          <Link href='/workers/ads'>
+            <div className={styles.leftMenuItem}>Рекламные объявления чаты</div>
+          </Link>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Рекламные объявления сайты</div>
+          </Link>
+        </>
+      )}
+
+      {role === "upravdom" && (
+        <>
+          <Link href='/workers/polls'>
+            <div className={styles.leftMenuItem}>Голосования, опросы</div>
+          </Link>
+          <Link href='/workers/ads'>
+            <div className={styles.leftMenuItem}>Рекламные объявления чаты</div>
+          </Link>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Рекламные объявления сайты</div>
+          </Link>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Тендеры</div>
+          </Link>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Заявки</div>
+          </Link>
+          <Link href='/workers/chat'>
+            <div className={styles.leftMenuItem}>Домовой чат</div>
+          </Link>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Модерация чата</div>
+          </Link>
+        </>
+      )}
+
+      {role === "uk" && (
+        <>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Оплата ЖКХ по дому</div>
+          </Link>
+          <Link href='/workers/polls'>
+            <div className={styles.leftMenuItem}>Голосования, опросы</div>
+          </Link>
+          <Link href='/workers/ads'>
+            <div className={styles.leftMenuItem}>Рекламные объявления чаты</div>
+          </Link>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Рекламные объявления сайты</div>
+          </Link>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Тендеры</div>
+          </Link>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Задачи</div>
+          </Link>
+          <Link href='/workers/chat'>
+            <div className={styles.leftMenuItem}>Домовые чаты</div>
+          </Link>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Модерация чатов</div>
+          </Link>
+        </>
+      )}
+
+      {role === "stores" && (
+        <div>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Витрина</div>
+          </Link>
+          <Link href='/workers/ads'>
+            <div className={styles.leftMenuItem}>Рекламные объявления чаты</div>
+          </Link>
+          <Link href='/workers'>
+            <div className={styles.leftMenuItem}>Рекламные объявления сайты</div>
+          </Link>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default function LayoutWorker({ children, title, description, keywords }) {
   const [leftMenuIsOpen, setLeftMenuIsOpen] = useState(null);
   const [adRequest, setAdRequest] = useState(false);
 
@@ -381,7 +490,7 @@ export default function LayoutWorker({ children, withProducts }) {
   }, [width]);
 
   return (
-    <LayoutLoggedIn noRightMenu title='ЖКХ Консьерж - личный кабинет' description='description' keywords='keywords'>
+    <LayoutLoggedIn noRightMenu title={title} description={description} keywords={keywords}>
       {width <= 768 && leftMenuIsOpen && (
         <div
           id={styles.overlay}
@@ -463,55 +572,27 @@ export default function LayoutWorker({ children, withProducts }) {
       )}
 
       <aside className={leftMenuIsOpen ? styles.leftMenu : styles.leftMenu + " " + styles.collapsed}>
-        <Link href='/workers'>
-          <div className={styles.leftMenuItem}>Данные организации</div>
-        </Link>
-        {(role === "uk" || role === "upravdom") && (
-          <Link href='/workers/polls'>
-            <div className={styles.leftMenuItem}>Голосования, опросы</div>
-          </Link>
-        )}
-
-        <Link href='/workers/ads'>
-          <div className={styles.leftMenuItem}>Рекламные объявления</div>
-        </Link>
-
-        {(role === "uk" || role === "upravdom") && (
-          <Link href='/workers/chat'>
-            <div className={styles.leftMenuItem}>Домовые чаты</div>
-          </Link>
-        )}
-
-        {/* <Link href='/workers'>
-          <div className={styles.leftMenuItem}>Данные организации</div>
-        </Link>
-
-        <Link href='/workers/polls'>
-          <div className={styles.leftMenuItem}>Голосования, опросы</div>
-        </Link>
-
-        <Link href='/workers/ads'>
-          <div className={styles.leftMenuItem}>Рекламные объявления</div>
-        </Link>
-        <Link href='/workers'>
-          <div className={styles.leftMenuItem}>Домовые чаты</div>
-        </Link> */}
-        {/* <AdItem buttonText='подключить сервис' buttonLink='#' image={"/img/payAd.png"} width={245} height={342} /> */}
-        {(role === "admakers" || role === "uk" || role === "upravdom") && (
-          <>
-            <span className={styles.orderAdText}>
-              Вы можете разместить рекламу на площадке нашего приложения, для этого нужно оставить заявку
-            </span>
-            <button
-              className={styles.orderAdBtn}
-              onClick={() => {
-                setAdRequest(true);
-              }}>
-              Заказать рекламу
-            </button>
-          </>
-        )}
-        <div className='w-wrap'></div>
+        <LeftMenu role={role} />
+        <>
+          <span className={styles.orderAdText}>
+            Вы можете разместить рекламу на площадке нашего приложения, для этого нужно оставить заявку
+          </span>
+          <button
+            className={styles.orderAdBtn}
+            onClick={() => {
+              setAdRequest(true);
+            }}>
+            Заказать рекламу
+          </button>
+          <button
+            className={styles.orderAdBtn}
+            style={{ paddingRight: 0, paddingLeft: 0 }}
+            onClick={() => {
+              setAdRequest(true);
+            }}>
+            Предложения по развитию сайта
+          </button>
+        </>
       </aside>
       <div className={styles.containerWorker}>
         {width <= 768 ? (

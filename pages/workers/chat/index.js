@@ -205,9 +205,9 @@ export default function Chat() {
         const fetchedMessages = res.data.data.map((item) => {
           const serverDate = item.createdAt;
           const localDate = new Date(serverDate);
-          const name = item.user.profile ? item.user.profile.pseudonym : item.user.workerProfile.name;
+          const name = item.chatAd ? item.user.workerProfile.name : item.user.profile.pseudonym;
           const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-          const profilePic = item.user.profile ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
+          const profilePic = item.chatAd ? item.user.workerProfile.profilePic : item.user.profile.profilePic;
           const link = item.chatAd?.link ?? item.link;
           return {
             message: item.message,
@@ -218,7 +218,7 @@ export default function Chat() {
             color: color,
             profilePic: profilePic,
             file: item.file,
-            isPaid: (item.user.role === "stores") | (item.user.role === "business"),
+            isPaid: !!item.chatAd,
             roomId: item.roomId,
           };
         });
@@ -246,18 +246,20 @@ export default function Chat() {
         const fetchedMessages = res.data.data.map((item) => {
           const serverDate = item.createdAt;
           const localDate = new Date(serverDate);
-          const name = item.user.profile ? item.user.profile.pseudonym : item.user.workerProfile.name;
+          const name = item.chatAd ? item.user.workerProfile.name : item.user.profile.pseudonym;
           const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-          const profilePic = item.user.profile ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
+          const profilePic = item.chatAd ? item.user.workerProfile.profilePic : item.user.profile.profilePic;
+          const link = item.chatAd?.link ?? item.link;
           return {
             message: item.message,
             date: localDate,
             time: localDate.getHours().toString().padStart(2, "0") + ":" + localDate.getMinutes().toString().padStart(2, "0"),
+            link: link,
             name: name,
             color: color,
             profilePic: profilePic,
             file: item.file,
-            isPaid: (item.user.role === "stores") | (item.user.role === "business"),
+            isPaid: !!item.chatAd,
             roomId: item.roomId,
           };
         });
@@ -487,9 +489,9 @@ export default function Chat() {
       const fetchedMessages = res.data.data.map((item) => {
         const serverDate = item.createdAt;
         const localDate = new Date(serverDate);
-        const name = item.user.profile ? item.user.profile.pseudonym : item.user.workerProfile.name;
+        const name = item.chatAd ? item.user.workerProfile.name : item.user.profile.pseudonym;
         const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-        const profilePic = item.user.profile ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
+        const profilePic = item.chatAd ? item.user.workerProfile.profilePic : item.user.profile.profilePic;
         const link = item.chatAd?.link ?? item.link;
         return {
           message: item.message,
@@ -500,7 +502,7 @@ export default function Chat() {
           color: color,
           profilePic: profilePic,
           file: item.file,
-          isPaid: (item.user.role === "stores") | (item.user.role === "business"),
+          isPaid: !!item.chatAd,
           roomId: item.roomId,
         };
       });

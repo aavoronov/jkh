@@ -48,12 +48,14 @@ export default function LayoutLoggedIn({
   const dispatch = useDispatch();
   const router = useRouter();
   const isLoading = useSelector((state) => state.loader.visible);
+  const role = useSelector((state) => state.user.role);
 
   useEffect(() => {
     async function getProfile() {
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
           headers: { Authorization: getCookie("jkh-token") },
+          "X-Role": role,
         });
 
         const updatePseudonym = res.data.pseudonym === null ? "" : res.data.pseudonym;

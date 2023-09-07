@@ -147,7 +147,7 @@ function Home() {
                     капитальный ремонт общего имущества многоквартирного дома и вывоз бытовых отходов. Правила предоставления коммунальных
                     услуг.
                   </span>
-                  <span className={styles.banner__btn} onClick={() => setModalToDisplay("authByLogin")}>
+                  <span className={styles.banner__btn} onClick={() => setModalToDisplay("partnership")}>
                     Хочу пользоваться платформой
                   </span>
                   <span className={styles.banner__link} onClick={() => setModalToDisplay("partnership")}>

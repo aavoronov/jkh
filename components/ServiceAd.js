@@ -17,7 +17,7 @@ const ServiceAd = ({ data }) => {
   const navigationPrevRef = useRef(null);
   const navigationNextRef = useRef(null);
 
-  const { height, width } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const dispatch = useDispatch();
   const router = useRouter();
 

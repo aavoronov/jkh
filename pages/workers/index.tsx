@@ -45,7 +45,7 @@ export default function WorkerProfile(props) {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  const role = useSelector((state) => state.user.role);
+  const role = useSelector((state: any) => state.user.role);
 
   useEffect(() => {
     async function getObjects() {
@@ -151,7 +151,7 @@ export default function WorkerProfile(props) {
     }
   };
 
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state: any) => state.user);
   const { pseudonym, email, phone, color, profilePic, balance } = user;
 
   return (

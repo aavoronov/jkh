@@ -37,8 +37,8 @@
     top: calc(50vh - 400px);
   }
   &.partnership2 {
-    height: 700px;
-    top: calc(50vh - 350px);
+    height: 800px;
+    top: calc(50vh - 400px);
   }
 }
 
@@ -442,6 +442,9 @@
   }
   &.business::before {
     background-image: url("/img/business.png");
+  }
+  &.user::before {
+    background-image: url("/img/user.png");
   }
 }
 

@@ -12,11 +12,51 @@ import { useDispatch } from "react-redux";
 import { getGeocode } from "../service/functions";
 import { toggle } from "../store/notificationSlice";
 import { updateRole } from "../store/userSlice";
+import RadioItem from "./RadioItem";
+import CheckboxItem from "./CheckboxItem";
 
 const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
   //   const [modalActive, setModalActive] = useState(false);
   const [popupError, setPopupError] = useState(false);
   const dispatch = useDispatch();
+
+  const roles = [
+    { text: "Пользователь", value: "user" },
+    { text: "УК, ТСЖ", value: "uk" },
+    { text: "Управляющий по дому", value: "upravdom" },
+    { text: "Рекламодатель", value: "admakers" },
+    { text: "Магазин", value: "stores" },
+    { text: "Представитель бизнеса", value: "business" },
+  ];
+
+  const SignIsAsRole = ({ items, value, setValue }) => {
+    return (
+      <div>
+        {items.map((item, index) => {
+          return (
+            <RadioItem
+              key={index}
+              text={item.text}
+              index={index}
+              name='role'
+              value={item.value}
+              checked={value === item.value}
+              setValue={setValue}
+            />
+            // <CheckboxItem
+            //   key={index}
+            //   text={item.text}
+            //   index={index}
+            //   name='role'
+            //   value={item.value}
+            //   checked={value === item.value}
+            //   setValue={setValue}
+            // />
+          );
+        })}
+      </div>
+    );
+  };
   // const [otp, setOtp] = useState("");
   // const [timer, setTimer] = useState(null);
 
@@ -62,10 +102,12 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
 
   const AuthByLogin = () => {
     // const KeyboardEvent = (event) => event.key === "Enter" && signInHandler();
+    const [role, setRole] = useState(roles[0].value);
     const signInHandler = async (values) => {
       try {
         const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/auth`, { ...values });
         dispatch(updateRole({ role: res.data.user.role }));
+        console.log("res.data", res.data);
         setModalToDisplay("");
         setPopupError(false);
 
@@ -76,10 +118,14 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
       }
     };
     return (
-      <div className={styles.popup}>
+      <div className={styles.popup} style={{ height: 720, top: "calc(50vh - 360px)" }}>
         <CloseBtn />
         <div className={styles.formWrap}>
           <span className={styles.popupHeading}>Войти</span>
+          <div style={{ width: "60%", margin: "0 auto", marginBottom: 35 }}>
+            <span style={{ fontSize: 18, fontWeight: 500, marginBottom: 10, display: "block" }}>Вы хотите войти как</span>
+            <SignIsAsRole value={role} setValue={setRole} items={roles} />
+          </div>
           <div className={styles.popupFieldWrap}>
             <Formik
               initialValues={{
@@ -91,7 +137,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                 password: Yup.string().required("Введите пароль"),
               })}
               onSubmit={(values) => {
-                signInHandler(values);
+                signInHandler({ ...values, role: role });
                 // alert(JSON.stringify(values, null, 2));
               }}>
               {({ values }) => (
@@ -131,7 +177,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                       type='button'
                       className={styles.secondaryOption}
                       onClick={() => {
-                        setModalToDisplay("signUpByEmail");
+                        setModalToDisplay("partnership");
                       }}>
                       Зарегистрироваться
                     </button>
@@ -539,6 +585,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
     const [stage, setStage] = useState(1);
     const [counter, setCounter] = useState(10);
     const [otp, setOtp] = useState("");
+    const [role, setRole] = useState(roles[0].value);
 
     const Timer = () => {
       useEffect(() => {
@@ -589,6 +636,10 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
           {stage === 1 && (
             <>
               <span className={styles.popupHeading}>Войти</span>
+              <div style={{ width: "60%", margin: "0 auto", marginBottom: 35 }}>
+                <span style={{ fontSize: 18, fontWeight: 500, marginBottom: 10, display: "block" }}>Вы хотите войти как</span>
+                <SignIsAsRole value={role} setValue={setRole} items={roles} />
+              </div>
               <div className={styles.popupFieldWrap}>
                 <Formik
                   initialValues={{
@@ -726,7 +777,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
   };
 
   const Partnership = () => {
-    const [orgType, setOrgType] = useState("");
+    const [orgType, setOrgType] = useState([]);
     const [stage, setStage] = useState(1);
 
     const [data, setData] = useState(null);
@@ -740,8 +791,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
         creds.append("inn", data.inn);
         creds.append("contract", data.contract);
         creds.append("snils", data.snils);
-        creds.append("type", type);
-        creds.append("riasToken", data.riasToken);
+        creds.append("type", JSON.stringify(type));
         creds.append("latitude", data.latitude);
         creds.append("longitude", data.longitude);
         creds.append("address", data.address);
@@ -757,6 +807,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
 
     const Partnership2 = () => {
       const [name, setName] = useState("");
+      const [website, setWebsite] = useState("");
       const [phone, setPhone] = useState("");
       const [email, setEmail] = useState("");
       const [inn, setInn] = useState([]);
@@ -861,12 +912,27 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                 <input
                   name='name'
                   type='text'
-                  placeholder={orgType === "Для Управляющего по дому" ? "ФИО" : "Название организации"}
+                  placeholder={
+                    orgType.includes("Для Управляющего по дому") || orgType.includes("Пользователь") ? "ФИО" : "Название организации"
+                  }
                   className={styles.field}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
+              {orgType.includes("Для магазинов") && (
+                <div className={styles.popupFieldWrap + " " + styles.column}>
+                  <input
+                    name='website'
+                    type='text'
+                    placeholder={"Сайт"}
+                    className={styles.field}
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                  />
+                </div>
+              )}
+
               <div className={styles.popupFieldWrap + " " + styles.column}>
                 {/* <Field
                       name='phone'
@@ -900,7 +966,9 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                   name='address'
                   type='text'
                   placeholder={
-                    orgType === "Для Управляющего по дому" ? "Адрес (город, улица, дом)" : "Адрес организации (город, улица, дом)"
+                    orgType.includes("Для Управляющего по дому") || orgType.includes("Пользователь")
+                      ? "Адрес (город, улица, дом)"
+                      : "Адрес организации (город, улица, дом)"
                   }
                   className={styles.field}
                   value={address}
@@ -917,10 +985,22 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                   onChange={(e) => setRiasToken(e.target.value)}
                 />
               </div> */}
+              {(orgType.includes("Для Управляющего по дому") ||
+                orgType.includes("Для УК, ТСЖ") ||
+                orgType.includes("Для рекламодателей") ||
+                orgType.includes("Для магазинов") ||
+                orgType.includes("Для представителей бизнеса")) && (
+                <div className={styles.popupFieldWrap + " " + styles.column}>
+                  <Dropzone files={inn} setFiles={setInn} placeholder='ИНН' />
+                </div>
+              )}
 
-              <div className={styles.popupFieldWrap + " " + styles.column}>
-                <Dropzone files={inn} setFiles={setInn} placeholder='ИНН' />
-              </div>
+              {(orgType.includes("Для Управляющего по дому") || orgType.includes("Для УК, ТСЖ")) && (
+                <div className={styles.popupFieldWrap + " " + styles.column}>
+                  <Dropzone files={contract} setFiles={setContract} placeholder='Договор на управление домом' />
+                </div>
+              )}
+
               {/* <div className={styles.popupFieldWrap + " " + styles.column}>
                 <Dropzone files={contract} setFiles={setContract} placeholder='Договор' />
               </div>
@@ -942,7 +1022,10 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                       if (!re.test(email)) {
                         throw new Error("Почта введена некорректно");
                       }
-                      const { latitude, longitude, geocodedAddress } = await getGeocode(address);
+                      const { latitude, longitude, geocodedAddress, precision } = await getGeocode(address);
+                      if (precision !== "exact") {
+                        throw new Error("Введенный адрес не найден");
+                      }
                       const data = {
                         name: name,
                         phone: phone,
@@ -998,6 +1081,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
 
     const Partnership1 = () => {
       const orgTypes = [
+        { name: "Пользователь", id: "user", pic: "/img/user.png" },
         { name: "Для УК, ТСЖ", id: "uk", pic: "/img/uk.png" },
         { name: "Для Управляющего по дому", id: "upravdom", pic: "/img/upravdom.png" },
         { name: "Для рекламодателей", id: "admakers", pic: "/img/admakers.png" },
@@ -1009,10 +1093,15 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
         <div className={styles.popupFieldWrap + " " + styles.orgType}>
           <button
             type='button'
-            className={orgType == name ? styles.orgTypeOption + " " + styles.selected : styles.orgTypeOption}
+            className={orgType.includes(name) ? styles.orgTypeOption + " " + styles.selected : styles.orgTypeOption}
             onClick={() => {
               // console.log(e.target.innerText);
-              setOrgType(name);
+              // setOrgType(name);
+              setOrgType((prev) => {
+                return prev.includes(name) ? prev.filter((item) => item !== name) : [...prev, name];
+              });
+              console.log(orgType);
+              console.log(orgType.includes(name));
               // console.log(orgType);
             }}>
             <span className={styles.orgTypeText + " " + styles[`${id}`]}>{name}</span>
@@ -1037,10 +1126,11 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
                       type='submit'
                       className={styles.submitBtn}
                       onClick={() => {
-                        // setModalToDisplay("partnershipComplete");
-                        setStage((prev) => prev + 1);
+                        orgType.length === 1 && orgType[0] === "Пользователь"
+                          ? setModalToDisplay("signUpByEmail")
+                          : setStage((prev) => prev + 1);
                       }}
-                      style={orgType ? { pointerEvents: "all" } : { pointerEvents: "none", opacity: 0.6 }}>
+                      style={!!orgType.length ? { pointerEvents: "all" } : { pointerEvents: "none", opacity: 0.6 }}>
                       Зарегистрироваться
                     </button>
 

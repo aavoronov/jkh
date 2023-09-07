@@ -12,7 +12,7 @@ import styles from "./workers.module.scss";
 
 export default function WorkerProfile(props) {
   const user = useSelector((state) => state.user);
-  const { pseudonym, email, phone, color, profilePic } = user;
+  const { pseudonym, email, phone, color, profilePic, role } = user;
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -137,6 +137,7 @@ export default function WorkerProfile(props) {
     try {
       const profileFormData = new FormData();
       profileFormData.append("pseudonym", orgName);
+      profileFormData.append("role", role);
       if (!!oldPassword || !!newPassword || !!passwordRepeat) {
         if (!oldPassword || !newPassword || !passwordRepeat) {
           throw new Error("Для смены пароля заполните поля Старый пароль, Новый пароль и Повторите пароль или оставьте их пустыми");

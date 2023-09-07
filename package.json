@@ -35,5 +35,8 @@
     "socket.io-client": "^4.5.4",
     "swiper": "^8.3.2",
     "yup": "^0.32.11"
+  },
+  "devDependencies": {
+    "typescript": "5.2.2"
   }
 }

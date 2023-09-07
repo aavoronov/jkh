@@ -37,12 +37,14 @@ export default function Profile({}) {
 
   const router = useRouter();
   const dispatch = useDispatch();
+  const role = useSelector((state) => state.user.role);
 
   useEffect(() => {
     async function getProfile() {
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
           headers: { Authorization: getCookie("jkh-token") },
+          "X-Role": role,
         });
 
         const updatePseudonym = res.data.pseudonym === null ? "" : res.data.pseudonym;
@@ -87,6 +89,7 @@ export default function Profile({}) {
   const email = useSelector((state) => state.user.email);
   const profilePic = useSelector((state) => state.user.profilePic);
   const phone = useSelector((state) => state.user.phone);
+
   const [nicknameLocal, setNicknameLocal] = useState(pseudonym);
   const [emailLocal, setEmailLocal] = useState(pseudonym);
 
@@ -203,6 +206,7 @@ export default function Profile({}) {
     try {
       const profileFormData = new FormData();
       profileFormData.append("pseudonym", nicknameLocal);
+      profileFormData.append("role", role);
       if (!!oldPassword || !!newPassword || !!passwordRepeat) {
         if (!oldPassword || !newPassword || !passwordRepeat) {
           throw new Error("Для смены пароля заполните поля Старый пароль, Новый пароль и Повторите пароль или оставьте их пустыми");

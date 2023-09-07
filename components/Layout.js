@@ -11,6 +11,7 @@ import { updateRole } from "../store/userSlice";
 
 export default function Layout({ children, title = "ЖКХ Консьерж", description = "description", keywords = "keywords" }) {
   const dispatch = useDispatch();
+  const role = useSelector((state) => state.user.role);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -19,6 +20,7 @@ export default function Layout({ children, title = "ЖКХ Консьерж", de
           const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/reauth`, {
             headers: {
               Authorization: getCookie("jkh-token"),
+              "X-Role": role,
             },
           });
           dispatch(updateRole({ role: res.data.role }));
@@ -62,7 +64,6 @@ export default function Layout({ children, title = "ЖКХ Консьерж", de
     if (notification.text !== "") setTimeout(() => dispatch(toggle({ text: "", type: null })), 5000);
   }, [notification]);
 
-  const role = useSelector((state) => state.user.role);
   const router = useRouter();
   useEffect(() => {
     if (role === "user") router.push("/trading-platform");

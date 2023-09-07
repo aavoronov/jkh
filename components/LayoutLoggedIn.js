@@ -151,6 +151,7 @@ export default function LayoutLoggedIn({
           const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/reauth`, {
             headers: {
               Authorization: getCookie("jkh-token"),
+              "X-Role": role,
             },
           });
           dispatch(updateRole({ role: res.data.role }));
@@ -192,6 +193,7 @@ export default function LayoutLoggedIn({
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
           headers: { Authorization: getCookie("jkh-token") },
+          "X-Role": role,
         });
         const entityName = res.data.pseudonym ?? res.data.workerProfile?.name;
 
@@ -204,7 +206,11 @@ export default function LayoutLoggedIn({
         res.data.workerProfile?.balance && dispatch(updateBalance({ balance: res.data.workerProfile.balance }));
         res.data.workerProfile?.address && dispatch(updateAddress({ address: res.data.workerProfile.address }));
         dispatch(
-          updateProfile({ pseudonym: updatePseudonym, color: res.data.color ?? res.data.workerProfile.color, profilePic: updateProfilePic })
+          updateProfile({
+            pseudonym: updatePseudonym,
+            color: res.data.color ?? res.data.workerProfile?.color,
+            profilePic: updateProfilePic,
+          })
         );
         // console.log(nicknameLocal);
       } catch (e) {
