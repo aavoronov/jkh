@@ -25,6 +25,7 @@ import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import { useRouter } from "next/router";
 import { banRoots, banWords } from "../../service/ban-words";
+import { currentDatetime } from "../../service/functions";
 
 const manager = new Manager(`${process.env.NEXT_PUBLIC_WS_ADDRESS}`, {
   autoConnect: false,

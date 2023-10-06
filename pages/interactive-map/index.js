@@ -79,7 +79,7 @@ const getObjectProperties = (item) => {
 
 const dataConvert = (points) => {
   let features = [];
-  points &&
+  points.length &&
     points.map((item, index) => {
       let tmpObj = {
         type: "Feature",
@@ -303,25 +303,60 @@ export default function InteractiveMap(props) {
     dispatch(loading({ visible: false }));
   };
 
-  useEffect(() => {
-    const getObjects = async () => {
-      try {
-        dispatch(loading({ visible: true }));
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/map-objects`, {
+  // useEffect(() => {
+  //   const getObjects = async () => {
+  //     try {
+  //       dispatch(loading({ visible: true }));
+  //       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/map-objects`, {
+  //         headers: {
+  //           Authorization: getCookie("jkh-token"),
+  //         },
+  //       });
+
+  //       setPoints(res.data);
+  //       // dispatch(updateRole({ role: res.data.role }));
+  //     } catch (e) {
+  //       console.log(e);
+  //     }
+  //     dispatch(loading({ visible: false }));
+  //   };
+  //   getObjects();
+  // }, []);
+
+  const getObjectsWithinBounds = async (bounds) => {
+    try {
+      const lon0 = bounds[0][1];
+      const lat0 = bounds[0][0];
+      const lon1 = bounds[1][1];
+      const lat1 = bounds[1][0];
+      dispatch(loading({ visible: true }));
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/map-objects/bounds?lon0=${lon0}&lat0=${lat0}&lon1=${lon1}&lat1=${lat1}`,
+        {
           headers: {
             Authorization: getCookie("jkh-token"),
           },
-        });
+        }
+      );
 
-        setPoints(res.data);
-        // dispatch(updateRole({ role: res.data.role }));
-      } catch (e) {
-        console.log(e);
+      setPoints(res.data.data);
+      if (res.data.status === "limit") {
+        dispatch(toggle({ text: "Все объекты не могут быть показаны. Увеличьте масштаб карты", type: "info" }));
       }
-      dispatch(loading({ visible: false }));
-    };
-    getObjects();
-  }, []);
+      // dispatch(updateRole({ role: res.data.role }));
+    } catch (e) {
+      console.log(e);
+    }
+    dispatch(loading({ visible: false }));
+  };
+
+  useEffect(() => {
+    if (mapState && mapRef.current) {
+      const bounds = mapRef?.current?.getBounds();
+
+      getObjectsWithinBounds(bounds);
+    }
+  }, [mapState, mapRef]);
 
   const createReview = async (values) => {
     try {
@@ -982,10 +1017,12 @@ export default function InteractiveMap(props) {
           </button>
         ) : null}
         <Map
-          modules={["multiRouter.MultiRoute"]}
+          onBoundsChange={() => getObjectsWithinBounds(mapRef?.current?.getBounds())}
+          modules={["multiRouter.MultiRoute", "util.bounds"]}
           instanceRef={(ref) => {
             if (ref) mapRef.current = ref;
           }}
+          onDrag={(e) => console.log("texrrsdf")}
           // onLoad={addRoute}
           defaultState={mapState}
           style={{ height: "calc(100vh - 59px)", width: { mapWidth }, position: "relative" }}
