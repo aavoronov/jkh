@@ -99,6 +99,11 @@ export default function createService({}) {
         },
       });
       dispatch(toggle({ text: "Объявление успешно создано", type: "success" }));
+      personalPhoto.forEach((file) => URL.revokeObjectURL(file.preview));
+      passportPhoto1.forEach((file) => URL.revokeObjectURL(file.preview));
+      passportPhoto2.forEach((file) => URL.revokeObjectURL(file.preview));
+      portfolioFiles.forEach((file) => URL.revokeObjectURL(file.preview));
+      router.back();
     } catch (e) {
       // console.log(e);
       dispatch(toggle({ text: e.response?.data?.message ?? e.message, type: "error" }));
@@ -223,9 +228,9 @@ export default function createService({}) {
             src={file.preview}
             className={styles.img}
             // Revoke data uri after image is loaded
-            onLoad={() => {
-              URL.revokeObjectURL(file.preview);
-            }}
+            // onLoad={() => {
+            //   URL.revokeObjectURL(file.preview);
+            // }}
           />
           <button
             className={styles.imageRemove}
@@ -236,11 +241,6 @@ export default function createService({}) {
         </div>
       </div>
     ));
-
-    useEffect(() => {
-      // Make sure to revoke the data uris to avoid memory leaks, will run on unmount
-      return () => files.forEach((file) => URL.revokeObjectURL(file.preview));
-    }, []);
 
     // return (
     //   <div {...getRootProps()} className={styles.dragndropWrap}>

@@ -66,7 +66,7 @@ export default function MyServices({}) {
         </span>
       ) : null}
 
-      {!!services &&
+      {!!services.length &&
         services.map((item) => (
           <div className={styles.col}>
             <div className={styles.adWrap}>

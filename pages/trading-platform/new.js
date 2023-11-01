@@ -139,7 +139,8 @@ export default function Product(props) {
           "Content-Type": "multipart/form-data",
         },
       });
-      // router.push("/trading-platform");
+      files.forEach((file) => URL.revokeObjectURL(file.preview));
+      router.push("/trading-platform");
       dispatch(toggle({ text: "Объявление успешно создано", type: "success" }));
     } catch (e) {
       console.log(e);
@@ -224,17 +225,6 @@ export default function Product(props) {
                 });
                 product.append("files", file);
               });
-
-            // const file = new File([`${base64}`], "test.jpg");
-            // console.log(file);
-            // product.append("files", file);
-            // const testfile = new File(
-            //   [
-            //     "data:image/jpeg;base64,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",
-            //   ],
-            //   "test123.jpg"
-            // );
-            // product.append("files", testfile);
           }
         });
       }
@@ -333,34 +323,37 @@ export default function Product(props) {
       setFiles([]);
     };
 
-    const thumbs = files.map((file) => (
-      <div
-        className={styles.thumb}
-        // key={file.name}
-        key={Math.random().toString()}>
-        <div className={styles.thumbInner}>
-          <img
-            src={file.preview ?? `${process.env.NEXT_PUBLIC_API_URL}/uploads/trading-platform/${file}`}
-            className={styles.img}
-            // Revoke data uri after image is loaded
-            onLoad={() => {
-              URL.revokeObjectURL(file.preview);
-            }}
-          />
-          <button
-            className={styles.imageRemove}
-            onClick={() => {
-              removeFile(file);
-            }}></button>
-          <span className={styles.fileName}>{file.name}</span>
+    const thumbs = files.map((file) => {
+      console.log(file);
+      return (
+        <div
+          className={styles.thumb}
+          // key={file.name}
+          key={Math.random().toString()}>
+          <div className={styles.thumbInner}>
+            <img
+              src={file.preview ?? `${process.env.NEXT_PUBLIC_API_URL}/uploads/trading-platform/${file}`}
+              className={styles.img}
+              // Revoke data uri after image is loaded
+              // onLoad={() => {
+              //   URL.revokeObjectURL(file.preview);
+              // }}
+            />
+            <button
+              className={styles.imageRemove}
+              onClick={() => {
+                removeFile(file);
+              }}></button>
+            <span className={styles.fileName}>{file.name}</span>
+          </div>
         </div>
-      </div>
-    ));
+      );
+    });
 
-    useEffect(() => {
-      // Make sure to revoke the data uris to avoid memory leaks, will run on unmount
-      return () => files.forEach((file) => URL.revokeObjectURL(file.preview));
-    }, []);
+    // useEffect(() => {
+    //   // Make sure to revoke the data uris to avoid memory leaks, will run on unmount
+    //   return () => files.forEach((file) => URL.revokeObjectURL(file.preview));
+    // }, []);
 
     return (
       <aside className={styles.thumbsContainer}>

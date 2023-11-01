@@ -23,6 +23,7 @@
   line-height: 130%;
   text-align: center;
   color: #1c1c1c;
+  width: 100%;
 }
 
 @media screen and (min-width: 1920px) {
@@ -35,7 +36,7 @@
 @media screen and (min-width: 1440px) {
   .pageHeading,
   .bottomBtnWrap {
-    width: 80%;
+    width: 100%;
   }
   .pageHeading.withProducts {
     width: 831px !important;

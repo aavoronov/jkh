@@ -213,7 +213,7 @@ export default function LayoutLoggedIn({
         <div className={styles.headerButtonsWrap}>
           <div className={styles.bellWrap}>
             <Image src={bell} alt='' />
-            <span className={styles.notificationsNumber}>{notifications > 99 ? "99+" : notifications}</span>
+            {!!notifications && <span className={styles.notificationsNumber}>{notifications > 99 ? "99+" : notifications}</span>}
           </div>
           <div className={styles.userWrap}>
             <div className={styles.userNameWrap}>

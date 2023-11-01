@@ -35,7 +35,7 @@ const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isP
 
   const toggleFavorite = async () => {
     try {
-      dispatch(loading({ visible: true }));
+      // dispatch(loading({ visible: true }));
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trading-platform/favorites/${id}`, {
         headers: {
           Authorization: getCookie("jkh-token"),
@@ -46,7 +46,7 @@ const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isP
     } catch (e) {
       console.log(e);
     }
-    dispatch(loading({ visible: false }));
+    // dispatch(loading({ visible: false }));
   };
 
   const deleteProduct = async () => {
@@ -122,7 +122,10 @@ const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isP
                   }}>
                   {!!images?.length ? (
                     images.map((item, index) => (
-                      <div style={{ maxHeight: "100%" }} key={index}>
+                      <div
+                        style={{ maxHeight: "100%", cursor: "pointer" }}
+                        key={index}
+                        onClick={() => router.push({ pathname: "/trading-platform/product/[id]", query: { id: id } })}>
                         <img
                           src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/trading-platform/${item}`}
                           style={{ objectFit: "cover", width: "100%" }}
@@ -132,12 +135,16 @@ const ProductCard = ({ item, isOnMyAdsPage = false, isOnMyFavesPage = false, isP
                       </div>
                     ))
                   ) : (
-                    <img
-                      src='/img/no-image.jpg'
-                      style={{ objectFit: "cover", width: "100%" }}
-                      className={styles.slide}
-                      height={width > 1050 || width < 421 ? 177 : 120}
-                    />
+                    <div
+                      style={{ maxHeight: "100%", cursor: "pointer" }}
+                      onClick={() => router.push({ pathname: "/trading-platform/product/[id]", query: { id: id } })}>
+                      <img
+                        src='/img/no-image.jpg'
+                        style={{ objectFit: "cover", width: "100%" }}
+                        className={styles.slide}
+                        height={width > 1050 || width < 421 ? 177 : 120}
+                      />
+                    </div>
                   )}
                 </Carousel>
 
