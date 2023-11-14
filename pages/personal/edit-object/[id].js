@@ -12,7 +12,7 @@ import { toggle } from "../../../store/notificationSlice";
 
 export default function Profile({ id }) {
   const [files, setFiles] = useState([]);
-  const [nickname, setNickname] = useState(profileData.nickname);
+  // const [nickname, setNickname] = useState(profileData.nickname);
   const [objectId, setObjectId] = useState("");
   const [address, setAddress] = useState("");
   const [house, setHouse] = useState("");

@@ -601,8 +601,8 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
         const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/phone/verification`, { phone: phone });
         // setModalToDisplay("confirmationPhone");
         // setCounter(60);
-        dispatch(toggle({ text: res.data.otp, type: "info" }));
-        return true;
+        // dispatch(toggle({ text: res.data.otp, type: "info" }));
+        if (res.data.status === 200) return true;
       } catch (e) {
         dispatch(toggle({ text: e.response?.data?.message ?? e.message, type: "error" }));
         console.log(e);
@@ -612,7 +612,7 @@ const ModalsLayer = ({ modalToDisplay, setModalToDisplay }) => {
 
     const handleOtpSubmit = async () => {
       try {
-        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/phone/sign-in`, { phone: phone, otp: otp });
+        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/phone/sign-in`, { phone: phone, otp: otp, role: role });
         // setModalToDisplay("confirmationPhone");
         // setCounter(60);
         dispatch(updateRole({ role: res.data.user.role }));

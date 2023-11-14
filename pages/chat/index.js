@@ -204,19 +204,21 @@ export default function Chat() {
           },
         });
 
+        console.log(res.data.data);
+
         const fetchedMessages = res.data.data.map((item) => {
           const serverDate = item.createdAt;
           const localDate = new Date(serverDate);
-          const name = item.chatAd ? item.user.workerProfile.name : item.user.profile.pseudonym;
+          const name = item.user.workerProfile?.name || item.user.profile?.pseudonym;
           const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-          const profilePic = item.chatAd ? item.user.workerProfile.profilePic : item.user.profile.profilePic;
+          const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
           const link = item.chatAd?.link ?? item.link;
           return {
             message: item.message,
             date: localDate,
             time: localDate.getHours().toString().padStart(2, "0") + ":" + localDate.getMinutes().toString().padStart(2, "0"),
             link: link,
-            name: name,
+            name: name || "this was undefined",
             color: color,
             profilePic: profilePic,
             file: item.file,
@@ -248,9 +250,9 @@ export default function Chat() {
         const fetchedMessages = res.data.data.map((item) => {
           const serverDate = item.createdAt;
           const localDate = new Date(serverDate);
-          const name = item.chatAd ? item.user.workerProfile.name : item.user.profile.pseudonym;
+          const name = item.user.workerProfile?.name || item.user.profile?.pseudonym;
           const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-          const profilePic = item.chatAd ? item.user.workerProfile.profilePic : item.user.profile.profilePic;
+          const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
           const link = item.chatAd?.link ?? item.link;
           return {
             message: item.message,
@@ -491,9 +493,9 @@ export default function Chat() {
       const fetchedMessages = res.data.data.map((item) => {
         const serverDate = item.createdAt;
         const localDate = new Date(serverDate);
-        const name = item.chatAd ? item.user.workerProfile.name : item.user.profile.pseudonym;
+        const name = item.user.workerProfile?.name || item.user.profile?.pseudonym;
         const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-        const profilePic = item.chatAd ? item.user.workerProfile.profilePic : item.user.profile.profilePic;
+        const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
         const link = item.chatAd?.link ?? item.link;
         return {
           message: item.message,
@@ -524,7 +526,6 @@ export default function Chat() {
   };
 
   const ChatMessage = ({ isMine = false, isPaid = false, name, text, link, profilePic, time, file, color }) => {
-    console.log(name);
     if (!!file && !file.includes("blob")) {
       file = file.slice(0, 4) === "data" ? file : `${process.env.NEXT_PUBLIC_API_URL}/uploads/chat/${file}`;
       // console.log(img);
@@ -823,7 +824,7 @@ export default function Chat() {
                   {!!searchMessages.length && <span className={styles.resultsHeader}>{searchMessages.length} сообщений найдено</span>}
                   {searchMessages.map((item, index) => {
                     const color = item.user.profile?.color ?? item.user.workerProfile?.color;
-                    const name = item.user.profile ? item.user.profile.pseudonym : item.user.workerProfile.name;
+                    const name = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
                     const profilePic = item.user.profile ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
 
                     return (

@@ -206,9 +206,9 @@ export default function Chat() {
         const fetchedMessages = res.data.data.map((item) => {
           const serverDate = item.createdAt;
           const localDate = new Date(serverDate);
-          const name = item.chatAd ? item.user.workerProfile.name : item.user.profile.pseudonym;
+          const name = item.user.workerProfile?.name || item.user.profile?.pseudonym;
           const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-          const profilePic = item.chatAd ? item.user.workerProfile.profilePic : item.user.profile.profilePic;
+          const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
           const link = item.chatAd?.link ?? item.link;
           return {
             message: item.message,
@@ -247,9 +247,9 @@ export default function Chat() {
         const fetchedMessages = res.data.data.map((item) => {
           const serverDate = item.createdAt;
           const localDate = new Date(serverDate);
-          const name = item.chatAd ? item.user.workerProfile.name : item.user.profile.pseudonym;
+          const name = item.user.workerProfile.name || item.user.profile.pseudonym;
           const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-          const profilePic = item.chatAd ? item.user.workerProfile.profilePic : item.user.profile.profilePic;
+          const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
           const link = item.chatAd?.link ?? item.link;
           return {
             message: item.message,
@@ -490,9 +490,9 @@ export default function Chat() {
       const fetchedMessages = res.data.data.map((item) => {
         const serverDate = item.createdAt;
         const localDate = new Date(serverDate);
-        const name = item.chatAd ? item.user.workerProfile.name : item.user.profile.pseudonym;
+        const name = item.user.workerProfile?.name || item.user.profile?.pseudonym;
         const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-        const profilePic = item.chatAd ? item.user.workerProfile.profilePic : item.user.profile.profilePic;
+        const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
         const link = item.chatAd?.link ?? item.link;
         return {
           message: item.message,
@@ -822,8 +822,8 @@ export default function Chat() {
                   {!!searchMessages.length && <span className={styles.resultsHeader}>{searchMessages.length} сообщений найдено</span>}
                   {searchMessages.map((item, index) => {
                     const color = item.user.profile?.color ?? item.user.workerProfile?.color;
-                    const name = item.user.profile ? item.user.profile.pseudonym : item.user.workerProfile.name;
-                    const profilePic = item.user.profile ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
+                    const name = item.user.profile ? item.user.workerProfile?.name : item.user.profile?.pseudonym;
+                    const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
 
                     return (
                       <div className={styles.searchResultsItem} key={index}>
