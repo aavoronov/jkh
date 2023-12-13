@@ -165,6 +165,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  cursor: pointer;
   & > div {
     height: 28px;
   }

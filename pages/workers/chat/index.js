@@ -28,7 +28,7 @@ import LayoutWorker from "../../../components/LayoutWorker";
 import { banRoots, banWords } from "../../../service/ban-words";
 import { currentDatetime } from "../../../service/functions";
 
-const manager = new Manager(`https://api.1203521-cu41329.tw1.ru/pizda/`, {
+const manager = new Manager(`${process.env.NEXT_PUBLIC_WS_ADDRESS}`, {
   autoConnect: false,
 });
 
@@ -188,9 +188,7 @@ export default function Chat() {
   const [scrollPage, setScrollPage] = useState(0);
   const [startReached, setStartReached] = useState(false);
 
-  const pseudonym = useSelector((state) => state.user.pseudonym);
-  const email = useSelector((state) => state.user.email);
-  const profilePic = useSelector((state) => state.user.profilePic);
+  const { pseudonym, email, profilePic, role } = useSelector((state) => state.user);
 
   const dispatch = useDispatch();
 
@@ -206,9 +204,13 @@ export default function Chat() {
         const fetchedMessages = res.data.data.map((item) => {
           const serverDate = item.createdAt;
           const localDate = new Date(serverDate);
-          const name = item.user.workerProfile?.name || item.user.profile?.pseudonym;
-          const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-          const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
+
+          const role = item.role;
+          const isRegularUser = role === "user";
+          const name = isRegularUser ? item.user.profile.pseudonym : item.user.workerProfile.name;
+          const color = isRegularUser ? item.user.profile.color : item.user.workerProfile.color;
+          const profilePic = isRegularUser ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
+
           const link = item.chatAd?.link ?? item.link;
           return {
             message: item.message,
@@ -218,6 +220,7 @@ export default function Chat() {
             name: name,
             color: color,
             profilePic: profilePic,
+            role: role,
             file: item.file,
             isPaid: !!item.chatAd,
             roomId: item.roomId,
@@ -247,9 +250,13 @@ export default function Chat() {
         const fetchedMessages = res.data.data.map((item) => {
           const serverDate = item.createdAt;
           const localDate = new Date(serverDate);
-          const name = item.user.workerProfile.name || item.user.profile.pseudonym;
-          const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-          const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
+
+          const role = item.role;
+          const isRegularUser = role === "user";
+          const name = isRegularUser ? item.user.profile.pseudonym : item.user.workerProfile.name;
+          const color = isRegularUser ? item.user.profile.color : item.user.workerProfile.color;
+          const profilePic = isRegularUser ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
+
           const link = item.chatAd?.link ?? item.link;
           return {
             message: item.message,
@@ -259,6 +266,7 @@ export default function Chat() {
             name: name,
             color: color,
             profilePic: profilePic,
+            role: role,
             file: item.file,
             isPaid: !!item.chatAd,
             roomId: item.roomId,
@@ -299,6 +307,7 @@ export default function Chat() {
           sendMessage({
             email: email,
             pseudonym: pseudonym,
+            role: role,
             text: chatTextValue,
             color: personalColor,
             profilePic: profilePic,
@@ -490,9 +499,13 @@ export default function Chat() {
       const fetchedMessages = res.data.data.map((item) => {
         const serverDate = item.createdAt;
         const localDate = new Date(serverDate);
-        const name = item.user.workerProfile?.name || item.user.profile?.pseudonym;
-        const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-        const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
+
+        const role = item.role;
+        const isRegularUser = role === "user";
+        const name = isRegularUser ? item.user.profile.pseudonym : item.user.workerProfile.name;
+        const color = isRegularUser ? item.user.profile.color : item.user.workerProfile.color;
+        const profilePic = isRegularUser ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
+
         const link = item.chatAd?.link ?? item.link;
         return {
           message: item.message,
@@ -821,9 +834,11 @@ export default function Chat() {
                 <div className={styles.searchResults}>
                   {!!searchMessages.length && <span className={styles.resultsHeader}>{searchMessages.length} сообщений найдено</span>}
                   {searchMessages.map((item, index) => {
-                    const color = item.user.profile?.color ?? item.user.workerProfile?.color;
-                    const name = item.user.profile ? item.user.workerProfile?.name : item.user.profile?.pseudonym;
-                    const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
+                    const role = item.role;
+                    const isRegularUser = role === "user";
+                    const name = isRegularUser ? item.user.profile.pseudonym : item.user.workerProfile.name;
+                    const color = isRegularUser ? item.user.profile.color : item.user.workerProfile.color;
+                    const profilePic = isRegularUser ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
 
                     return (
                       <div className={styles.searchResultsItem} key={index}>
@@ -955,6 +970,7 @@ export default function Chat() {
                         sendMessage({
                           email: email,
                           pseudonym: pseudonym,
+                          role: role,
                           text: chatTextValue,
                           color: personalColor,
                           profilePic: profilePic,

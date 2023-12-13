@@ -189,9 +189,7 @@ export default function Chat() {
   const [scrollPage, setScrollPage] = useState(0);
   const [startReached, setStartReached] = useState(false);
 
-  const pseudonym = useSelector((state) => state.user.pseudonym);
-  const email = useSelector((state) => state.user.email);
-  const profilePic = useSelector((state) => state.user.profilePic);
+  const { pseudonym, email, profilePic, role } = useSelector((state) => state.user);
 
   const dispatch = useDispatch();
 
@@ -209,9 +207,11 @@ export default function Chat() {
         const fetchedMessages = res.data.data.map((item) => {
           const serverDate = item.createdAt;
           const localDate = new Date(serverDate);
-          const name = item.user.workerProfile?.name || item.user.profile?.pseudonym;
-          const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-          const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
+          const role = item.role;
+          const isRegularUser = role === "user";
+          const name = isRegularUser ? item.user.profile.pseudonym : item.user.workerProfile.name;
+          const color = isRegularUser ? item.user.profile.color : item.user.workerProfile.color;
+          const profilePic = isRegularUser ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
           const link = item.chatAd?.link ?? item.link;
           return {
             message: item.message,
@@ -221,6 +221,7 @@ export default function Chat() {
             name: name || "this was undefined",
             color: color,
             profilePic: profilePic,
+            role: role,
             file: item.file,
             isPaid: !!item.chatAd,
             roomId: item.roomId,
@@ -250,9 +251,13 @@ export default function Chat() {
         const fetchedMessages = res.data.data.map((item) => {
           const serverDate = item.createdAt;
           const localDate = new Date(serverDate);
-          const name = item.user.workerProfile?.name || item.user.profile?.pseudonym;
-          const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-          const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
+
+          const role = item.role;
+          const isRegularUser = role === "user";
+          const name = isRegularUser ? item.user.profile.pseudonym : item.user.workerProfile.name;
+          const color = isRegularUser ? item.user.profile.color : item.user.workerProfile.color;
+          const profilePic = isRegularUser ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
+
           const link = item.chatAd?.link ?? item.link;
           return {
             message: item.message,
@@ -262,6 +267,7 @@ export default function Chat() {
             name: name,
             color: color,
             profilePic: profilePic,
+            role: role,
             file: item.file,
             isPaid: !!item.chatAd,
             roomId: item.roomId,
@@ -302,6 +308,7 @@ export default function Chat() {
           sendMessage({
             email: email,
             pseudonym: pseudonym,
+            role: role,
             text: chatTextValue,
             color: personalColor,
             profilePic: profilePic,
@@ -493,9 +500,13 @@ export default function Chat() {
       const fetchedMessages = res.data.data.map((item) => {
         const serverDate = item.createdAt;
         const localDate = new Date(serverDate);
-        const name = item.user.workerProfile?.name || item.user.profile?.pseudonym;
-        const color = item.user.profile ? item.user.profile.color : item.user.workerProfile.color;
-        const profilePic = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
+
+        const role = item.role;
+        const isRegularUser = role === "user";
+        const name = isRegularUser ? item.user.profile.pseudonym : item.user.workerProfile.name;
+        const color = isRegularUser ? item.user.profile.color : item.user.workerProfile.color;
+        const profilePic = isRegularUser ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
+
         const link = item.chatAd?.link ?? item.link;
         return {
           message: item.message,
@@ -505,6 +516,7 @@ export default function Chat() {
           name: name,
           color: color,
           profilePic: profilePic,
+          role: role,
           file: item.file,
           isPaid: !!item.chatAd,
           roomId: item.roomId,
@@ -823,9 +835,11 @@ export default function Chat() {
                 <div className={styles.searchResults}>
                   {!!searchMessages.length && <span className={styles.resultsHeader}>{searchMessages.length} сообщений найдено</span>}
                   {searchMessages.map((item, index) => {
-                    const color = item.user.profile?.color ?? item.user.workerProfile?.color;
-                    const name = item.user.profile?.profilePic ?? item.user.workerProfile?.profilePic;
-                    const profilePic = item.user.profile ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
+                    const role = item.role;
+                    const isRegularUser = role === "user";
+                    const name = isRegularUser ? item.user.profile.pseudonym : item.user.workerProfile.name;
+                    const color = isRegularUser ? item.user.profile.color : item.user.workerProfile.color;
+                    const profilePic = isRegularUser ? item.user.profile.profilePic : item.user.workerProfile.profilePic;
 
                     return (
                       <div className={styles.searchResultsItem} key={index}>
@@ -859,90 +873,6 @@ export default function Chat() {
               </div>
             ) : null}
             {!calendarMessages.length && startReached && !!myChats.length && <div className={styles.chatDate}>{"Начало истории чата"}</div>}
-
-            {/* {!calendarMessages.length
-              ? messages
-                  .filter((item) => (Array.isArray(item.roomId) ? item.roomId.includes(currentChatId) : item.roomId === currentChatId))
-                  .map((item, index) => {
-                    let date = "";
-
-                    // const chatsIds = myChats.map((item) => item.id);
-                    // console.log(chatsIds);
-
-                    if (!!item.date) {
-                      if (index === 0) {
-                        date = getHumanReadableDate(item.date);
-                      } else {
-                        date = getHumanReadableDateCompare(
-                          messages.filter((item) => item.roomId === currentChatId)[index - 1].date,
-                          item.date
-                        );
-                      }
-                    }
-                    // console.log(messages.filter((item) => item.roomId === currentChatId));
-                    return (
-                      <>
-                        {date && <div className={styles.chatDate}>{date}</div>}
-                        
-                        <ChatMessage
-                          key={index}
-                          name={item.name}
-                          text={item.message.replace(/\n/g, "<br/>")}
-                          link={item.link}
-                          isMine={item.name === pseudonym}
-                          isPaid={item.isPaid}
-                          time={item.time}
-                          color={item.color}
-                          profilePic={item.profilePic}
-                          file={item.file}
-                        />
-                      </>
-                    );
-                    // isMine = false, isPaid = false, name, text, profilePic, time, pic = false
-                  })
-              : calendarMessages
-                  .filter((item) => (Array.isArray(item.roomId) ? item.roomId.includes(currentChatId) : item.roomId === currentChatId))
-                  .map((item, index) => {
-                    let date = "";
-
-                    // const chatsIds = myChats.map((item) => item.id);
-                    // console.log(chatsIds);
-
-                    if (!!item.date) {
-                      if (index === 0) {
-                        date = getHumanReadableDate(item.date);
-                      } else {
-                        date = getHumanReadableDateCompare(
-                          calendarMessages.filter((item) => item.roomId === currentChatId)[index - 1].date,
-                          item.date
-                        );
-                      }
-                    }
-                    // console.log(messages.filter((item) => item.roomId === currentChatId));
-                    return (
-                      <>
-                        {date && (
-                          <div className={styles.chatDate} onClick={() => console.log("test")}>
-                            {date}
-                          </div>
-                        )}
-                       
-                        <ChatMessage
-                          key={index}
-                          name={item.name}
-                          text={item.message.replace(/\n/g, "<br/>")}
-                          link={item.link}
-                          isMine={item.name === pseudonym}
-                          isPaid={item.isPaid}
-                          time={item.time}
-                          color={item.color}
-                          profilePic={item.profilePic}
-                          file={item.file}
-                        />
-                      </>
-                    );
-                    // isMine = false, isPaid = false, name, text, profilePic, time, pic = false
-                  })} */}
 
             {(() => {
               const msgs = !!calendarMessages.length ? calendarMessages : messages;
@@ -1041,6 +971,7 @@ export default function Chat() {
                         sendMessage({
                           email: email,
                           pseudonym: pseudonym,
+                          role: role,
                           text: chatTextValue,
                           color: personalColor,
                           profilePic: profilePic,

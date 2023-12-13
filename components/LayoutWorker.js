@@ -278,12 +278,14 @@ function LayoutLoggedIn({
               {!!notifications && <span className={layoutStyles.notificationsNumber}>{notifications}</span>}
             </div>
           )}
-          <div className={layoutStyles.userWrap}>
-            <div className={layoutStyles.userNameWrap}>
-              <Image src={user} alt='' />
+          <Link href='/workers'>
+            <div className={layoutStyles.userWrap}>
+              <div className={layoutStyles.userNameWrap}>
+                <Image src={user} alt='' />
+              </div>
+              <span className={layoutStyles.name}>{pseudonym}</span>
             </div>
-            <span className={layoutStyles.name}>{pseudonym}</span>
-          </div>
+          </Link>
           <div
             className={layoutStyles.dropdownBtn}
             onMouseEnter={() => setDropdownVisible(true)}

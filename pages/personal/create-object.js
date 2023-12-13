@@ -19,7 +19,7 @@ export default function Profile({}) {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const email = useSelector((state) => state.user.email);
+  const { email, role } = useSelector((state) => state.user);
 
   const createEstateObject = async () => {
     try {
@@ -30,7 +30,7 @@ export default function Profile({}) {
       }
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/estate-objects`,
-        { email, address: geocodedAddress, latitude, longitude, apartment: apartment, account: account, isOwner: isOwner },
+        { email, address: geocodedAddress, latitude, longitude, apartment: apartment, account: account, isOwner: isOwner, role: role },
         {
           headers: { Authorization: getCookie("jkh-token") },
         }

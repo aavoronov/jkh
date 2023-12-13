@@ -38,6 +38,108 @@ const displayZones = ["Москва и МО", "Ленинград и ЛО", "С�
 //   );
 // };
 
+const Dropzone = ({ files, setFiles }) => {
+  const [isDraggedOver, setIsDraggedOver] = useState(false);
+
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: {
+      "image/*": [],
+    },
+    onDrop: (acceptedFiles) => {
+      setFiles(
+        files
+          .concat(
+            acceptedFiles.map((file) =>
+              Object.assign(file, {
+                preview: URL.createObjectURL(file),
+              })
+            )
+          )
+          .slice(0, 10)
+      );
+      setIsDraggedOver(false);
+    },
+    onDragOver: () => {
+      setIsDraggedOver(true);
+    },
+    onDragLeave: () => {
+      setIsDraggedOver(false);
+    },
+    maxFiles: 1,
+    maxSize: 3000000,
+    multiple: true,
+  });
+  // const { getRootProps, getInputProps } = useDropzone({ maxFiles: 10, maxSize: 3000000, multiple: true, onDrop });
+
+  const removeFile = (file) => {
+    const newFiles = [...files];
+    newFiles.splice(newFiles.indexOf(file), 1);
+    setFiles(newFiles);
+  };
+
+  const removeAll = () => {
+    setFiles([]);
+  };
+
+  const thumbs = files.map((file) => (
+    <div
+      className={styles.thumb}
+      // key={file.name}
+      key={Math.random().toString()}>
+      <div className={styles.thumbInner}>
+        <img
+          src={file.preview}
+          className={styles.img}
+          // Revoke data uri after image is loaded
+          // onLoad={() => {
+          //   URL.revokeObjectURL(file.preview);
+          // }}
+        />
+        <button
+          className={styles.imageRemove}
+          onClick={() => {
+            removeFile(file);
+          }}></button>
+        <span className={styles.fileName}>{file.name}</span>
+      </div>
+    </div>
+  ));
+
+  // useEffect(() => {
+  //   // Make sure to revoke the data uris to avoid memory leaks, will run on unmount
+  //   return () => files.forEach((file) => URL.revokeObjectURL(file.preview));
+  // }, []);
+
+  // return (
+  //   <div {...getRootProps()} className={styles.dragndropWrap}>
+  //     <div className={styles.dragndropField}>
+  //       <input {...getInputProps()} />
+  //       <p className={styles.dragndropText}>Перетащите сюда файлы или нажмите</p>
+  //       <p className={styles.dragndropWarn}>(максимум 10 файлов по 3 Мб)</p>
+  //     </div>
+  //   </div>
+  // );
+
+  return (
+    <>
+      <div className={styles.dragndropWrap}>
+        {!files.length ? (
+          <div
+            {...getRootProps({
+              className: isDraggedOver ? styles.dragndropField + " " + styles.hoveredOver : styles.dragndropField,
+            })}>
+            <input {...getInputProps()} />
+            <span className={styles.dragndropPlaceholder}>Разместить изображение</span>
+            {/* <p className={styles.dragndropText}>Перетащите сюда файлы или нажмите</p>
+      <p className={styles.dragndropWarn}>(максимум 10 файлов по 3 Мб)</p> */}
+          </div>
+        ) : null}
+      </div>
+      {files.length ? <aside className={styles.thumbsContainer}>{thumbs}</aside> : null}
+    </>
+  );
+};
+
 export default function CreateChatAd(props) {
   const router = useRouter();
 
@@ -119,112 +221,12 @@ export default function CreateChatAd(props) {
           Authorization: getCookie("jkh-token"),
         },
       });
+      files.forEach((file) => URL.revokeObjectURL(file.preview));
       dispatch(toggle({ text: "Объявление отправлено на модерацию", type: "success" }));
       router.push("/workers/ads");
     } catch (e) {
       dispatch(toggle({ text: e.response?.data?.message ?? e.message, type: "error" }));
     }
-  };
-  const Dropzone = () => {
-    const [isDraggedOver, setIsDraggedOver] = useState(false);
-
-    const { getRootProps, getInputProps } = useDropzone({
-      accept: {
-        "image/*": [],
-      },
-      onDrop: (acceptedFiles) => {
-        setFiles(
-          files
-            .concat(
-              acceptedFiles.map((file) =>
-                Object.assign(file, {
-                  preview: URL.createObjectURL(file),
-                })
-              )
-            )
-            .slice(0, 10)
-        );
-        setIsDraggedOver(false);
-      },
-      onDragOver: () => {
-        setIsDraggedOver(true);
-      },
-      onDragLeave: () => {
-        setIsDraggedOver(false);
-      },
-      maxFiles: 1,
-      maxSize: 3000000,
-      multiple: true,
-    });
-    // const { getRootProps, getInputProps } = useDropzone({ maxFiles: 10, maxSize: 3000000, multiple: true, onDrop });
-
-    const removeFile = (file) => {
-      const newFiles = [...files];
-      newFiles.splice(newFiles.indexOf(file), 1);
-      setFiles(newFiles);
-    };
-
-    const removeAll = () => {
-      setFiles([]);
-    };
-
-    const thumbs = files.map((file) => (
-      <div
-        className={styles.thumb}
-        // key={file.name}
-        key={Math.random().toString()}>
-        <div className={styles.thumbInner}>
-          <img
-            src={file.preview}
-            className={styles.img}
-            // Revoke data uri after image is loaded
-            onLoad={() => {
-              URL.revokeObjectURL(file.preview);
-            }}
-          />
-          <button
-            className={styles.imageRemove}
-            onClick={() => {
-              removeFile(file);
-            }}></button>
-          <span className={styles.fileName}>{file.name}</span>
-        </div>
-      </div>
-    ));
-
-    useEffect(() => {
-      // Make sure to revoke the data uris to avoid memory leaks, will run on unmount
-      return () => files.forEach((file) => URL.revokeObjectURL(file.preview));
-    }, []);
-
-    // return (
-    //   <div {...getRootProps()} className={styles.dragndropWrap}>
-    //     <div className={styles.dragndropField}>
-    //       <input {...getInputProps()} />
-    //       <p className={styles.dragndropText}>Перетащите сюда файлы или нажмите</p>
-    //       <p className={styles.dragndropWarn}>(максимум 10 файлов по 3 Мб)</p>
-    //     </div>
-    //   </div>
-    // );
-
-    return (
-      <>
-        <div className={styles.dragndropWrap}>
-          {!files.length ? (
-            <div
-              {...getRootProps({
-                className: isDraggedOver ? styles.dragndropField + " " + styles.hoveredOver : styles.dragndropField,
-              })}>
-              <input {...getInputProps()} />
-              <span className={styles.dragndropPlaceholder}>Разместить изображение</span>
-              {/* <p className={styles.dragndropText}>Перетащите сюда файлы или нажмите</p>
-        <p className={styles.dragndropWarn}>(максимум 10 файлов по 3 Мб)</p> */}
-            </div>
-          ) : null}
-        </div>
-        {files.length ? <aside className={styles.thumbsContainer}>{thumbs}</aside> : null}
-      </>
-    );
   };
 
   return (
@@ -247,7 +249,7 @@ export default function CreateChatAd(props) {
             </div>
 
             <div className={styles.fieldWrap}>
-              <Dropzone />
+              <Dropzone files={files} setFiles={setFiles} />
             </div>
 
             <div className={styles.fieldWrap}>

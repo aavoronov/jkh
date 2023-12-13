@@ -278,12 +278,14 @@ export default function LayoutLoggedIn({
               {!!notifications && <span className={styles.notificationsNumber}>{notifications > 99 ? "99+" : notifications}</span>}
             </div>
           )}
-          <div className={styles.userWrap}>
-            <div className={styles.userNameWrap}>
-              <Image src={user} alt='' />
+          <Link href='/personal'>
+            <div className={styles.userWrap}>
+              <div className={styles.userNameWrap}>
+                <Image src={user} alt='' />
+              </div>
+              <span className={styles.name}>{pseudonym}</span>
             </div>
-            <span className={styles.name}>{pseudonym}</span>
-          </div>
+          </Link>
           <div
             className={styles.dropdownBtn}
             onMouseEnter={() => setDropdownVisible(true)}
